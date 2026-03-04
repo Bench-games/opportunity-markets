@@ -27,10 +27,10 @@ import {
   type InstructionWithAccounts,
   type InstructionWithData,
   type ReadonlyAccount,
+  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
-  type WritableSignerAccount,
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import {
@@ -39,24 +39,23 @@ import {
   type ResolvedAccount,
 } from '../shared';
 
-export const CLAIM_PENDING_DEPOSIT_DISCRIMINATOR = new Uint8Array([
-  236, 140, 88, 225, 51, 46, 77, 249,
+export const CLAIM_FEES_DISCRIMINATOR = new Uint8Array([
+  82, 251, 233, 156, 12, 52, 184, 202,
 ]);
 
-export function getClaimPendingDepositDiscriminatorBytes() {
-  return fixEncoderSize(getBytesEncoder(), 8).encode(
-    CLAIM_PENDING_DEPOSIT_DISCRIMINATOR
-  );
+export function getClaimFeesDiscriminatorBytes() {
+  return fixEncoderSize(getBytesEncoder(), 8).encode(CLAIM_FEES_DISCRIMINATOR);
 }
 
-export type ClaimPendingDepositInstruction<
+export type ClaimFeesInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountSigner extends string | AccountMeta<string> = string,
+  TAccountCentralState extends string | AccountMeta<string> = string,
   TAccountTokenMint extends string | AccountMeta<string> = string,
-  TAccountEncryptedTokenAccount extends string | AccountMeta<string> = string,
   TAccountTokenVault extends string | AccountMeta<string> = string,
   TAccountTokenVaultAta extends string | AccountMeta<string> = string,
-  TAccountSignerTokenAccount extends string | AccountMeta<string> = string,
+  TAccountFeeRecipientTokenAccount extends string | AccountMeta<string> =
+    string,
   TAccountTokenProgram extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
@@ -64,24 +63,24 @@ export type ClaimPendingDepositInstruction<
   InstructionWithAccounts<
     [
       TAccountSigner extends string
-        ? WritableSignerAccount<TAccountSigner> &
+        ? ReadonlySignerAccount<TAccountSigner> &
             AccountSignerMeta<TAccountSigner>
         : TAccountSigner,
+      TAccountCentralState extends string
+        ? ReadonlyAccount<TAccountCentralState>
+        : TAccountCentralState,
       TAccountTokenMint extends string
         ? ReadonlyAccount<TAccountTokenMint>
         : TAccountTokenMint,
-      TAccountEncryptedTokenAccount extends string
-        ? WritableAccount<TAccountEncryptedTokenAccount>
-        : TAccountEncryptedTokenAccount,
       TAccountTokenVault extends string
-        ? ReadonlyAccount<TAccountTokenVault>
+        ? WritableAccount<TAccountTokenVault>
         : TAccountTokenVault,
       TAccountTokenVaultAta extends string
         ? WritableAccount<TAccountTokenVaultAta>
         : TAccountTokenVaultAta,
-      TAccountSignerTokenAccount extends string
-        ? WritableAccount<TAccountSignerTokenAccount>
-        : TAccountSignerTokenAccount,
+      TAccountFeeRecipientTokenAccount extends string
+        ? WritableAccount<TAccountFeeRecipientTokenAccount>
+        : TAccountFeeRecipientTokenAccount,
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
@@ -89,88 +88,80 @@ export type ClaimPendingDepositInstruction<
     ]
   >;
 
-export type ClaimPendingDepositInstructionData = {
-  discriminator: ReadonlyUint8Array;
-};
+export type ClaimFeesInstructionData = { discriminator: ReadonlyUint8Array };
 
-export type ClaimPendingDepositInstructionDataArgs = {};
+export type ClaimFeesInstructionDataArgs = {};
 
-export function getClaimPendingDepositInstructionDataEncoder(): FixedSizeEncoder<ClaimPendingDepositInstructionDataArgs> {
+export function getClaimFeesInstructionDataEncoder(): FixedSizeEncoder<ClaimFeesInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
-    (value) => ({
-      ...value,
-      discriminator: CLAIM_PENDING_DEPOSIT_DISCRIMINATOR,
-    })
+    (value) => ({ ...value, discriminator: CLAIM_FEES_DISCRIMINATOR })
   );
 }
 
-export function getClaimPendingDepositInstructionDataDecoder(): FixedSizeDecoder<ClaimPendingDepositInstructionData> {
+export function getClaimFeesInstructionDataDecoder(): FixedSizeDecoder<ClaimFeesInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
   ]);
 }
 
-export function getClaimPendingDepositInstructionDataCodec(): FixedSizeCodec<
-  ClaimPendingDepositInstructionDataArgs,
-  ClaimPendingDepositInstructionData
+export function getClaimFeesInstructionDataCodec(): FixedSizeCodec<
+  ClaimFeesInstructionDataArgs,
+  ClaimFeesInstructionData
 > {
   return combineCodec(
-    getClaimPendingDepositInstructionDataEncoder(),
-    getClaimPendingDepositInstructionDataDecoder()
+    getClaimFeesInstructionDataEncoder(),
+    getClaimFeesInstructionDataDecoder()
   );
 }
 
-export type ClaimPendingDepositAsyncInput<
+export type ClaimFeesAsyncInput<
   TAccountSigner extends string = string,
+  TAccountCentralState extends string = string,
   TAccountTokenMint extends string = string,
-  TAccountEncryptedTokenAccount extends string = string,
   TAccountTokenVault extends string = string,
   TAccountTokenVaultAta extends string = string,
-  TAccountSignerTokenAccount extends string = string,
+  TAccountFeeRecipientTokenAccount extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
+  centralState?: Address<TAccountCentralState>;
   tokenMint: Address<TAccountTokenMint>;
-  encryptedTokenAccount: Address<TAccountEncryptedTokenAccount>;
-  /** Token vault holding all wrapped tokens */
   tokenVault?: Address<TAccountTokenVault>;
-  /** ATA owned by TokenVault PDA (source of pending tokens) */
   tokenVaultAta?: Address<TAccountTokenVaultAta>;
-  /** Signer's token account (destination for claimed tokens) */
-  signerTokenAccount: Address<TAccountSignerTokenAccount>;
+  feeRecipientTokenAccount: Address<TAccountFeeRecipientTokenAccount>;
   tokenProgram: Address<TAccountTokenProgram>;
 };
 
-export async function getClaimPendingDepositInstructionAsync<
+export async function getClaimFeesInstructionAsync<
   TAccountSigner extends string,
+  TAccountCentralState extends string,
   TAccountTokenMint extends string,
-  TAccountEncryptedTokenAccount extends string,
   TAccountTokenVault extends string,
   TAccountTokenVaultAta extends string,
-  TAccountSignerTokenAccount extends string,
+  TAccountFeeRecipientTokenAccount extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: ClaimPendingDepositAsyncInput<
+  input: ClaimFeesAsyncInput<
     TAccountSigner,
+    TAccountCentralState,
     TAccountTokenMint,
-    TAccountEncryptedTokenAccount,
     TAccountTokenVault,
     TAccountTokenVaultAta,
-    TAccountSignerTokenAccount,
+    TAccountFeeRecipientTokenAccount,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
 ): Promise<
-  ClaimPendingDepositInstruction<
+  ClaimFeesInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountCentralState,
     TAccountTokenMint,
-    TAccountEncryptedTokenAccount,
     TAccountTokenVault,
     TAccountTokenVaultAta,
-    TAccountSignerTokenAccount,
+    TAccountFeeRecipientTokenAccount,
     TAccountTokenProgram
   >
 > {
@@ -180,16 +171,13 @@ export async function getClaimPendingDepositInstructionAsync<
 
   // Original accounts.
   const originalAccounts = {
-    signer: { value: input.signer ?? null, isWritable: true },
+    signer: { value: input.signer ?? null, isWritable: false },
+    centralState: { value: input.centralState ?? null, isWritable: false },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
-    encryptedTokenAccount: {
-      value: input.encryptedTokenAccount ?? null,
-      isWritable: true,
-    },
-    tokenVault: { value: input.tokenVault ?? null, isWritable: false },
+    tokenVault: { value: input.tokenVault ?? null, isWritable: true },
     tokenVaultAta: { value: input.tokenVaultAta ?? null, isWritable: true },
-    signerTokenAccount: {
-      value: input.signerTokenAccount ?? null,
+    feeRecipientTokenAccount: {
+      value: input.feeRecipientTokenAccount ?? null,
       isWritable: true,
     },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
@@ -200,6 +188,18 @@ export async function getClaimPendingDepositInstructionAsync<
   >;
 
   // Resolve default values.
+  if (!accounts.centralState.value) {
+    accounts.centralState.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([
+            99, 101, 110, 116, 114, 97, 108, 95, 115, 116, 97, 116, 101,
+          ])
+        ),
+      ],
+    });
+  }
   if (!accounts.tokenVault.value) {
     accounts.tokenVault.value = await getProgramDerivedAddress({
       programAddress,
@@ -227,76 +227,73 @@ export async function getClaimPendingDepositInstructionAsync<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
+      getAccountMeta(accounts.centralState),
       getAccountMeta(accounts.tokenMint),
-      getAccountMeta(accounts.encryptedTokenAccount),
       getAccountMeta(accounts.tokenVault),
       getAccountMeta(accounts.tokenVaultAta),
-      getAccountMeta(accounts.signerTokenAccount),
+      getAccountMeta(accounts.feeRecipientTokenAccount),
       getAccountMeta(accounts.tokenProgram),
     ],
-    data: getClaimPendingDepositInstructionDataEncoder().encode({}),
+    data: getClaimFeesInstructionDataEncoder().encode({}),
     programAddress,
-  } as ClaimPendingDepositInstruction<
+  } as ClaimFeesInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountCentralState,
     TAccountTokenMint,
-    TAccountEncryptedTokenAccount,
     TAccountTokenVault,
     TAccountTokenVaultAta,
-    TAccountSignerTokenAccount,
+    TAccountFeeRecipientTokenAccount,
     TAccountTokenProgram
   >);
 }
 
-export type ClaimPendingDepositInput<
+export type ClaimFeesInput<
   TAccountSigner extends string = string,
+  TAccountCentralState extends string = string,
   TAccountTokenMint extends string = string,
-  TAccountEncryptedTokenAccount extends string = string,
   TAccountTokenVault extends string = string,
   TAccountTokenVaultAta extends string = string,
-  TAccountSignerTokenAccount extends string = string,
+  TAccountFeeRecipientTokenAccount extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
+  centralState: Address<TAccountCentralState>;
   tokenMint: Address<TAccountTokenMint>;
-  encryptedTokenAccount: Address<TAccountEncryptedTokenAccount>;
-  /** Token vault holding all wrapped tokens */
   tokenVault: Address<TAccountTokenVault>;
-  /** ATA owned by TokenVault PDA (source of pending tokens) */
   tokenVaultAta: Address<TAccountTokenVaultAta>;
-  /** Signer's token account (destination for claimed tokens) */
-  signerTokenAccount: Address<TAccountSignerTokenAccount>;
+  feeRecipientTokenAccount: Address<TAccountFeeRecipientTokenAccount>;
   tokenProgram: Address<TAccountTokenProgram>;
 };
 
-export function getClaimPendingDepositInstruction<
+export function getClaimFeesInstruction<
   TAccountSigner extends string,
+  TAccountCentralState extends string,
   TAccountTokenMint extends string,
-  TAccountEncryptedTokenAccount extends string,
   TAccountTokenVault extends string,
   TAccountTokenVaultAta extends string,
-  TAccountSignerTokenAccount extends string,
+  TAccountFeeRecipientTokenAccount extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: ClaimPendingDepositInput<
+  input: ClaimFeesInput<
     TAccountSigner,
+    TAccountCentralState,
     TAccountTokenMint,
-    TAccountEncryptedTokenAccount,
     TAccountTokenVault,
     TAccountTokenVaultAta,
-    TAccountSignerTokenAccount,
+    TAccountFeeRecipientTokenAccount,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
-): ClaimPendingDepositInstruction<
+): ClaimFeesInstruction<
   TProgramAddress,
   TAccountSigner,
+  TAccountCentralState,
   TAccountTokenMint,
-  TAccountEncryptedTokenAccount,
   TAccountTokenVault,
   TAccountTokenVaultAta,
-  TAccountSignerTokenAccount,
+  TAccountFeeRecipientTokenAccount,
   TAccountTokenProgram
 > {
   // Program address.
@@ -305,16 +302,13 @@ export function getClaimPendingDepositInstruction<
 
   // Original accounts.
   const originalAccounts = {
-    signer: { value: input.signer ?? null, isWritable: true },
+    signer: { value: input.signer ?? null, isWritable: false },
+    centralState: { value: input.centralState ?? null, isWritable: false },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
-    encryptedTokenAccount: {
-      value: input.encryptedTokenAccount ?? null,
-      isWritable: true,
-    },
-    tokenVault: { value: input.tokenVault ?? null, isWritable: false },
+    tokenVault: { value: input.tokenVault ?? null, isWritable: true },
     tokenVaultAta: { value: input.tokenVaultAta ?? null, isWritable: true },
-    signerTokenAccount: {
-      value: input.signerTokenAccount ?? null,
+    feeRecipientTokenAccount: {
+      value: input.feeRecipientTokenAccount ?? null,
       isWritable: true,
     },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
@@ -328,55 +322,52 @@ export function getClaimPendingDepositInstruction<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
+      getAccountMeta(accounts.centralState),
       getAccountMeta(accounts.tokenMint),
-      getAccountMeta(accounts.encryptedTokenAccount),
       getAccountMeta(accounts.tokenVault),
       getAccountMeta(accounts.tokenVaultAta),
-      getAccountMeta(accounts.signerTokenAccount),
+      getAccountMeta(accounts.feeRecipientTokenAccount),
       getAccountMeta(accounts.tokenProgram),
     ],
-    data: getClaimPendingDepositInstructionDataEncoder().encode({}),
+    data: getClaimFeesInstructionDataEncoder().encode({}),
     programAddress,
-  } as ClaimPendingDepositInstruction<
+  } as ClaimFeesInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountCentralState,
     TAccountTokenMint,
-    TAccountEncryptedTokenAccount,
     TAccountTokenVault,
     TAccountTokenVaultAta,
-    TAccountSignerTokenAccount,
+    TAccountFeeRecipientTokenAccount,
     TAccountTokenProgram
   >);
 }
 
-export type ParsedClaimPendingDepositInstruction<
+export type ParsedClaimFeesInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
   programAddress: Address<TProgram>;
   accounts: {
     signer: TAccountMetas[0];
-    tokenMint: TAccountMetas[1];
-    encryptedTokenAccount: TAccountMetas[2];
-    /** Token vault holding all wrapped tokens */
+    centralState: TAccountMetas[1];
+    tokenMint: TAccountMetas[2];
     tokenVault: TAccountMetas[3];
-    /** ATA owned by TokenVault PDA (source of pending tokens) */
     tokenVaultAta: TAccountMetas[4];
-    /** Signer's token account (destination for claimed tokens) */
-    signerTokenAccount: TAccountMetas[5];
+    feeRecipientTokenAccount: TAccountMetas[5];
     tokenProgram: TAccountMetas[6];
   };
-  data: ClaimPendingDepositInstructionData;
+  data: ClaimFeesInstructionData;
 };
 
-export function parseClaimPendingDepositInstruction<
+export function parseClaimFeesInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedClaimPendingDepositInstruction<TProgram, TAccountMetas> {
+): ParsedClaimFeesInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 7) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
@@ -391,15 +382,13 @@ export function parseClaimPendingDepositInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       signer: getNextAccount(),
+      centralState: getNextAccount(),
       tokenMint: getNextAccount(),
-      encryptedTokenAccount: getNextAccount(),
       tokenVault: getNextAccount(),
       tokenVaultAta: getNextAccount(),
-      signerTokenAccount: getNextAccount(),
+      feeRecipientTokenAccount: getNextAccount(),
       tokenProgram: getNextAccount(),
     },
-    data: getClaimPendingDepositInstructionDataDecoder().decode(
-      instruction.data
-    ),
+    data: getClaimFeesInstructionDataDecoder().decode(instruction.data),
   };
 }

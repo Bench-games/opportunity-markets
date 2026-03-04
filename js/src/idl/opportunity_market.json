@@ -518,6 +518,146 @@
       "args": []
     },
     {
+      "name": "claim_fees",
+      "discriminator": [
+        82,
+        251,
+        233,
+        156,
+        12,
+        52,
+        184,
+        202
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_vault_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "token_vault"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "fee_recipient_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "claim_pending_deposit",
       "discriminator": [
         236,
@@ -564,6 +704,10 @@
                   108,
                   116
                 ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
               }
             ]
           }
@@ -1689,6 +1833,14 @@
         {
           "name": "min_option_deposit",
           "type": "u64"
+        },
+        {
+          "name": "protocol_fee_bp",
+          "type": "u16"
+        },
+        {
+          "name": "fee_recipient",
+          "type": "pubkey"
         }
       ]
     },
@@ -2035,6 +2187,9 @@
           "signer": true
         },
         {
+          "name": "token_mint"
+        },
+        {
           "name": "token_vault",
           "writable": true,
           "pda": {
@@ -2053,6 +2208,35 @@
                   117,
                   108,
                   116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
                 ]
               }
             ]
@@ -2900,6 +3084,10 @@
                   108,
                   116
                 ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
               }
             ]
           }
@@ -3246,6 +3434,14 @@
         {
           "name": "min_option_deposit",
           "type": "u64"
+        },
+        {
+          "name": "protocol_fee_bp",
+          "type": "u16"
+        },
+        {
+          "name": "fee_recipient",
+          "type": "pubkey"
         }
       ]
     },
@@ -3286,6 +3482,7 @@
           "docs": [
             "Token vault holding all wrapped tokens"
           ],
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -3303,6 +3500,10 @@
                   108,
                   116
                 ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
               }
             ]
           }
@@ -3810,6 +4011,19 @@
       ]
     },
     {
+      "name": "FeesClaimedEvent",
+      "discriminator": [
+        69,
+        22,
+        213,
+        206,
+        103,
+        202,
+        98,
+        163
+      ]
+    },
+    {
       "name": "MarketCreatedEvent",
       "discriminator": [
         130,
@@ -4107,7 +4321,7 @@
     {
       "code": 6017,
       "name": "InvalidMint",
-      "msg": "Token mint does not match market mint"
+      "msg": "Token mint does not match account mint"
     },
     {
       "code": 6018,
@@ -4153,6 +4367,11 @@
       "code": 6026,
       "name": "ClosingEarlyNotAllowed",
       "msg": "Market cannot be closed before stake period ends"
+    },
+    {
+      "code": 6027,
+      "name": "NoFeesToClaim",
+      "msg": "No fees to claim"
     }
   ],
   "types": [
@@ -4374,6 +4593,14 @@
           {
             "name": "min_option_deposit",
             "type": "u64"
+          },
+          {
+            "name": "protocol_fee_bp",
+            "type": "u16"
+          },
+          {
+            "name": "fee_recipient",
+            "type": "pubkey"
           }
         ]
       }
@@ -4959,6 +5186,34 @@
           {
             "name": "bump",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeesClaimedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "token_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_recipient",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }
@@ -6133,6 +6388,18 @@
           {
             "name": "fund_manager",
             "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "collected_fees",
+            "type": "u64"
+          },
+          {
+            "name": "protocol_fee_bp",
+            "type": "u16"
           }
         ]
       }

@@ -24,6 +24,7 @@ export * from './ephemeralAccountClosedError';
 export * from './ephemeralAccountClosedEvent';
 export * from './ephemeralEncryptedTokenAccountInitializedEvent';
 export * from './epoch';
+export * from './feesClaimedEvent';
 export * from './localCircuitSource';
 export * from './marketCreatedEvent';
 export * from './marketOpenedEvent';

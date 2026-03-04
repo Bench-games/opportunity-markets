@@ -36,7 +36,7 @@ pub enum ErrorCode {
     Overflow,
     #[msg("Reveal period has already ended")]
     RevealPeriodEnded,
-    #[msg("Token mint does not match market mint")]
+    #[msg("Token mint does not match account mint")]
     InvalidMint,
     #[msg("Shares already unstaked")]
     AlreadyUnstaked,
@@ -56,4 +56,6 @@ pub enum ErrorCode {
     UnstakeNotInitiated,
     #[msg("Market cannot be closed before stake period ends")]
     ClosingEarlyNotAllowed,
+    #[msg("No fees to claim")]
+    NoFeesToClaim,
 }

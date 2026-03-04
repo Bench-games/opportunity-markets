@@ -1,3 +1,4 @@
+pub mod claim_fees;
 pub mod add_market_option;
 pub mod add_market_option_as_creator;
 pub mod stake;
@@ -23,6 +24,7 @@ pub mod unstake_early;
 pub mod do_unstake_early;
 pub mod update_central_state;
 
+pub use claim_fees::*;
 pub use add_market_option::*;
 pub use add_market_option_as_creator::*;
 pub use stake::*;

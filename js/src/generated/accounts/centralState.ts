@@ -21,6 +21,8 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
+  getU16Decoder,
+  getU16Encoder,
   getU64Decoder,
   getU64Encoder,
   getU8Decoder,
@@ -55,6 +57,8 @@ export type CentralState = {
   earlinessCutoffSeconds: bigint;
   authority: Address;
   minOptionDeposit: bigint;
+  protocolFeeBp: number;
+  feeRecipient: Address;
 };
 
 export type CentralStateArgs = {
@@ -62,6 +66,8 @@ export type CentralStateArgs = {
   earlinessCutoffSeconds: number | bigint;
   authority: Address;
   minOptionDeposit: number | bigint;
+  protocolFeeBp: number;
+  feeRecipient: Address;
 };
 
 export function getCentralStateEncoder(): FixedSizeEncoder<CentralStateArgs> {
@@ -72,6 +78,8 @@ export function getCentralStateEncoder(): FixedSizeEncoder<CentralStateArgs> {
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['authority', getAddressEncoder()],
       ['minOptionDeposit', getU64Encoder()],
+      ['protocolFeeBp', getU16Encoder()],
+      ['feeRecipient', getAddressEncoder()],
     ]),
     (value) => ({ ...value, discriminator: CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -84,6 +92,8 @@ export function getCentralStateDecoder(): FixedSizeDecoder<CentralState> {
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['authority', getAddressDecoder()],
     ['minOptionDeposit', getU64Decoder()],
+    ['protocolFeeBp', getU16Decoder()],
+    ['feeRecipient', getAddressDecoder()],
   ]);
 }
 

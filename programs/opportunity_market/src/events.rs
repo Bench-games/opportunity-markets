@@ -218,3 +218,12 @@ pub struct ShareAccountInitializedEvent {
     pub market: Pubkey,
     pub timestamp: i64,
 }
+
+#[event]
+pub struct FeesClaimedEvent {
+    pub token_vault: Pubkey,
+    pub mint: Pubkey,
+    pub fee_recipient: Pubkey,
+    pub amount: u64,
+    pub timestamp: i64,
+}

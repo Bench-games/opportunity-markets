@@ -51,8 +51,10 @@ pub mod opportunity_market {
         ctx: Context<InitCentralState>,
         earliness_cutoff_seconds: u64,
         min_option_deposit: u64,
+        protocol_fee_bp: u16,
+        fee_recipient: Pubkey,
     ) -> Result<()> {
-        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit)
+        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient)
     }
 
     pub fn transfer_central_state_authority(
@@ -66,8 +68,10 @@ pub mod opportunity_market {
         ctx: Context<UpdateCentralState>,
         earliness_cutoff_seconds: u64,
         min_option_deposit: u64,
+        protocol_fee_bp: u16,
+        fee_recipient: Pubkey,
     ) -> Result<()> {
-        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit)
+        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient)
     }
 
     pub fn create_market(
@@ -154,6 +158,10 @@ pub mod opportunity_market {
 
     pub fn claim_pending_deposit(ctx: Context<ClaimPendingDeposit>) -> Result<()> {
         instructions::claim_pending_deposit(ctx)
+    }
+
+    pub fn claim_fees(ctx: Context<ClaimFees>) -> Result<()> {
+        instructions::claim_fees(ctx)
     }
 
     pub fn init_share_account(

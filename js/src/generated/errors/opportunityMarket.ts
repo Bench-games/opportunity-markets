@@ -48,7 +48,7 @@ export const OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED = 0x177e; // 60
 export const OPPORTUNITY_MARKET_ERROR__OVERFLOW = 0x177f; // 6015
 /** RevealPeriodEnded: Reveal period has already ended */
 export const OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED = 0x1780; // 6016
-/** InvalidMint: Token mint does not match market mint */
+/** InvalidMint: Token mint does not match account mint */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_MINT = 0x1781; // 6017
 /** AlreadyUnstaked: Shares already unstaked */
 export const OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED = 0x1782; // 6018
@@ -68,6 +68,8 @@ export const OPPORTUNITY_MARKET_ERROR__UNSTAKE_DELAY_NOT_MET = 0x1788; // 6024
 export const OPPORTUNITY_MARKET_ERROR__UNSTAKE_NOT_INITIATED = 0x1789; // 6025
 /** ClosingEarlyNotAllowed: Market cannot be closed before stake period ends */
 export const OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED = 0x178a; // 6026
+/** NoFeesToClaim: No fees to claim */
+export const OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM = 0x178b; // 6027
 
 export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__ABORTED_COMPUTATION
@@ -88,6 +90,7 @@ export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__MARKET_ALREADY_OPEN
   | typeof OPPORTUNITY_MARKET_ERROR__MARKET_NOT_OPEN
   | typeof OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED
+  | typeof OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM
   | typeof OPPORTUNITY_MARKET_ERROR__NOT_REVEALED
   | typeof OPPORTUNITY_MARKET_ERROR__OVERFLOW
   | typeof OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED
@@ -114,13 +117,14 @@ if (process.env.NODE_ENV !== 'production') {
     [OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_BALANCE]: `Insufficient balance`,
     [OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_REWARD_FUNDING]: `Insufficient reward funding`,
     [OPPORTUNITY_MARKET_ERROR__INVALID_ACCOUNT_STATE]: `Invalid account state`,
-    [OPPORTUNITY_MARKET_ERROR__INVALID_MINT]: `Token mint does not match market mint`,
+    [OPPORTUNITY_MARKET_ERROR__INVALID_MINT]: `Token mint does not match account mint`,
     [OPPORTUNITY_MARKET_ERROR__INVALID_OPTION_INDEX]: `Invalid option index`,
     [OPPORTUNITY_MARKET_ERROR__INVALID_TIMESTAMP]: `Timestamp must be in the future`,
     [OPPORTUNITY_MARKET_ERROR__LOCKED]: `Account is locked`,
     [OPPORTUNITY_MARKET_ERROR__MARKET_ALREADY_OPEN]: `Market is already open`,
     [OPPORTUNITY_MARKET_ERROR__MARKET_NOT_OPEN]: `Market is not open`,
     [OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED]: `Staking period not over`,
+    [OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM]: `No fees to claim`,
     [OPPORTUNITY_MARKET_ERROR__NOT_REVEALED]: `Shares not yet revealed`,
     [OPPORTUNITY_MARKET_ERROR__OVERFLOW]: `Arithmetic overflow`,
     [OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED]: `Reveal period has already ended`,

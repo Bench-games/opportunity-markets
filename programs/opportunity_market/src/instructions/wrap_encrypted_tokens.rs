@@ -40,8 +40,10 @@ pub struct WrapEncryptedTokens<'info> {
 
     /// Token vault holding all wrapped tokens
     #[account(
-        seeds = [TOKEN_VAULT_SEED],
+        mut,
+        seeds = [TOKEN_VAULT_SEED, token_mint.key().as_ref()],
         bump = token_vault.bump,
+        constraint = token_vault.mint == token_mint.key() @ ErrorCode::InvalidMint,
     )]
     pub token_vault: Box<Account<'info, TokenVault>>,
 
@@ -97,7 +99,16 @@ pub fn wrap_encrypted_tokens(
     let user_pubkey = eta.user_pubkey;
     let eta_pubkey = eta.key();
 
-    // Transfer SPL tokens from signer's token account to TokenVault's ATA
+    // Calculate protocol fee
+    let fee = amount
+        .checked_mul(ctx.accounts.token_vault.protocol_fee_bp as u64)
+        .ok_or(ErrorCode::Overflow)?
+        / 10_000;
+    let net_amount = amount
+        .checked_sub(fee)
+        .ok_or(ErrorCode::Overflow)?;
+
+    // Transfer full amount to vault ATA (fee is kept in vault, tracked separately)
     transfer_checked(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -112,11 +123,18 @@ pub fn wrap_encrypted_tokens(
         ctx.accounts.token_mint.decimals,
     )?;
 
-    // Track the pending deposit for safety (can be reclaimed if callback fails)
+    // Track collected fees
+    let token_vault = &mut ctx.accounts.token_vault;
+    token_vault.collected_fees = token_vault
+        .collected_fees
+        .checked_add(fee)
+        .ok_or(ErrorCode::Overflow)?;
+
+    // Track the pending deposit (net of fee, fee is non-refundable)
     // Lock
     eta.pending_deposit = eta
         .pending_deposit
-        .checked_add(amount)
+        .checked_add(net_amount)
         .ok_or(ErrorCode::Overflow)?;
     eta.locked = true;
 
@@ -128,7 +146,7 @@ pub fn wrap_encrypted_tokens(
         .plaintext_u128(eta.state_nonce)
         .account(eta_pubkey, 8, 32 * 1)
         .plaintext_bool(is_initialized)
-        .plaintext_u64(amount)
+        .plaintext_u64(net_amount)
         .build();
 
     // Queue computation with callback

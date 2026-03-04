@@ -342,6 +342,7 @@ export async function getUnwrapEncryptedTokensInstructionAsync<
         getBytesEncoder().encode(
           new Uint8Array([116, 111, 107, 101, 110, 95, 118, 97, 117, 108, 116])
         ),
+        getAddressEncoder().encode(expectAddress(accounts.tokenMint.value)),
       ],
     });
   }

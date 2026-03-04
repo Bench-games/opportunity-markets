@@ -23,8 +23,9 @@ pub struct ClaimPendingDeposit<'info> {
 
     /// Token vault holding all wrapped tokens
     #[account(
-        seeds = [TOKEN_VAULT_SEED],
+        seeds = [TOKEN_VAULT_SEED, token_mint.key().as_ref()],
         bump = token_vault.bump,
+        constraint = token_vault.mint == token_mint.key() @ ErrorCode::InvalidMint,
     )]
     pub token_vault: Account<'info, TokenVault>,
 
@@ -61,8 +62,10 @@ pub fn claim_pending_deposit(ctx: Context<ClaimPendingDeposit>) -> Result<()> {
 
     // Transfer pending tokens from TokenVault ATA back to signer
     let vault_bump = ctx.accounts.token_vault.bump;
+    let mint_key = ctx.accounts.token_mint.key();
     let signer_seeds: &[&[&[u8]]] = &[&[
         TOKEN_VAULT_SEED,
+        mint_key.as_ref(),
         &[vault_bump],
     ]];
 

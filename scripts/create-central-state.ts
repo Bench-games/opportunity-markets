@@ -81,7 +81,9 @@ async function main() {
     {
       payer,
       earlinessCutoffSeconds: EARLINESS_CUTOFF_SECONDS,
-      minOptionDeposit: MIN_OPTION_DEPOSIT
+      minOptionDeposit: MIN_OPTION_DEPOSIT,
+      protocolFeeBp: 0,
+      feeRecipient: payer.address,
     },
     { programAddress: PROGRAM_ID }
   );

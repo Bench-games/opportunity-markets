@@ -5,6 +5,9 @@ use anchor_lang::prelude::*;
 pub struct TokenVault {
     pub bump: u8,
     pub fund_manager: Pubkey,
+    pub mint: Pubkey,
+    pub collected_fees: u64,
+    pub protocol_fee_bp: u16,
 }
 
 #[account]
@@ -20,6 +23,12 @@ pub struct CentralState {
 
     // Minimum deposit required when creating a market option
     pub min_option_deposit: u64,
+
+    // Protocol fee in basis points (e.g. 100 = 1%)
+    pub protocol_fee_bp: u16,
+
+    // Receives claimed fees
+    pub fee_recipient: Pubkey,
 }
 
 #[account]

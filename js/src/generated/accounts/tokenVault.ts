@@ -21,6 +21,10 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
+  getU16Decoder,
+  getU16Encoder,
+  getU64Decoder,
+  getU64Encoder,
   getU8Decoder,
   getU8Encoder,
   transformEncoder,
@@ -49,9 +53,18 @@ export type TokenVault = {
   discriminator: ReadonlyUint8Array;
   bump: number;
   fundManager: Address;
+  mint: Address;
+  collectedFees: bigint;
+  protocolFeeBp: number;
 };
 
-export type TokenVaultArgs = { bump: number; fundManager: Address };
+export type TokenVaultArgs = {
+  bump: number;
+  fundManager: Address;
+  mint: Address;
+  collectedFees: number | bigint;
+  protocolFeeBp: number;
+};
 
 export function getTokenVaultEncoder(): FixedSizeEncoder<TokenVaultArgs> {
   return transformEncoder(
@@ -59,6 +72,9 @@ export function getTokenVaultEncoder(): FixedSizeEncoder<TokenVaultArgs> {
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['bump', getU8Encoder()],
       ['fundManager', getAddressEncoder()],
+      ['mint', getAddressEncoder()],
+      ['collectedFees', getU64Encoder()],
+      ['protocolFeeBp', getU16Encoder()],
     ]),
     (value) => ({ ...value, discriminator: TOKEN_VAULT_DISCRIMINATOR })
   );
@@ -69,6 +85,9 @@ export function getTokenVaultDecoder(): FixedSizeDecoder<TokenVault> {
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['bump', getU8Decoder()],
     ['fundManager', getAddressDecoder()],
+    ['mint', getAddressDecoder()],
+    ['collectedFees', getU64Decoder()],
+    ['protocolFeeBp', getU16Decoder()],
   ]);
 }
 

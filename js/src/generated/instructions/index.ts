@@ -12,6 +12,7 @@ export * from './addOptionStakeCallback';
 export * from './addOptionStakeCompDef';
 export * from './buyOpportunityMarketSharesCallback';
 export * from './buyOpportunityMarketSharesCompDef';
+export * from './claimFees';
 export * from './claimPendingDeposit';
 export * from './closeEphemeralEncryptedTokenAccount';
 export * from './closeEphemeralEncryptedTokenAccountCallback';

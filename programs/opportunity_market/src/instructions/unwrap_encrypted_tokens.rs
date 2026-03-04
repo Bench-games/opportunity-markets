@@ -32,8 +32,9 @@ pub struct UnwrapEncryptedTokens<'info> {
 
     /// Token vault holding all wrapped tokens
     #[account(
-        seeds = [TOKEN_VAULT_SEED],
+        seeds = [TOKEN_VAULT_SEED, token_mint.key().as_ref()],
         bump = token_vault.bump,
+        constraint = token_vault.mint == token_mint.key() @ ErrorCode::InvalidMint,
     )]
     pub token_vault: Box<Account<'info, TokenVault>>,
 
@@ -229,8 +230,10 @@ pub fn unwrap_encrypted_tokens_callback(
     // If tokens were sold, transfer SPL tokens from TokenVault's ATA to user's token account
     if amount_sold > 0 {
         let vault_bump = ctx.accounts.token_vault.bump;
+        let mint_key = ctx.accounts.token_mint.key();
         let signer_seeds: &[&[&[u8]]] = &[&[
             TOKEN_VAULT_SEED,
+            mint_key.as_ref(),
             &[vault_bump],
         ]];
 

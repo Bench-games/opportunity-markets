@@ -10,11 +10,15 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressDecoder,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
+  getU16Decoder,
+  getU16Encoder,
   getU64Decoder,
   getU64Encoder,
   transformEncoder,
@@ -75,11 +79,15 @@ export type InitCentralStateInstructionData = {
   discriminator: ReadonlyUint8Array;
   earlinessCutoffSeconds: bigint;
   minOptionDeposit: bigint;
+  protocolFeeBp: number;
+  feeRecipient: Address;
 };
 
 export type InitCentralStateInstructionDataArgs = {
   earlinessCutoffSeconds: number | bigint;
   minOptionDeposit: number | bigint;
+  protocolFeeBp: number;
+  feeRecipient: Address;
 };
 
 export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<InitCentralStateInstructionDataArgs> {
@@ -88,6 +96,8 @@ export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<In
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['minOptionDeposit', getU64Encoder()],
+      ['protocolFeeBp', getU16Encoder()],
+      ['feeRecipient', getAddressEncoder()],
     ]),
     (value) => ({ ...value, discriminator: INIT_CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -98,6 +108,8 @@ export function getInitCentralStateInstructionDataDecoder(): FixedSizeDecoder<In
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['minOptionDeposit', getU64Decoder()],
+    ['protocolFeeBp', getU16Decoder()],
+    ['feeRecipient', getAddressDecoder()],
   ]);
 }
 
@@ -121,6 +133,8 @@ export type InitCentralStateAsyncInput<
   systemProgram?: Address<TAccountSystemProgram>;
   earlinessCutoffSeconds: InitCentralStateInstructionDataArgs['earlinessCutoffSeconds'];
   minOptionDeposit: InitCentralStateInstructionDataArgs['minOptionDeposit'];
+  protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
+  feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
 };
 
 export async function getInitCentralStateInstructionAsync<
@@ -208,6 +222,8 @@ export type InitCentralStateInput<
   systemProgram?: Address<TAccountSystemProgram>;
   earlinessCutoffSeconds: InitCentralStateInstructionDataArgs['earlinessCutoffSeconds'];
   minOptionDeposit: InitCentralStateInstructionDataArgs['minOptionDeposit'];
+  protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
+  feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
 };
 
 export function getInitCentralStateInstruction<

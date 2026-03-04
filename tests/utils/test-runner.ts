@@ -26,6 +26,7 @@ import {
   createMarket,
   fetchOpportunityMarket,
   fetchMaybeCentralState,
+  getClaimFeesInstructionAsync,
   randomComputationOffset,
   randomStateNonce,
   getInitCentralStateInstructionAsync,
@@ -268,6 +269,30 @@ export class TestRunner {
     );
     await Promise.all(airdropPromises);
 
+    // Initialize central state (skip if already exists)
+    const [centralStateAddress] = await getProgramDerivedAddress({
+      programAddress: programId,
+      seeds: [getBytesEncoder().encode(new Uint8Array([99, 101, 110, 116, 114, 97, 108, 95, 115, 116, 97, 116, 101]))], // "central_state"
+    });
+    const centralStateAccount = await fetchMaybeCentralState(runner.rpc, centralStateAddress);
+
+    if (!centralStateAccount.exists) {
+      console.log("Initializing central state...");
+      const initCentralStateIx = await getInitCentralStateInstructionAsync({
+        payer: creatorAccountBase.keypair,
+        earlinessCutoffSeconds: 0n,
+        minOptionDeposit: 1n,
+        protocolFeeBp: 100,
+        feeRecipient: creatorAccountBase.keypair.address,
+      });
+
+      await sendTransaction(runner.rpc, runner.sendAndConfirm, creatorAccountBase.keypair, [initCentralStateIx], {
+        label: "Init central state",
+      });
+    } else {
+      console.log("Central state already exists, skipping initialization...");
+    }
+
     // Create SPL token mint (creator is mint authority)
     console.log("Creating SPL token mint...");
     runner.mint = await createTokenMint(
@@ -279,12 +304,13 @@ export class TestRunner {
     console.log(`  Mint created: ${runner.mint.address}`);
 
     // Initialize token vault (if not already initialized)
-    const [tokenVaultAddress] = await getTokenVaultAddress(programId);
+    const [tokenVaultAddress] = await getTokenVaultAddress(runner.mint.address, programId);
     const tokenVaultAccount = await runner.rpc.getAccountInfo(tokenVaultAddress).send();
     if (!tokenVaultAccount.value) {
       console.log("Initializing token vault...");
       const initVaultIx = await initTokenVault({
         payer: creatorAccountBase.keypair,
+        tokenMint: runner.mint.address,
         fundManager: creatorAccountBase.keypair.address,
       });
       await sendTransaction(runner.rpc, runner.sendAndConfirm, creatorAccountBase.keypair, [initVaultIx], {
@@ -358,28 +384,6 @@ export class TestRunner {
     };
     // Also add creator to users map so they can be looked up
     runner.users.set(creatorAcc.keypair.address.toString(), runner.marketCreator);
-
-    // Initialize central state (skip if already exists)
-    const [centralStateAddress] = await getProgramDerivedAddress({
-      programAddress: programId,
-      seeds: [getBytesEncoder().encode(new Uint8Array([99, 101, 110, 116, 114, 97, 108, 95, 115, 116, 97, 116, 101]))], // "central_state"
-    });
-    const centralStateAccount = await fetchMaybeCentralState(runner.rpc, centralStateAddress);
-
-    if (!centralStateAccount.exists) {
-      console.log("Initializing central state...");
-      const initCentralStateIx = await getInitCentralStateInstructionAsync({
-        payer: runner.marketCreator.solanaKeypair,
-        earlinessCutoffSeconds: 0n,
-        minOptionDeposit: 1n,
-      });
-
-      await sendTransaction(runner.rpc, runner.sendAndConfirm, runner.marketCreator.solanaKeypair, [initCentralStateIx], {
-        label: "Init central state",
-      });
-    } else {
-      console.log("Central state already exists, skipping initialization...");
-    }
 
     // Create the market
     console.log("Creating market...");
@@ -937,6 +941,23 @@ export class TestRunner {
 
   async closeShareAccount(userId: Address, optionIndex: number, shareAccountId: number): Promise<void> {
     await this.closeShareAccountBatch([{ userId, optionIndex, shareAccountId }]);
+  }
+
+  // ============================================================================
+  // Fee Operations
+  // ============================================================================
+
+  async claimFees(): Promise<void> {
+    const ix = await getClaimFeesInstructionAsync({
+      signer: this.marketCreator.solanaKeypair,
+      tokenMint: this.mint.address,
+      feeRecipientTokenAccount: this.marketCreator.tokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+
+    await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
+      label: "Claim fees",
+    });
   }
 
   // ============================================================================

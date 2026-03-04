@@ -246,6 +246,8 @@ export async function createTestEnvironment(
     payer: creatorAccount.keypair,
     earlinessCutoffSeconds: 0n,
     minOptionDeposit: 1n,
+    protocolFeeBp: 0,
+    feeRecipient: creatorAccount.keypair.address,
   });
 
   const { value: csBlockhash } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();

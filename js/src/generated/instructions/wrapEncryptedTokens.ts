@@ -94,7 +94,7 @@ export type WrapEncryptedTokensInstruction<
         ? WritableAccount<TAccountSignerTokenAccount>
         : TAccountSignerTokenAccount,
       TAccountTokenVault extends string
-        ? ReadonlyAccount<TAccountTokenVault>
+        ? WritableAccount<TAccountTokenVault>
         : TAccountTokenVault,
       TAccountTokenVaultAta extends string
         ? WritableAccount<TAccountTokenVaultAta>
@@ -308,7 +308,7 @@ export async function getWrapEncryptedTokensInstructionAsync<
       value: input.signerTokenAccount ?? null,
       isWritable: true,
     },
-    tokenVault: { value: input.tokenVault ?? null, isWritable: false },
+    tokenVault: { value: input.tokenVault ?? null, isWritable: true },
     tokenVaultAta: { value: input.tokenVaultAta ?? null, isWritable: true },
     signPdaAccount: { value: input.signPdaAccount ?? null, isWritable: true },
     mxeAccount: { value: input.mxeAccount ?? null, isWritable: false },
@@ -342,6 +342,7 @@ export async function getWrapEncryptedTokensInstructionAsync<
         getBytesEncoder().encode(
           new Uint8Array([116, 111, 107, 101, 110, 95, 118, 97, 117, 108, 116])
         ),
+        getAddressEncoder().encode(expectAddress(accounts.tokenMint.value)),
       ],
     });
   }
@@ -559,7 +560,7 @@ export function getWrapEncryptedTokensInstruction<
       value: input.signerTokenAccount ?? null,
       isWritable: true,
     },
-    tokenVault: { value: input.tokenVault ?? null, isWritable: false },
+    tokenVault: { value: input.tokenVault ?? null, isWritable: true },
     tokenVaultAta: { value: input.tokenVaultAta ?? null, isWritable: true },
     signPdaAccount: { value: input.signPdaAccount ?? null, isWritable: true },
     mxeAccount: { value: input.mxeAccount ?? null, isWritable: false },

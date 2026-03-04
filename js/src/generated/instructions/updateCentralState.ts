@@ -10,11 +10,15 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressDecoder,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
+  getU16Decoder,
+  getU16Encoder,
   getU64Decoder,
   getU64Encoder,
   transformEncoder,
@@ -69,11 +73,15 @@ export type UpdateCentralStateInstructionData = {
   discriminator: ReadonlyUint8Array;
   earlinessCutoffSeconds: bigint;
   minOptionDeposit: bigint;
+  protocolFeeBp: number;
+  feeRecipient: Address;
 };
 
 export type UpdateCentralStateInstructionDataArgs = {
   earlinessCutoffSeconds: number | bigint;
   minOptionDeposit: number | bigint;
+  protocolFeeBp: number;
+  feeRecipient: Address;
 };
 
 export function getUpdateCentralStateInstructionDataEncoder(): FixedSizeEncoder<UpdateCentralStateInstructionDataArgs> {
@@ -82,6 +90,8 @@ export function getUpdateCentralStateInstructionDataEncoder(): FixedSizeEncoder<
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['minOptionDeposit', getU64Encoder()],
+      ['protocolFeeBp', getU16Encoder()],
+      ['feeRecipient', getAddressEncoder()],
     ]),
     (value) => ({ ...value, discriminator: UPDATE_CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -92,6 +102,8 @@ export function getUpdateCentralStateInstructionDataDecoder(): FixedSizeDecoder<
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['minOptionDeposit', getU64Decoder()],
+    ['protocolFeeBp', getU16Decoder()],
+    ['feeRecipient', getAddressDecoder()],
   ]);
 }
 
@@ -113,6 +125,8 @@ export type UpdateCentralStateAsyncInput<
   centralState?: Address<TAccountCentralState>;
   earlinessCutoffSeconds: UpdateCentralStateInstructionDataArgs['earlinessCutoffSeconds'];
   minOptionDeposit: UpdateCentralStateInstructionDataArgs['minOptionDeposit'];
+  protocolFeeBp: UpdateCentralStateInstructionDataArgs['protocolFeeBp'];
+  feeRecipient: UpdateCentralStateInstructionDataArgs['feeRecipient'];
 };
 
 export async function getUpdateCentralStateInstructionAsync<
@@ -185,6 +199,8 @@ export type UpdateCentralStateInput<
   centralState: Address<TAccountCentralState>;
   earlinessCutoffSeconds: UpdateCentralStateInstructionDataArgs['earlinessCutoffSeconds'];
   minOptionDeposit: UpdateCentralStateInstructionDataArgs['minOptionDeposit'];
+  protocolFeeBp: UpdateCentralStateInstructionDataArgs['protocolFeeBp'];
+  feeRecipient: UpdateCentralStateInstructionDataArgs['feeRecipient'];
 };
 
 export function getUpdateCentralStateInstruction<

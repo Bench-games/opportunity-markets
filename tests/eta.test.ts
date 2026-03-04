@@ -21,8 +21,10 @@ import {
   randomComputationOffset,
   randomStateNonce,
   fetchEncryptedTokenAccount,
+  fetchMaybeCentralState,
   getEncryptedTokenAccountAddress,
   getEphemeralEncryptedTokenAccountAddress,
+  getInitCentralStateInstructionAsync,
   getTokenVaultAddress,
   initTokenVault,
 } from "../js/src";
@@ -37,7 +39,6 @@ import * as os from "os";
 import { generateX25519Keypair, createCipher } from "../js/src/x25519/keypair";
 import { expect } from "chai";
 import { shouldThrowCustomError } from "./utils/errors";
-import { OPPORTUNITY_MARKET_ERROR__ADD_OPTION_STAKE_FAILED } from "../js/src/generated/errors/index"
 
 const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 const WS_URL = RPC_URL.replace("http", "ws").replace(":8899", ":8900");
@@ -89,6 +90,26 @@ describe("Encrypted Token Account (SPL)", () => {
       "close_ephemeral_encrypted_token_account",
     ]);
     mxePublicKey = await getMXEPublicKey(provider, program.programId);
+
+    // Ensure central state exists (required by initTokenVault)
+    const { getProgramDerivedAddress, getBytesEncoder } = await import("@solana/kit");
+    const [centralStateAddress] = await getProgramDerivedAddress({
+      programAddress: programId,
+      seeds: [getBytesEncoder().encode(new Uint8Array([99, 101, 110, 116, 114, 97, 108, 95, 115, 116, 97, 116, 101]))],
+    });
+    const centralState = await fetchMaybeCentralState(rpc, centralStateAddress);
+    if (!centralState.exists) {
+      const payer = await generateKeyPairSigner();
+      await airdrop({ recipientAddress: payer.address, lamports: lamports(2_000_000_000n), commitment: "confirmed" });
+      const ix = await getInitCentralStateInstructionAsync({
+        payer,
+        earlinessCutoffSeconds: 0n,
+        minOptionDeposit: 1n,
+        protocolFeeBp: 0,
+        feeRecipient: payer.address,
+      });
+      await sendTransaction(rpc, sendAndConfirm, payer, [ix], { label: "Init central state" });
+    }
   });
 
   /**

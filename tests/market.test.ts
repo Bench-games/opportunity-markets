@@ -3,6 +3,7 @@ import { Program } from "@coral-xyz/anchor";
 import { address, some, isSome, isNone, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory  } from "@solana/kit";
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
+import { fetchTokenVault, getTokenVaultAddress } from "../js/src";
 
 import { OpportunityMarket } from "../target/types/opportunity_market";
 import { TestRunner } from "./utils/test-runner";
@@ -84,9 +85,20 @@ describe("OpportunityMarket", () => {
 
     // Initialize ETAs and wrap encrypted tokens for all participants
     const wrapAmount = 100_000_000n;
+    const protocolFeeBp = 100n; // 1% fee configured in TestRunner
+    const expectedFeePerUser = wrapAmount * protocolFeeBp / 10_000n;
+    const expectedNetPerUser = wrapAmount - expectedFeePerUser;
+
     for (const userId of runner.participants) {
       await runner.initEncryptedTokenAccount(userId);
       await runner.wrapEncryptedTokens(userId, wrapAmount);
+    }
+
+    // Verify decrypted ETA balances have fee deducted
+    for (const userId of runner.participants) {
+      const balance = await runner.decryptEtaBalance(userId);
+      expect(balance).to.equal(expectedNetPerUser,
+        `ETA balance should be ${expectedNetPerUser} after 1% fee, got ${balance}`);
     }
 
     // Add two options
@@ -261,6 +273,28 @@ describe("OpportunityMarket", () => {
     const totalGains = gains.reduce((sum, { gain }) => sum + gain, 0n);
     expect(totalGains >= marketFundingAmount - 2n).to.be.true;
     expect(totalGains <= marketFundingAmount).to.be.true;
+
+    // Verify token vault has collected fees
+    const totalExpectedFees = expectedFeePerUser * BigInt(numParticipants);
+    const [tokenVaultAddress] = await getTokenVaultAddress(runner.mintAddress, programId);
+    const vaultBefore = await fetchTokenVault(rpc, tokenVaultAddress);
+    expect(vaultBefore.data.collectedFees).to.equal(totalExpectedFees,
+      `Vault should have collected ${totalExpectedFees} in fees`);
+
+    // Get fee recipient balance before claiming
+    const feeRecipientBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(runner.creator))).data.amount;
+
+    // Claim fees
+    await runner.claimFees();
+
+    // Verify fee recipient received the fees
+    const feeRecipientBalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(runner.creator))).data.amount;
+    expect(feeRecipientBalanceAfter - feeRecipientBalanceBefore).to.equal(totalExpectedFees,
+      `Fee recipient should have received ${totalExpectedFees} in fees`);
+
+    // Verify vault fees reset to 0
+    const vaultAfter = await fetchTokenVault(rpc, tokenVaultAddress);
+    expect(vaultAfter.data.collectedFees).to.equal(0n, "Vault collected fees should be 0 after claiming");
   });
 
   it("allows users to vote for multiple options", async () => {

@@ -26,6 +26,7 @@ import {
   createMarket,
   fetchOpportunityMarket,
   fetchMaybeCentralState,
+  getClaimFeesInstructionAsync,
   randomComputationOffset,
   randomStateNonce,
   getInitCentralStateInstructionAsync,
@@ -940,6 +941,23 @@ export class TestRunner {
 
   async closeShareAccount(userId: Address, optionIndex: number, shareAccountId: number): Promise<void> {
     await this.closeShareAccountBatch([{ userId, optionIndex, shareAccountId }]);
+  }
+
+  // ============================================================================
+  // Fee Operations
+  // ============================================================================
+
+  async claimFees(): Promise<void> {
+    const ix = await getClaimFeesInstructionAsync({
+      signer: this.marketCreator.solanaKeypair,
+      tokenMint: this.mint.address,
+      feeRecipientTokenAccount: this.marketCreator.tokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+
+    await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
+      label: "Claim fees",
+    });
   }
 
   // ============================================================================

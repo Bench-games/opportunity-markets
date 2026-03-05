@@ -48,6 +48,12 @@ import {
   type OptionOrNullable,
   type ReadonlyUint8Array,
 } from '@solana/kit';
+import {
+  getWinningOptionDecoder,
+  getWinningOptionEncoder,
+  type WinningOption,
+  type WinningOptionArgs,
+} from '../types';
 
 export const OPPORTUNITY_MARKET_DISCRIMINATOR = new Uint8Array([
   207, 103, 169, 160, 157, 215, 97, 224,
@@ -68,7 +74,7 @@ export type OpportunityMarket = {
   openTimestamp: Option<bigint>;
   timeToStake: bigint;
   timeToReveal: bigint;
-  selectedOption: Option<number>;
+  selectedOptions: Option<Array<WinningOption>>;
   rewardAmount: bigint;
   marketAuthority: Option<Address>;
   mint: Address;
@@ -86,7 +92,7 @@ export type OpportunityMarketArgs = {
   openTimestamp: OptionOrNullable<number | bigint>;
   timeToStake: number | bigint;
   timeToReveal: number | bigint;
-  selectedOption: OptionOrNullable<number>;
+  selectedOptions: OptionOrNullable<Array<WinningOptionArgs>>;
   rewardAmount: number | bigint;
   marketAuthority: OptionOrNullable<Address>;
   mint: Address;
@@ -107,7 +113,10 @@ export function getOpportunityMarketEncoder(): Encoder<OpportunityMarketArgs> {
       ['openTimestamp', getOptionEncoder(getU64Encoder())],
       ['timeToStake', getU64Encoder()],
       ['timeToReveal', getU64Encoder()],
-      ['selectedOption', getOptionEncoder(getU16Encoder())],
+      [
+        'selectedOptions',
+        getOptionEncoder(getArrayEncoder(getWinningOptionEncoder())),
+      ],
       ['rewardAmount', getU64Encoder()],
       ['marketAuthority', getOptionEncoder(getAddressEncoder())],
       ['mint', getAddressEncoder()],
@@ -130,7 +139,10 @@ export function getOpportunityMarketDecoder(): Decoder<OpportunityMarket> {
     ['openTimestamp', getOptionDecoder(getU64Decoder())],
     ['timeToStake', getU64Decoder()],
     ['timeToReveal', getU64Decoder()],
-    ['selectedOption', getOptionDecoder(getU16Decoder())],
+    [
+      'selectedOptions',
+      getOptionDecoder(getArrayDecoder(getWinningOptionDecoder())),
+    ],
     ['rewardAmount', getU64Decoder()],
     ['marketAuthority', getOptionDecoder(getAddressDecoder())],
     ['mint', getAddressDecoder()],

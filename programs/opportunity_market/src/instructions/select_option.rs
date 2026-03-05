@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, OptionSelectedEvent};
-use crate::state::OpportunityMarket;
+use crate::state::{OpportunityMarket, WinningOption};
 
 #[derive(Accounts)]
 pub struct SelectOption<'info> {
@@ -15,14 +15,35 @@ pub struct SelectOption<'info> {
     pub market: Account<'info, OpportunityMarket>,
 }
 
-pub fn select_option(ctx: Context<SelectOption>, option_index: u16) -> Result<()> {
+pub fn select_option(ctx: Context<SelectOption>, selections: Vec<WinningOption>) -> Result<()> {
     let market = &mut ctx.accounts.market;
 
-    // Enforce option exists
-    require!(
-        option_index >= 1 && option_index <= market.total_options,
-        ErrorCode::InvalidOptionIndex
-    );
+    // Validate selection count
+    require!(!selections.is_empty() && selections.len() <= 10, ErrorCode::InvalidWinningOptionsInput);
+
+    // Validate each selection
+    let mut percentage_sum: u16 = 0;
+    for (i, sel) in selections.iter().enumerate() {
+        // Each option index must be valid
+        require!(
+            sel.option_index >= 1 && sel.option_index <= market.total_options,
+            ErrorCode::InvalidOptionIndex
+        );
+        // Percentage must be > 0
+        require!(sel.reward_percentage > 0, ErrorCode::InvalidWinningOptionsInput);
+        percentage_sum += sel.reward_percentage as u16;
+
+        // Check for duplicates
+        for other in &selections[..i] {
+            require!(
+                sel.option_index != other.option_index,
+                ErrorCode::InvalidWinningOptionsInput
+            );
+        }
+    }
+
+    // Percentages must sum to 100
+    require!(percentage_sum == 100, ErrorCode::InvalidWinningOptionsInput);
 
     // Enforce market is open
     let open_timestamp = market.open_timestamp.ok_or_else(|| ErrorCode::MarketNotOpen)?;
@@ -48,13 +69,13 @@ pub fn select_option(ctx: Context<SelectOption>, option_index: u16) -> Result<()
         market.time_to_stake = (current_timestamp - open_timestamp).saturating_sub(1);
     }
 
-    // Save the selected option
-    market.selected_option = Some(option_index);
+    // Save the selected options
+    market.selected_options = Some(selections.clone());
 
     emit_ts!(OptionSelectedEvent {
         market: market.key(),
         authority: ctx.accounts.authority.key(),
-        selected_option: option_index,
+        selected_options: selections,
     });
 
     Ok(())

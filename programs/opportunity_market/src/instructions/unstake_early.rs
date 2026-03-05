@@ -13,7 +13,7 @@ pub struct UnstakeEarly<'info> {
 
     #[account(
         constraint = market.open_timestamp.is_some() @ ErrorCode::MarketNotOpen,
-        constraint = market.selected_option.is_none() @ ErrorCode::WinnerAlreadySelected,
+        constraint = market.selected_options.is_none() @ ErrorCode::WinnerAlreadySelected,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 

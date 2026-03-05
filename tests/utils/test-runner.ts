@@ -518,16 +518,20 @@ export class TestRunner {
     return timestamp;
   }
 
-  async selectOption(optionIndex: number): Promise<void> {
+  async selectWinningOptions(selections: Array<{ optionIndex: number; rewardPercentage: number }>): Promise<void> {
     const ix = selectOption({
       authority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
-      optionIndex,
+      selections,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
       label: "Select option",
     });
+  }
+
+  async selectOption(optionIndex: number): Promise<void> {
+    await this.selectWinningOptions([{ optionIndex, rewardPercentage: 100 }]);
   }
 
   // ============================================================================

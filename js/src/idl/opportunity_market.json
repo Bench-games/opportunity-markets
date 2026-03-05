@@ -2633,8 +2633,14 @@
       ],
       "args": [
         {
-          "name": "option_index",
-          "type": "u16"
+          "name": "selections",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "WinningOption"
+              }
+            }
+          }
         }
       ]
     },
@@ -4372,6 +4378,11 @@
       "code": 6027,
       "name": "NoFeesToClaim",
       "msg": "No fees to claim"
+    },
+    {
+      "code": 6028,
+      "name": "InvalidWinningOptionsInput",
+      "msg": "Invalid winning options input"
     }
   ],
   "types": [
@@ -5574,9 +5585,15 @@
             "type": "u64"
           },
           {
-            "name": "selected_option",
+            "name": "selected_options",
             "type": {
-              "option": "u16"
+              "option": {
+                "vec": {
+                  "defined": {
+                    "name": "WinningOption"
+                  }
+                }
+              }
             }
           },
           {
@@ -5677,8 +5694,14 @@
             "type": "pubkey"
           },
           {
-            "name": "selected_option",
-            "type": "u16"
+            "name": "selected_options",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "WinningOption"
+                }
+              }
+            }
           },
           {
             "name": "timestamp",
@@ -6592,6 +6615,22 @@
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "WinningOption",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "option_index",
+            "type": "u16"
+          },
+          {
+            "name": "reward_percentage",
+            "type": "u8"
           }
         ]
       }

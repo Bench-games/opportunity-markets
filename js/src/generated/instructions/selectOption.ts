@@ -10,19 +10,19 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getArrayDecoder,
+  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -33,6 +33,12 @@ import {
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  getWinningOptionDecoder,
+  getWinningOptionEncoder,
+  type WinningOption,
+  type WinningOptionArgs,
+} from '../types';
 
 export const SELECT_OPTION_DISCRIMINATOR = new Uint8Array([
   54, 244, 147, 218, 87, 94, 100, 187,
@@ -66,29 +72,31 @@ export type SelectOptionInstruction<
 
 export type SelectOptionInstructionData = {
   discriminator: ReadonlyUint8Array;
-  optionIndex: number;
+  selections: Array<WinningOption>;
 };
 
-export type SelectOptionInstructionDataArgs = { optionIndex: number };
+export type SelectOptionInstructionDataArgs = {
+  selections: Array<WinningOptionArgs>;
+};
 
-export function getSelectOptionInstructionDataEncoder(): FixedSizeEncoder<SelectOptionInstructionDataArgs> {
+export function getSelectOptionInstructionDataEncoder(): Encoder<SelectOptionInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['optionIndex', getU16Encoder()],
+      ['selections', getArrayEncoder(getWinningOptionEncoder())],
     ]),
     (value) => ({ ...value, discriminator: SELECT_OPTION_DISCRIMINATOR })
   );
 }
 
-export function getSelectOptionInstructionDataDecoder(): FixedSizeDecoder<SelectOptionInstructionData> {
+export function getSelectOptionInstructionDataDecoder(): Decoder<SelectOptionInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['optionIndex', getU16Decoder()],
+    ['selections', getArrayDecoder(getWinningOptionDecoder())],
   ]);
 }
 
-export function getSelectOptionInstructionDataCodec(): FixedSizeCodec<
+export function getSelectOptionInstructionDataCodec(): Codec<
   SelectOptionInstructionDataArgs,
   SelectOptionInstructionData
 > {
@@ -104,7 +112,7 @@ export type SelectOptionInput<
 > = {
   authority: TransactionSigner<TAccountAuthority>;
   market: Address<TAccountMarket>;
-  optionIndex: SelectOptionInstructionDataArgs['optionIndex'];
+  selections: SelectOptionInstructionDataArgs['selections'];
 };
 
 export function getSelectOptionInstruction<

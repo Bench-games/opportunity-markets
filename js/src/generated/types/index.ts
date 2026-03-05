@@ -56,4 +56,5 @@ export * from './unstakeInitiatedEvent';
 export * from './unwrapEncryptedTokensOutput';
 export * from './unwrapEncryptedTokensOutputStruct0';
 export * from './utilityPubkeys';
+export * from './winningOption';
 export * from './wrapEncryptedTokensOutput';

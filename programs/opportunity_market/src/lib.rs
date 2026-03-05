@@ -140,8 +140,8 @@ pub mod opportunity_market {
         instructions::open_market(ctx, open_timestamp)
     }
 
-    pub fn select_option(ctx: Context<SelectOption>, option_index: u16) -> Result<()> {
-        instructions::select_option(ctx, option_index)
+    pub fn select_option(ctx: Context<SelectOption>, selections: Vec<WinningOption>) -> Result<()> {
+        instructions::select_option(ctx, selections)
     }
 
     pub fn extend_reveal_period(ctx: Context<ExtendRevealPeriod>, new_time_to_reveal: u64) -> Result<()> {

@@ -10,51 +10,57 @@ import {
   combineCodec,
   getAddressDecoder,
   getAddressEncoder,
+  getArrayDecoder,
+  getArrayEncoder,
   getI64Decoder,
   getI64Encoder,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
 } from '@solana/kit';
+import {
+  getWinningOptionDecoder,
+  getWinningOptionEncoder,
+  type WinningOption,
+  type WinningOptionArgs,
+} from '.';
 
 export type OptionSelectedEvent = {
   market: Address;
   authority: Address;
-  selectedOption: number;
+  selectedOptions: Array<WinningOption>;
   timestamp: bigint;
 };
 
 export type OptionSelectedEventArgs = {
   market: Address;
   authority: Address;
-  selectedOption: number;
+  selectedOptions: Array<WinningOptionArgs>;
   timestamp: number | bigint;
 };
 
-export function getOptionSelectedEventEncoder(): FixedSizeEncoder<OptionSelectedEventArgs> {
+export function getOptionSelectedEventEncoder(): Encoder<OptionSelectedEventArgs> {
   return getStructEncoder([
     ['market', getAddressEncoder()],
     ['authority', getAddressEncoder()],
-    ['selectedOption', getU16Encoder()],
+    ['selectedOptions', getArrayEncoder(getWinningOptionEncoder())],
     ['timestamp', getI64Encoder()],
   ]);
 }
 
-export function getOptionSelectedEventDecoder(): FixedSizeDecoder<OptionSelectedEvent> {
+export function getOptionSelectedEventDecoder(): Decoder<OptionSelectedEvent> {
   return getStructDecoder([
     ['market', getAddressDecoder()],
     ['authority', getAddressDecoder()],
-    ['selectedOption', getU16Decoder()],
+    ['selectedOptions', getArrayDecoder(getWinningOptionDecoder())],
     ['timestamp', getI64Decoder()],
   ]);
 }
 
-export function getOptionSelectedEventCodec(): FixedSizeCodec<
+export function getOptionSelectedEventCodec(): Codec<
   OptionSelectedEventArgs,
   OptionSelectedEvent
 > {

@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::state::WinningOption;
+
 /// Emits an event with `timestamp` automatically set from `Clock::get()`.
 macro_rules! emit_ts {
     ($event:ident { $($field:ident : $value:expr),* $(,)? }) => {{
@@ -128,7 +130,7 @@ pub struct MarketOpenedEvent {
 pub struct OptionSelectedEvent {
     pub market: Pubkey,
     pub authority: Pubkey,
-    pub selected_option: u16,
+    pub selected_options: Vec<WinningOption>,
     pub timestamp: i64,
 }
 

@@ -31,6 +31,12 @@ pub struct CentralState {
     pub fee_recipient: Pubkey,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace)]
+pub struct WinningOption {
+    pub option_index: u16,
+    pub reward_percentage: u8,
+}
+
 #[account]
 #[derive(InitSpace)]
 pub struct OpportunityMarket {
@@ -50,7 +56,8 @@ pub struct OpportunityMarket {
     // Seconds from open_timestamp + time_to_stake
     pub time_to_reveal: u64,
 
-    pub selected_option: Option<u16>,
+    #[max_len(10)]
+    pub selected_options: Option<Vec<WinningOption>>,
 
     // Reward to be shared with stakers (in SPL token base units)
     pub reward_amount: u64,

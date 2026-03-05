@@ -58,4 +58,6 @@ pub enum ErrorCode {
     ClosingEarlyNotAllowed,
     #[msg("No fees to claim")]
     NoFeesToClaim,
+    #[msg("Invalid winning options input")]
+    InvalidWinningOptionsInput,
 }

@@ -139,7 +139,7 @@ describe("OpportunityMarket", () => {
 
     // Verify selected option
     const resolvedMarket = await runner.fetchMarket();
-    expect(resolvedMarket.data.selectedOption).to.deep.equal(some(winningOptionIndex));
+    expect(resolvedMarket.data.selectedOptions).to.deep.equal(some([{ optionIndex: winningOptionIndex, rewardPercentage: 100 }]));
 
     // Get winners (participants who voted for winning option) using stored share account info
     const winners = runner.participants.filter(
@@ -546,6 +546,165 @@ describe("OpportunityMarket", () => {
     expect(shareAccount.data.revealedOption).to.deep.equal(some(optionA));
   });
 
+  it("distributes rewards across multiple winning options", async () => {
+    const marketFundingAmount = 1_000_000_000n;
+    const stakeAmount = 1000n;
+
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 2,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: marketFundingAmount,
+        timeToStake: 120n,
+        timeToReveal: 30n, // Long window: 6 reveals + 3 tallies need time
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await runner.fundMarket();
+    const openTimestamp = await runner.openMarket();
+
+    const [user1, user2] = runner.participants;
+
+    // Init ETAs and wrap tokens for both users
+    for (const userId of [user1, user2]) {
+      await runner.initEncryptedTokenAccount(userId);
+      await runner.wrapEncryptedTokens(userId, 100_000_000n);
+    }
+
+    // Create 7 options: A-G
+    const options: number[] = [];
+    for (const name of ["A", "B", "C", "D", "E", "F", "G"]) {
+      const { optionIndex } = await runner.addOptionAsCreator(`Option ${name}`);
+      options.push(optionIndex);
+    }
+    const [optA, optB, optC, _optD, optE, optF, optG] = options;
+
+    // Wait for staking period
+    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    // User 1 stakes to A, B, C
+    const u1ShareIds = await runner.stakeOnOptionBatch([
+      { userId: user1, amount: stakeAmount, optionIndex: optA },
+      { userId: user1, amount: stakeAmount, optionIndex: optB },
+      { userId: user1, amount: stakeAmount, optionIndex: optC },
+    ]);
+
+    // User 2 stakes to E, F, G
+    const u2ShareIds = await runner.stakeOnOptionBatch([
+      { userId: user2, amount: stakeAmount, optionIndex: optE },
+      { userId: user2, amount: stakeAmount, optionIndex: optF },
+      { userId: user2, amount: stakeAmount, optionIndex: optG },
+    ]);
+
+    // Creator selects 3 winning options with different percentages: A=50%, B=30%, E=20%
+    await runner.selectWinningOptions([
+      { optionIndex: optA, rewardPercentage: 50 },
+      { optionIndex: optB, rewardPercentage: 30 },
+      { optionIndex: optE, rewardPercentage: 20 },
+    ]);
+
+    // Verify selected options
+    const resolvedMarket = await runner.fetchMarket();
+    expect(resolvedMarket.data.selectedOptions).to.deep.equal(some([
+      { optionIndex: optA, rewardPercentage: 50 },
+      { optionIndex: optB, rewardPercentage: 30 },
+      { optionIndex: optE, rewardPercentage: 20 },
+    ]));
+
+    // selectOption with allow_closing_early shortens time_to_stake, so reveal window starts now.
+    // Sleep briefly to ensure the on-chain clock has advanced past reveal_start.
+    const updatedMarket = await runner.fetchMarket();
+    const updatedOpenTs = updatedMarket.data.openTimestamp.__option === "Some"
+      ? Number(updatedMarket.data.openTimestamp.value)
+      : 0;
+    const revealStart = updatedOpenTs + Number(updatedMarket.data.timeToStake);
+    await sleepUntilOnChainTimestamp(revealStart + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    // Reveal all share accounts (users in parallel, each user's reveals sequential due to ETA locking)
+    await Promise.all([
+      runner.revealSharesBatch(u1ShareIds.map(sid => ({ userId: user1, shareAccountId: sid }))),
+      runner.revealSharesBatch(u2ShareIds.map(sid => ({ userId: user2, shareAccountId: sid }))),
+    ]);
+
+    // Increment tally for winning share accounts only (all in parallel)
+    // User 1: A (share 0), B (share 1) — C is a loser
+    // User 2: E (share 0) — F, G are losers
+    await Promise.all([
+      runner.incrementOptionTally(user1, optA, u1ShareIds[0]),
+      runner.incrementOptionTally(user1, optB, u1ShareIds[1]),
+      runner.incrementOptionTally(user2, optE, u2ShareIds[0]),
+    ]);
+
+    // Wait for reveal period to end
+    const timeToReveal = Number(runner.getTimeToReveal());
+    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
+
+    const rpc = runner.getRpc();
+
+    // Get user1 balance before closing
+    const u1BalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user1))).data.amount;
+
+    // Close all user1 share accounts (A, B winning; C losing)
+    await runner.closeShareAccountBatch([
+      { userId: user1, optionIndex: optA, shareAccountId: u1ShareIds[0] },
+      { userId: user1, optionIndex: optB, shareAccountId: u1ShareIds[1] },
+      { userId: user1, optionIndex: optC, shareAccountId: u1ShareIds[2] },
+    ]);
+
+    const u1BalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user1))).data.amount;
+    const u1Gain = u1BalanceAfter - u1BalanceBefore;
+
+    // Get user2 balance before closing
+    const u2BalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user2))).data.amount;
+
+    // Close all user2 share accounts (E winning; F, G losing)
+    await runner.closeShareAccountBatch([
+      { userId: user2, optionIndex: optE, shareAccountId: u2ShareIds[0] },
+      { userId: user2, optionIndex: optF, shareAccountId: u2ShareIds[1] },
+      { userId: user2, optionIndex: optG, shareAccountId: u2ShareIds[2] },
+    ]);
+
+    const u2BalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user2))).data.amount;
+    const u2Gain = u2BalanceAfter - u2BalanceBefore;
+
+    // User 1 should receive rewards from A (50%) and B (30%) = 80% of total
+    // User 2 should receive rewards from E (20%) = 20% of total
+    const expectedU1Gain = marketFundingAmount * 80n / 100n;
+    const expectedU2Gain = marketFundingAmount * 20n / 100n;
+
+    // Allow tolerance of 2 for rounding
+    expect(
+      u1Gain >= expectedU1Gain - 2n && u1Gain <= expectedU1Gain,
+      `User 1 should gain ~${expectedU1Gain} (80%), got ${u1Gain}`
+    ).to.be.true;
+
+    expect(
+      u2Gain >= expectedU2Gain - 2n && u2Gain <= expectedU2Gain,
+      `User 2 should gain ~${expectedU2Gain} (20%), got ${u2Gain}`
+    ).to.be.true;
+
+    // Total paid out should equal the full reward amount
+    const totalGains = u1Gain + u2Gain;
+    expect(
+      totalGains >= marketFundingAmount - 3n && totalGains <= marketFundingAmount,
+      `Total gains should be ~${marketFundingAmount}, got ${totalGains}`
+    ).to.be.true;
+
+    // All share accounts should be closed
+    for (const [userId, shareIds] of [[user1, u1ShareIds], [user2, u2ShareIds]] as const) {
+      for (const sid of shareIds) {
+        const addr = await runner.getShareAccountAddress(userId, sid);
+        expect(await runner.accountExists(addr)).to.be.false;
+      }
+    }
+  });
+
   it("prevents closing market early when not allowed", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const timeToStake = 10n;
@@ -587,7 +746,7 @@ describe("OpportunityMarket", () => {
 
     // Verify market is still open (no selected option)
     let market = await runner.fetchMarket();
-    expect(isNone(market.data.selectedOption)).to.be.true;
+    expect(isNone(market.data.selectedOptions)).to.be.true;
 
     // Wait for stake period to end
     const stakeEndTimestamp = Number(openTimestamp) + Number(timeToStake);
@@ -598,7 +757,7 @@ describe("OpportunityMarket", () => {
 
     // Verify option was selected
     market = await runner.fetchMarket();
-    expect(market.data.selectedOption).to.deep.equal(some(optionA));
+    expect(market.data.selectedOptions).to.deep.equal(some([{ optionIndex: optionA, rewardPercentage: 100 }]));
   });
 
 });

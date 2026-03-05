@@ -91,22 +91,29 @@ pub fn close_share_account(ctx: Context<CloseShareAccount>, option_index: u16, _
         return Err(ErrorCode::MarketNotOpen.into());
     }
 
-    // Check if this share was bought for the winning option and user incremented the tally
+    // Check if this share was bought for a winning option and user incremented the tally
     // If so, transfer proportional yield from market to user
     let mut user_reward: u64 = 0;
-    if let Some(selected_option) = market.selected_option {
-        if revealed_option == selected_option && share_account.total_incremented {
+    if let Some(winning) = market.selected_options.as_ref().and_then(|opts| opts.iter().find(|w| w.option_index == revealed_option)) {
+        if share_account.total_incremented {
             // User is eligible for yield
             let user_score = share_account.revealed_score.ok_or(ErrorCode::NotRevealed)?;
             let total_score = option.total_score.ok_or(ErrorCode::NotRevealed)?;
 
-            // Calculate proportional reward: (user_score / total_score) * reward_amount
+            // Calculate proportional reward: (user_score * reward_amount * percentage) / (total_score * 100)
             // Use u128 to prevent overflow during multiplication
             let reward_amount = market.reward_amount as u128;
+            let percentage = winning.reward_percentage as u128;
             user_reward = (user_score as u128)
                 .checked_mul(reward_amount)
                 .ok_or(ErrorCode::Overflow)?
-                .checked_div(total_score as u128)
+                .checked_mul(percentage)
+                .ok_or(ErrorCode::Overflow)?
+                .checked_div(
+                    (total_score as u128)
+                        .checked_mul(100)
+                        .ok_or(ErrorCode::Overflow)?
+                )
                 .ok_or(ErrorCode::Overflow)? as u64; // Round down
 
             // Transfer SPL tokens from market ATA to owner's token account

@@ -63,7 +63,7 @@ pub fn create_market(
     market.total_options = 0;
     market.time_to_stake = time_to_stake;
     market.time_to_reveal = time_to_reveal;
-    market.selected_option = None;
+    market.selected_options = None;
     market.reward_amount = reward_amount;
     market.mint = ctx.accounts.token_mint.key();
     market.market_authority = market_authority;

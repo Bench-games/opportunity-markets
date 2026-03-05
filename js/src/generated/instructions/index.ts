@@ -31,7 +31,7 @@ export * from './openMarket';
 export * from './revealShares';
 export * from './revealSharesCallback';
 export * from './revealSharesCompDef';
-export * from './selectOption';
+export * from './selectWinningOptions';
 export * from './stake';
 export * from './transferCentralStateAuthority';
 export * from './unstakeEarly';

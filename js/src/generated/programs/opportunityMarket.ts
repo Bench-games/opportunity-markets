@@ -39,7 +39,7 @@ import {
   type ParsedRevealSharesCallbackInstruction,
   type ParsedRevealSharesCompDefInstruction,
   type ParsedRevealSharesInstruction,
-  type ParsedSelectOptionInstruction,
+  type ParsedSelectWinningOptionsInstruction,
   type ParsedStakeInstruction,
   type ParsedTransferCentralStateAuthorityInstruction,
   type ParsedUnstakeEarlyCallbackInstruction,
@@ -239,7 +239,7 @@ export enum OpportunityMarketInstruction {
   RevealShares,
   RevealSharesCallback,
   RevealSharesCompDef,
-  SelectOption,
+  SelectWinningOptions,
   Stake,
   TransferCentralStateAuthority,
   UnstakeEarly,
@@ -537,12 +537,12 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([54, 244, 147, 218, 87, 94, 100, 187])
+        new Uint8Array([56, 237, 171, 43, 247, 124, 100, 20])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.SelectOption;
+    return OpportunityMarketInstruction.SelectWinningOptions;
   }
   if (
     containsBytes(
@@ -760,8 +760,8 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.RevealSharesCompDef;
     } & ParsedRevealSharesCompDefInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.SelectOption;
-    } & ParsedSelectOptionInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.SelectWinningOptions;
+    } & ParsedSelectWinningOptionsInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.Stake;
     } & ParsedStakeInstruction<TProgram>)

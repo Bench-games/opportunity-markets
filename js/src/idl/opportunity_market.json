@@ -2610,16 +2610,16 @@
       "args": []
     },
     {
-      "name": "select_option",
+      "name": "select_winning_options",
       "discriminator": [
-        54,
-        244,
-        147,
-        218,
-        87,
-        94,
+        56,
+        237,
+        171,
+        43,
+        247,
+        124,
         100,
-        187
+        20
       ],
       "accounts": [
         {

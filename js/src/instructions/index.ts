@@ -12,7 +12,7 @@ export * from "./revealShares";
 export * from "./addMarketOption";
 export * from "./addMarketOptionAsCreator";
 export * from "./openMarket";
-export * from "./selectOption";
+export * from "./selectWinningOptions";
 export * from "./extendRevealPeriod";
 export * from "./initShareAccount";
 export * from "./closeShareAccount";

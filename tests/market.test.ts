@@ -135,7 +135,7 @@ describe("OpportunityMarket", () => {
     });
 
     // Market creator selects winning option
-    await runner.selectOption(winningOptionIndex);
+    await runner.selectSingleWinningOption(winningOptionIndex);
 
     // Verify selected option
     const resolvedMarket = await runner.fetchMarket();
@@ -376,7 +376,7 @@ describe("OpportunityMarket", () => {
 
     // Market creator selects winning option (Option A)
     const winningOptionIndex = optionA;
-    await runner.selectOption(winningOptionIndex);
+    await runner.selectSingleWinningOption(winningOptionIndex);
 
     // Reveal ALL share accounts sequentially (one at a time to avoid concurrent MPC issues)
     for (const sa of userShareAccounts) {
@@ -535,7 +535,7 @@ describe("OpportunityMarket", () => {
     expect(balanceAfterUnstake).to.equal(netAmount);
 
     // Select winner and wait for stake period to end
-    await runner.selectOption(optionA);
+    await runner.selectSingleWinningOption(optionA);
     const stakeEndTimestamp = Number(openTimestamp) + Number(timeToStake);
     await sleepUntilOnChainTimestamp(stakeEndTimestamp + 1);
 
@@ -617,7 +617,7 @@ describe("OpportunityMarket", () => {
       { optionIndex: optE, rewardPercentage: 20 },
     ]));
 
-    // selectOption with allow_closing_early shortens time_to_stake, so reveal window starts now.
+    // selectWinningOptions with allow_closing_early shortens time_to_stake, so reveal window starts now.
     // Sleep briefly to ensure the on-chain clock has advanced past reveal_start.
     const updatedMarket = await runner.fetchMarket();
     const updatedOpenTs = updatedMarket.data.openTimestamp.__option === "Some"
@@ -740,7 +740,7 @@ describe("OpportunityMarket", () => {
 
     // Try to select option before stake period ends - should fail
     await shouldThrowCustomError(
-      () => runner.selectOption(optionA),
+      () => runner.selectSingleWinningOption(optionA),
       OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED
     );
 
@@ -753,7 +753,7 @@ describe("OpportunityMarket", () => {
     await sleepUntilOnChainTimestamp(stakeEndTimestamp + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
 
     // Now selecting option should succeed
-    await runner.selectOption(optionA);
+    await runner.selectSingleWinningOption(optionA);
 
     // Verify option was selected
     market = await runner.fetchMarket();

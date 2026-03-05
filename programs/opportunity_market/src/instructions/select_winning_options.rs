@@ -5,7 +5,7 @@ use crate::events::{emit_ts, OptionSelectedEvent};
 use crate::state::{OpportunityMarket, WinningOption};
 
 #[derive(Accounts)]
-pub struct SelectOption<'info> {
+pub struct SelectWinningOptions<'info> {
     pub authority: Signer<'info>,
     #[account(
         mut,
@@ -15,7 +15,7 @@ pub struct SelectOption<'info> {
     pub market: Account<'info, OpportunityMarket>,
 }
 
-pub fn select_option(ctx: Context<SelectOption>, selections: Vec<WinningOption>) -> Result<()> {
+pub fn select_winning_options(ctx: Context<SelectWinningOptions>, selections: Vec<WinningOption>) -> Result<()> {
     let market = &mut ctx.accounts.market;
 
     // Validate selection count

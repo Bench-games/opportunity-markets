@@ -40,17 +40,17 @@ import {
   type WinningOptionArgs,
 } from '../types';
 
-export const SELECT_OPTION_DISCRIMINATOR = new Uint8Array([
-  54, 244, 147, 218, 87, 94, 100, 187,
+export const SELECT_WINNING_OPTIONS_DISCRIMINATOR = new Uint8Array([
+  56, 237, 171, 43, 247, 124, 100, 20,
 ]);
 
-export function getSelectOptionDiscriminatorBytes() {
+export function getSelectWinningOptionsDiscriminatorBytes() {
   return fixEncoderSize(getBytesEncoder(), 8).encode(
-    SELECT_OPTION_DISCRIMINATOR
+    SELECT_WINNING_OPTIONS_DISCRIMINATOR
   );
 }
 
-export type SelectOptionInstruction<
+export type SelectWinningOptionsInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountAuthority extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
@@ -70,59 +70,66 @@ export type SelectOptionInstruction<
     ]
   >;
 
-export type SelectOptionInstructionData = {
+export type SelectWinningOptionsInstructionData = {
   discriminator: ReadonlyUint8Array;
   selections: Array<WinningOption>;
 };
 
-export type SelectOptionInstructionDataArgs = {
+export type SelectWinningOptionsInstructionDataArgs = {
   selections: Array<WinningOptionArgs>;
 };
 
-export function getSelectOptionInstructionDataEncoder(): Encoder<SelectOptionInstructionDataArgs> {
+export function getSelectWinningOptionsInstructionDataEncoder(): Encoder<SelectWinningOptionsInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['selections', getArrayEncoder(getWinningOptionEncoder())],
     ]),
-    (value) => ({ ...value, discriminator: SELECT_OPTION_DISCRIMINATOR })
+    (value) => ({
+      ...value,
+      discriminator: SELECT_WINNING_OPTIONS_DISCRIMINATOR,
+    })
   );
 }
 
-export function getSelectOptionInstructionDataDecoder(): Decoder<SelectOptionInstructionData> {
+export function getSelectWinningOptionsInstructionDataDecoder(): Decoder<SelectWinningOptionsInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['selections', getArrayDecoder(getWinningOptionDecoder())],
   ]);
 }
 
-export function getSelectOptionInstructionDataCodec(): Codec<
-  SelectOptionInstructionDataArgs,
-  SelectOptionInstructionData
+export function getSelectWinningOptionsInstructionDataCodec(): Codec<
+  SelectWinningOptionsInstructionDataArgs,
+  SelectWinningOptionsInstructionData
 > {
   return combineCodec(
-    getSelectOptionInstructionDataEncoder(),
-    getSelectOptionInstructionDataDecoder()
+    getSelectWinningOptionsInstructionDataEncoder(),
+    getSelectWinningOptionsInstructionDataDecoder()
   );
 }
 
-export type SelectOptionInput<
+export type SelectWinningOptionsInput<
   TAccountAuthority extends string = string,
   TAccountMarket extends string = string,
 > = {
   authority: TransactionSigner<TAccountAuthority>;
   market: Address<TAccountMarket>;
-  selections: SelectOptionInstructionDataArgs['selections'];
+  selections: SelectWinningOptionsInstructionDataArgs['selections'];
 };
 
-export function getSelectOptionInstruction<
+export function getSelectWinningOptionsInstruction<
   TAccountAuthority extends string,
   TAccountMarket extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: SelectOptionInput<TAccountAuthority, TAccountMarket>,
+  input: SelectWinningOptionsInput<TAccountAuthority, TAccountMarket>,
   config?: { programAddress?: TProgramAddress }
-): SelectOptionInstruction<TProgramAddress, TAccountAuthority, TAccountMarket> {
+): SelectWinningOptionsInstruction<
+  TProgramAddress,
+  TAccountAuthority,
+  TAccountMarket
+> {
   // Program address.
   const programAddress =
     config?.programAddress ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
@@ -146,18 +153,18 @@ export function getSelectOptionInstruction<
       getAccountMeta(accounts.authority),
       getAccountMeta(accounts.market),
     ],
-    data: getSelectOptionInstructionDataEncoder().encode(
-      args as SelectOptionInstructionDataArgs
+    data: getSelectWinningOptionsInstructionDataEncoder().encode(
+      args as SelectWinningOptionsInstructionDataArgs
     ),
     programAddress,
-  } as SelectOptionInstruction<
+  } as SelectWinningOptionsInstruction<
     TProgramAddress,
     TAccountAuthority,
     TAccountMarket
   >);
 }
 
-export type ParsedSelectOptionInstruction<
+export type ParsedSelectWinningOptionsInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
@@ -166,17 +173,17 @@ export type ParsedSelectOptionInstruction<
     authority: TAccountMetas[0];
     market: TAccountMetas[1];
   };
-  data: SelectOptionInstructionData;
+  data: SelectWinningOptionsInstructionData;
 };
 
-export function parseSelectOptionInstruction<
+export function parseSelectWinningOptionsInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedSelectOptionInstruction<TProgram, TAccountMetas> {
+): ParsedSelectWinningOptionsInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 2) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
@@ -190,6 +197,8 @@ export function parseSelectOptionInstruction<
   return {
     programAddress: instruction.programAddress,
     accounts: { authority: getNextAccount(), market: getNextAccount() },
-    data: getSelectOptionInstructionDataDecoder().decode(instruction.data),
+    data: getSelectWinningOptionsInstructionDataDecoder().decode(
+      instruction.data
+    ),
   };
 }

@@ -35,7 +35,7 @@ import {
   addMarketOptionAsCreator,
   initShareAccount,
   stake,
-  selectOption,
+  selectWinningOptions as selectWinningOptionsIx,
   revealShares,
   incrementOptionTally,
   closeShareAccount,
@@ -43,7 +43,6 @@ import {
   doUnstakeEarly as doUnstakeEarlyIx,
   openMarket as openMarketIx,
   awaitComputationFinalization,
-  awaitBatchComputationFinalization,
   type ComputationResult,
   getEncryptedTokenAccountAddress,
   getShareAccountAddress as getShareAccountAddressPda,
@@ -519,18 +518,18 @@ export class TestRunner {
   }
 
   async selectWinningOptions(selections: Array<{ optionIndex: number; rewardPercentage: number }>): Promise<void> {
-    const ix = selectOption({
+    const ix = selectWinningOptionsIx({
       authority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
       selections,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
-      label: "Select option",
+      label: "Select winning options",
     });
   }
 
-  async selectOption(optionIndex: number): Promise<void> {
+  async selectSingleWinningOption(optionIndex: number): Promise<void> {
     await this.selectWinningOptions([{ optionIndex, rewardPercentage: 100 }]);
   }
 

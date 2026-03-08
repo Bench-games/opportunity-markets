@@ -14,11 +14,7 @@ import {
   type SolanaRpcApi,
   type Signature,
 } from "@solana/kit";
-import {
-  getInitCentralStateInstructionAsync,
-  fetchMaybeCentralState,
-  getCentralStateAddress,
-} from "../js/src";
+import { ensureCentralState } from "../js/src";
 import config from "./centralState.json";
 import * as fs from "fs";
 import * as os from "os";
@@ -67,26 +63,21 @@ async function main() {
   console.log(`Program: ${PROGRAM_ID}`);
   console.log(`Payer:   ${payer.address}`);
 
-  const [centralStateAddress] = await getCentralStateAddress(PROGRAM_ID);
-  const existing = await fetchMaybeCentralState(rpc, centralStateAddress);
+  const ix = await ensureCentralState(rpc, {
+    programAddress: PROGRAM_ID,
+    signer: payer,
+    earlinessCutoffSeconds: EARLINESS_CUTOFF_SECONDS,
+    minOptionDeposit: MIN_OPTION_DEPOSIT,
+    protocolFeeBp: 0,
+    feeRecipient: payer.address,
+  });
 
-  if (existing.exists) {
-    console.log(`\nCentral state already exists at ${centralStateAddress}`);
+  if (!ix) {
+    console.log("\nCentral state already up to date.");
     return;
   }
 
-  console.log(`\nCreating central state...`);
-
-  const initIx = await getInitCentralStateInstructionAsync(
-    {
-      payer,
-      earlinessCutoffSeconds: EARLINESS_CUTOFF_SECONDS,
-      minOptionDeposit: MIN_OPTION_DEPOSIT,
-      protocolFeeBp: 0,
-      feeRecipient: payer.address,
-    },
-    { programAddress: PROGRAM_ID }
-  );
+  console.log("\nSending transaction...");
 
   const { value: latestBlockhash } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
 
@@ -95,7 +86,7 @@ async function main() {
       createTransactionMessage({ version: 0 }),
       (msg) => setTransactionMessageFeePayer(payer.address, msg),
       (msg) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, msg),
-      (msg) => appendTransactionMessageInstructions([initIx], msg)
+      (msg) => appendTransactionMessageInstructions([ix], msg)
     )
   );
 

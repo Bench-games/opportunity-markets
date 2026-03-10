@@ -1,4 +1,5 @@
 import { RescueCipher, x25519 } from "@arcium-hq/client";
+import { BN } from "bn.js";
 import { createHash } from "crypto";
 
 export interface X25519Keypair {
@@ -40,4 +41,8 @@ export function deriveSharedSecret(userSecretKey: Uint8Array, mxePublicKey: Uint
 export function createCipher(userSecretKey: Uint8Array, mxePublicKey: Uint8Array): RescueCipher {
   const sharedSecret = deriveSharedSecret(userSecretKey, mxePublicKey);
   return new RescueCipher(sharedSecret);
+}
+
+export function nonceToBytes(nonce: bigint): Uint8Array {
+  return Uint8Array.from(new BN(nonce.toString()).toArray("le", 16));
 }

@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "opportunity_market"
 
 [features]
-default = []
+default = ["hosted-compdefs"]
 cesscpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

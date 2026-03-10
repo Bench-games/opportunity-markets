@@ -1,4 +1,4 @@
 {
   "earlinessCutoffSeconds": 86400,
-  "minOptionDeposit": 100000
+  "minOptionDeposit": 10000000
 }

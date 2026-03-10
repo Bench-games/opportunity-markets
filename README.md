@@ -18,7 +18,7 @@ While the market is open, the following information is kept confidential:
 
 Keeping this information hidden from the public prevents herd behavior — participants vote based on their own judgment rather than following the crowd.
 
-Devnet address: `bnch3UZqMXp8em54htzKtDncG5iTfPqfB6uHWsuKaaZ `
+Devnet address: `bncZ1gDqgqhSWFzcxjeMoCtqN7odS8wYn1nS5tXZ9jA`
 
 ## Documentation
 
@@ -33,7 +33,7 @@ In `programs/opportunity_market/Cargo.toml` make sure it's not in the defaults a
 
 ### Program keypair
 
-Tests use a deterministic program keypair assumed to be located at `../bnch3UZqMXp8em54htzKtDncG5iTfPqfB6uHWsuKaaZ.json`. If you don't have this keypair, generate your own and update the
+Tests use a deterministic program keypair assumed to be located at `../bncZ1gDqgqhSWFzcxjeMoCtqN7odS8wYn1nS5tXZ9jA.json`. If you don't have this keypair, generate your own and update the
 following to match:
 
 1. `declare_id!()` in `programs/opportunity_market/src/lib.rs`

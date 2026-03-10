@@ -21,7 +21,7 @@ pub const COMP_DEF_OFFSET_UNSTAKE_EARLY: u32 = comp_def_offset("unstake_early");
 pub const COMP_DEF_OFFSET_ADD_OPTION_STAKE: u32 = comp_def_offset("add_option_stake");
 pub const COMP_DEF_OFFSET_CLOSE_EPHEMERAL_ENCRYPTED_TOKEN_ACCOUNT: u32 = comp_def_offset("close_ephemeral_encrypted_token_account");
 
-declare_id!("bnch3UZqMXp8em54htzKtDncG5iTfPqfB6uHWsuKaaZ");
+declare_id!("bncZ1gDqgqhSWFzcxjeMoCtqN7odS8wYn1nS5tXZ9jA");
 
 #[arcium_program]
 pub mod opportunity_market {

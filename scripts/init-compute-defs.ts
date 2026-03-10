@@ -127,11 +127,12 @@ async function initCompDef(
 
   // Check if already initialized
   const compDefAddress = getCompDefAccount(circuitName, PROGRAM_ID);
+  console.log("PROGRAM ID", PROGRAM_ID)
   const accountInfo = await rpc
     .getAccountInfo(compDefAddress, { encoding: "base64" })
     .send();
   if (accountInfo.value !== null) {
-    console.log(`  Already initialized, skipping.`);
+    console.log(`  Already initialized at ${compDefAddress}, skipping.`);
     return;
   }
 

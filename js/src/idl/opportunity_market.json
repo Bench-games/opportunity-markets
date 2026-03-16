@@ -5448,7 +5448,7 @@
             "name": "Active"
           },
           {
-            "name": "Recovery"
+            "name": "Migration"
           }
         ]
       }

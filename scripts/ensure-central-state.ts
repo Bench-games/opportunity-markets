@@ -62,6 +62,8 @@ async function main() {
 
   console.log(`Program: ${PROGRAM_ID}`);
   console.log(`Payer:   ${payer.address}`);
+  console.log(`Earliness cutoff ${EARLINESS_CUTOFF_SECONDS.toString()}`)
+  console.log(`Min deposit ${MIN_OPTION_DEPOSIT.toString()}`)
 
   const ix = await ensureCentralState(rpc, {
     programAddress: PROGRAM_ID,

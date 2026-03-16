@@ -18,7 +18,7 @@ import {
 /** The status of an MXE. */
 export enum MxeStatus {
   Active,
-  Recovery,
+  Migration,
 }
 
 export type MxeStatusArgs = MxeStatus;

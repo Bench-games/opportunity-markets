@@ -4,7 +4,7 @@
   "workspaces": {
     "": {
       "dependencies": {
-        "@arcium-hq/client": "0.8.0",
+        "@arcium-hq/client": "0.9.0",
         "@coral-xyz/anchor": "^0.32.1",
         "@solana-program/system": "^0.10.0",
         "@solana-program/token": "^0.9.0",
@@ -24,7 +24,7 @@
     },
   },
   "packages": {
-    "@arcium-hq/client": ["@arcium-hq/client@0.8.0", "", { "dependencies": { "@coral-xyz/anchor": "0.32.1", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-gHxi/NVySMUDUm8AdLu0/DAVftJx5veP6imHsuqDRtxzl9TebLPRlm9xcXnR/siSuFmwx0dKZ7fDRFMNmqaxKg=="],
+    "@arcium-hq/client": ["@arcium-hq/client@0.9.0", "", { "dependencies": { "@coral-xyz/anchor": "0.32.1", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-TBeyVbHi0heUY/0AibYR/kKbLN2meppnsBMAZKv3k+8BE75av6sl/SZXXhglDA5NMhoWHewgLbzblR9nqRL/sg=="],
 
     "@babel/runtime": ["@babel/runtime@7.28.6", "", {}, "sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA=="],
 

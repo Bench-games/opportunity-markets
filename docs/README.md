@@ -10,7 +10,7 @@ There can be multiple winning options, each assigned different sized slice of th
 
 **Opportunity Markets provide the market creator with capital backed signals of new opportunities.**
 The market creator has exclusive access to these signals through selective disclosure of encrypted staking data.
-Otherwise, staking data is confidential while the market is open, allowing the creator to take advantage of opportunities before the public knows about them.
+Staking data is confidential while the market is open, allowing the creator to take advantage of opportunities before the public knows about them.
 
 # Technical Description of The Protocol
 

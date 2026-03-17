@@ -18,11 +18,11 @@ While the market is open, the following information is kept confidential:
 
 Keeping this information hidden from the public prevents herd behavior — participants vote based on their own judgment rather than following the crowd.
 
-Devnet address: `bncZ1gDqgqhSWFzcxjeMoCtqN7odS8wYn1nS5tXZ9jA`
 
-## Documentation
+> [!NOTE]
+> **For a detailed technical description of the protocol, see [`docs/README.md`](./docs/README.md).**
 
-See [this document](./docs/market-life-cycle.md) for detailed documentation of the protocol.
+The Opportunity Markets program is deployed on Solana devnet at `bncZ1gDqgqhSWFzcxjeMoCtqN7odS8wYn1nS5tXZ9jA`
 
 ## Build & Test
 

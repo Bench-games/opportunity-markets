@@ -13,6 +13,7 @@ import { shouldThrowCustomError } from "./utils/errors";
 import { generateX25519Keypair, X25519Keypair } from "../js/src/x25519/keypair";
 import {
   OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED,
+  OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE,
   OPPORTUNITY_MARKET_ERROR__UNSTAKE_DELAY_NOT_MET,
 } from "../js/src/generated/errors/opportunityMarket";
 import * as fs from "fs";
@@ -758,6 +759,104 @@ describe("OpportunityMarket", () => {
     // Verify option was selected
     market = await runner.fetchMarket();
     expect(market.data.selectedOptions).to.deep.equal(some([{ optionIndex: optionA, rewardPercentage: 100 }]));
+  });
+
+  it("rejects staking more than encrypted token balance", async () => {
+    const marketFundingAmount = 1_000_000_000n;
+    const wrapAmount = 100_000_000n;
+
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 1,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: marketFundingAmount,
+        timeToStake: 120n,
+        timeToReveal: 20n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    // Fund and open market
+    await runner.fundMarket();
+    const openTimestamp = await runner.openMarket();
+
+    const user = runner.participants[0];
+
+    // Init ETA and wrap N tokens
+    await runner.initEncryptedTokenAccount(user);
+    await runner.wrapEncryptedTokens(user, wrapAmount);
+
+    // Record ETA balance after wrapping (net of protocol fee)
+    const balanceAfterWrap = await runner.decryptEtaBalance(user);
+    expect(balanceAfterWrap > 0n).to.be.true;
+
+    // Add options
+    const { optionIndex: optionA } = await runner.addOptionAsCreator("Option A");
+    await runner.addOptionAsCreator("Option B");
+
+    // Wait for staking period
+    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    // Attempt to stake 2*N (more than the ETA balance)
+    const stakeAmount = wrapAmount * 2n;
+    const shareAccountId = await runner.stakeOnOption(user, stakeAmount, optionA);
+
+    // Verify ETA balance is unchanged (stake was rolled back)
+    const balanceAfterFailedStake = await runner.decryptEtaBalance(user);
+    expect(balanceAfterFailedStake).to.equal(
+      balanceAfterWrap,
+      `ETA balance should be unchanged after failed stake`
+    );
+
+    // Verify share account was rolled back (staked_at_timestamp reset to None)
+    const shareAccount = await runner.fetchShareAccountData(user, shareAccountId);
+    expect(isNone(shareAccount.data.stakedAtTimestamp)).to.be.true;
+  });
+
+  it("rejects staking before staking period is active", async () => {
+    const marketFundingAmount = 1_000_000_000n;
+    const wrapAmount = 100_000_000n;
+
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 1,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: marketFundingAmount,
+        timeToStake: 120n,
+        timeToReveal: 20n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await runner.fundMarket();
+
+    // Open market with a timestamp far in the future so staking is not yet active
+    const futureTimestamp = BigInt(Math.floor(Date.now() / 1000) + 600);
+    await runner.openMarket(futureTimestamp);
+
+    const user = runner.participants[0];
+
+    // Init ETA, wrap tokens, add options
+    await runner.initEncryptedTokenAccount(user);
+    await runner.wrapEncryptedTokens(user, wrapAmount);
+    const { optionIndex: optionA } = await runner.addOptionAsCreator("Option A");
+    await runner.addOptionAsCreator("Option B");
+
+    // Try to stake before staking period starts — should fail
+    await shouldThrowCustomError(
+      () => runner.stakeOnOption(user, 50n, optionA),
+      OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE
+    );
   });
 
 });

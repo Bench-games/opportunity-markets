@@ -1,14 +1,34 @@
 
 # What Are Opportunity Markets?
 
-You can think of the Opportunity Markets protocol as something similar to a voting protocol with a few key distinctions.
+**In Summary:**
 
-**Opportunity Markets serve an advisory function in decision making.**
+1. A decision maker creates an Opportunity Market and deposits a reward sum
+    - For example, a VC firm can create an Opportunity Market titled *"Which companies should we invest in next quarter?"*
+2. Anybody can add new options to the market
+    - For example, *"Acme Inc"*
+3. Participants stake on their preferred options
+4. The decision maker selects the winning option(s)
+5. All participants withdraw their stake; those who backed the winning options split the reward
+
+While the market is open, the following information is kept confidential:
+
+1. How much stake each option has
+2. For which option(s) a given user staked and with how much capital
+
+Keeping this information hidden from the public prevents herd behavior — participants vote based on their own judgment rather than following the crowd.
+The decision maker **does** have access to this information the whole time and uses it to help their decision making.
+
+Basically, you can think of the Opportunity Markets protocol as something similar to a voting protocol with a couple key distinctions:
+
+1. **Opportunity Markets serve an advisory function in decision making**
+
 The options with majority stake do not automatically win.
 The market creator has the right to choose the winning options according to whichever they believe are the most valuable.
 There can be multiple winning options, each assigned different sized slice of the total reward pool.
 
-**Opportunity Markets provide the market creator with capital backed signals of new opportunities.**
+2. **Opportunity Markets provide the market creator with capital backed signals of new opportunities**
+
 The market creator has exclusive access to these signals through selective disclosure of encrypted staking data.
 Staking data is confidential while the market is open, allowing the creator to take advantage of opportunities before the public knows about them.
 

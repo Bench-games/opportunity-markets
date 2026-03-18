@@ -2,25 +2,7 @@
 
 Opportunity Markets allow users to influence decision making by staking. Decision makers benefit from opportunity markets by getting access to high-quality signals, helping them make the best choice.
 
-**How it works:**
-
-1. A decision maker creates a market and deposits a reward
-2. Participants propose options to vote on
-3. The decision maker opens voting
-4. Participants stake on their preferred option
-5. The decision maker selects a winning option and closes the market
-6. All participants withdraw their stake; those who backed the winner split the reward
-
-While the market is open, the following information is kept confidential:
-
-1. How much stake each option has
-2. For which option(s) a given user staked and with how much capital
-
-Keeping this information hidden from the public prevents herd behavior — participants vote based on their own judgment rather than following the crowd.
-
-
-> [!NOTE]
-> **For a detailed technical description of the protocol, see [`docs/README.md`](./docs/README.md).**
+### **[Detailed protocol documentation →](./docs/README.md)**
 
 The Opportunity Markets program is deployed on Solana devnet at `bncZ1gDqgqhSWFzcxjeMoCtqN7odS8wYn1nS5tXZ9jA`
 

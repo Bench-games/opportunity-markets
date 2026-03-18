@@ -12,7 +12,9 @@ pub fn calculate_user_score_components(
     market_closed: u64,
     user_staked_at: u64,
     stake_amount: u64,
+    earliness_cutoff_seconds: u64,
 ) -> Result<(u64, u64, u64)> {
+    let earliness_cutoff = earliness_cutoff_seconds.max(1);
     let total_market_time = market_closed
         .checked_sub(market_opened)
         .ok_or(ErrorCode::Overflow)?;
@@ -32,10 +34,10 @@ pub fn calculate_user_score_components(
     let earliness_factor = (2 * PRECISION)
         .checked_sub(
             stake_since_opening
-                .min(EARLINESS_INTERSECTION_POINT_SECONDS)
+                .min(earliness_cutoff)
                 .checked_mul(PRECISION)
                 .ok_or(ErrorCode::Overflow)?
-                / EARLINESS_INTERSECTION_POINT_SECONDS,
+                / earliness_cutoff,
         )
         .ok_or(ErrorCode::Overflow)?;
 
@@ -54,9 +56,10 @@ pub fn calculate_user_score(
     market_closed: u64,
     user_staked_at: u64,
     stake_amount: u64,
+    earliness_cutoff_seconds: u64,
 ) -> Result<u64> {
     let (amount, time_pct, earliness) =
-        calculate_user_score_components(market_opened, market_closed, user_staked_at, stake_amount)?;
+        calculate_user_score_components(market_opened, market_closed, user_staked_at, stake_amount, earliness_cutoff_seconds)?;
 
     // score = amount * time_pct * earliness / PRECISION
     // Use u128 intermediate to avoid overflow

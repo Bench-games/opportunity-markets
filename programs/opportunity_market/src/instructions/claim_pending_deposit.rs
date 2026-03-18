@@ -18,6 +18,7 @@ pub struct ClaimPendingDeposit<'info> {
         mut,
         constraint = encrypted_token_account.owner == signer.key() @ ErrorCode::Unauthorized,
         constraint = encrypted_token_account.token_mint == token_mint.key() @ ErrorCode::InvalidMint,
+        constraint = !encrypted_token_account.locked @ ErrorCode::Locked,
     )]
     pub encrypted_token_account: Account<'info, EncryptedTokenAccount>,
 

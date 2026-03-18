@@ -245,6 +245,8 @@ pub fn add_market_option_callback(
         Err(_) => {
             // Rollback
             ctx.accounts.share_account.staked_at_timestamp = None;
+            // TODO: Known issue (H-2) — market.total_options is not decremented on callback
+            // failure, leaving a ghost option. To be addressed in a future update.
             emit_ts!(StakedError {
                 user: ctx.accounts.source_eta.owner,
             });

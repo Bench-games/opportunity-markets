@@ -56,6 +56,8 @@ pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_index: 
     );
 
     let revealed_amount = ctx.accounts.share_account.revealed_amount.ok_or(ErrorCode::NotRevealed)?;
+    let revealed_option = ctx.accounts.share_account.revealed_option.ok_or(ErrorCode::NotRevealed)?;
+    require!(revealed_option == option_index, ErrorCode::InvalidOptionIndex);
 
     // Initialize total_shares to 0 if None, then add revealed_amount
     let current_total = ctx.accounts.option.total_shares.unwrap_or(0);
@@ -77,6 +79,7 @@ pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_index: 
         stake_end,
         staked_at_timestamp,
         revealed_amount,
+        market.earliness_cutoff_seconds,
     )?;
 
     let current_total_score = ctx.accounts.option.total_score.unwrap_or(0);

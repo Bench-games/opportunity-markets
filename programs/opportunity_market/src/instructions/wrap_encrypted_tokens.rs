@@ -6,7 +6,7 @@ use arcium_anchor::prelude::*;
 use arcium_client::idl::arcium::types::CallbackAccount;
 
 use crate::error::ErrorCode;
-use crate::events::{emit_ts, EncryptedTokensWrappedEvent};
+use crate::events::{emit_ts, EncryptedTokensWrappedEvent, EncryptedTokensWrappedError};
 use crate::state::{EncryptedTokenAccount, TokenVault};
 use crate::instructions::init_token_vault::TOKEN_VAULT_SEED;
 use crate::COMP_DEF_OFFSET_WRAP_ENCRYPTED_TOKENS;
@@ -25,7 +25,8 @@ pub struct WrapEncryptedTokens<'info> {
         mut,
         constraint = encrypted_token_account.owner == signer.key() @ ErrorCode::Unauthorized,
         constraint = encrypted_token_account.token_mint == token_mint.key() @ ErrorCode::InvalidMint,
-        constraint = !encrypted_token_account.locked @ ErrorCode::Locked
+        constraint = !encrypted_token_account.locked @ ErrorCode::Locked,
+        constraint = encrypted_token_account.pending_deposit == 0 @ ErrorCode::InvalidAccountState,
     )]
     pub encrypted_token_account: Box<Account<'info, EncryptedTokenAccount>>,
 
@@ -195,21 +196,28 @@ pub fn wrap_encrypted_tokens_callback(
     ctx: Context<WrapEncryptedTokensCallback>,
     output: SignedComputationOutputs<WrapEncryptedTokensOutput>,
 ) -> Result<()> {
+    let eta = &mut ctx.accounts.encrypted_token_account;
+
     let encrypted_balance = match output.verify_output(
         &ctx.accounts.cluster_account,
         &ctx.accounts.computation_account,
     ) {
         Ok(WrapEncryptedTokensOutput { field_0 }) => field_0,
 
-        // We do not reset account state here because can be done manually via
-        // `claim_pending_deposit`
-        Err(_) => return Err(ErrorCode::AbortedComputation.into()),
+        Err(_) => {
+            eta.locked = false;
+            // pending_deposit preserved for claim_pending_deposit recovery
+            emit_ts!(EncryptedTokensWrappedError { user: eta.owner });
+            return Ok(());
+        }
     };
 
-    let eta = &mut ctx.accounts.encrypted_token_account;
-
     // Check that pending deposit exists. User could have withdrawn funds.
-    require!(eta.pending_deposit > 0 && eta.locked, ErrorCode::InsufficientBalance);
+    if !(eta.pending_deposit > 0 && eta.locked) {
+        eta.locked = false;
+        emit_ts!(EncryptedTokensWrappedError { user: eta.owner });
+        return Ok(());
+    }
 
     // Save deposit amount before clearing
     let deposit_amount = eta.pending_deposit;

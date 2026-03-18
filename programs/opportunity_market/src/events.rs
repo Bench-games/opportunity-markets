@@ -103,6 +103,12 @@ pub struct UnstakedError {
 }
 
 #[event]
+pub struct EncryptedTokensWrappedError {
+    pub user: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
 pub struct EncryptedTokensUnwrappedError {
     pub user: Pubkey,
     pub timestamp: i64,

@@ -66,7 +66,7 @@ pub fn select_winning_options(ctx: Context<SelectWinningOptions>, selections: Ve
 
     // If staking is still open, close it by setting time_to_stake to end now
     if current_timestamp < stake_end_timestamp {
-        market.time_to_stake = (current_timestamp - open_timestamp).saturating_sub(1);
+        market.time_to_stake = current_timestamp - open_timestamp;
     }
 
     // Save the selected options

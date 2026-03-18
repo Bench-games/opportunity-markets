@@ -42,6 +42,7 @@ pub struct ClaimFees<'info> {
     #[account(
         mut,
         token::mint = token_mint,
+        token::authority = central_state.fee_recipient,
         token::token_program = token_program,
     )]
     pub fee_recipient_token_account: InterfaceAccount<'info, TokenAccount>,

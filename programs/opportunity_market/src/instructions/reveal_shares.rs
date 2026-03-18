@@ -93,6 +93,7 @@ pub fn reveal_shares(
         .saturating_add(market.time_to_stake);
 
     require!(current_timestamp >= reveal_start, ErrorCode::MarketNotResolved);
+    require!(market.selected_options.is_some(), ErrorCode::MarketNotResolved);
 
     let share_account_key = ctx.accounts.share_account.key();
     let share_account_nonce = ctx.accounts.share_account.state_nonce;

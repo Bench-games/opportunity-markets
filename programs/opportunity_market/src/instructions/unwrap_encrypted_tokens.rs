@@ -27,6 +27,7 @@ pub struct UnwrapEncryptedTokens<'info> {
         constraint = encrypted_token_account.owner == signer.key() @ ErrorCode::Unauthorized,
         constraint = encrypted_token_account.token_mint == token_mint.key() @ ErrorCode::InvalidMint,
         constraint = !encrypted_token_account.locked @ ErrorCode::Locked,
+        constraint = encrypted_token_account.pending_deposit == 0 @ ErrorCode::InvalidAccountState,
     )]
     pub encrypted_token_account: Box<Account<'info, EncryptedTokenAccount>>,
 
@@ -96,6 +97,7 @@ pub fn unwrap_encrypted_tokens(
     amount: u64,
 ) -> Result<()> {
     let eta = &mut ctx.accounts.encrypted_token_account;
+    require!(eta.is_initialized, ErrorCode::InvalidAccountState);
     let user_pubkey = eta.user_pubkey;
     let eta_pubkey = eta.key();
 

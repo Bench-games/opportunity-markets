@@ -301,7 +301,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake: 120n,
-        timeToReveal: 30n,
+        timeToReveal: 25n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -510,6 +510,12 @@ describe("OpportunityMarket", () => {
     // Market creator selects winning option (Option A)
     const winningOptionId = optionA;
     await runner.selectSingleWinningOption(winningOptionId);
+
+    // Wait for reveal window to start (selectSingleWinningOption truncates time_to_stake)
+    const updatedMarket = await runner.fetchMarket();
+    const marketOpenTs = Number(unwrapOption(updatedMarket.data.openTimestamp) ?? 0n);
+    const revealStart = marketOpenTs + Number(updatedMarket.data.timeToStake);
+    await sleepUntilOnChainTimestamp(revealStart + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
 
     // Reveal ALL stake accounts sequentially
     for (const sa of userStakeAccounts) {

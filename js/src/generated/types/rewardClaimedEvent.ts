@@ -32,8 +32,8 @@ export type RewardClaimedEvent = {
   rewardAmount: bigint;
   stakedAtTimestamp: bigint;
   unstakedAtTimestamp: bigint;
-  revealedScore: bigint;
-  revealedAmount: bigint;
+  stakeAmount: bigint;
+  score: bigint;
   timestamp: bigint;
 };
 
@@ -45,8 +45,8 @@ export type RewardClaimedEventArgs = {
   rewardAmount: number | bigint;
   stakedAtTimestamp: number | bigint;
   unstakedAtTimestamp: number | bigint;
-  revealedScore: number | bigint;
-  revealedAmount: number | bigint;
+  stakeAmount: number | bigint;
+  score: number | bigint;
   timestamp: number | bigint;
 };
 
@@ -59,8 +59,8 @@ export function getRewardClaimedEventEncoder(): FixedSizeEncoder<RewardClaimedEv
     ['rewardAmount', getU64Encoder()],
     ['stakedAtTimestamp', getU64Encoder()],
     ['unstakedAtTimestamp', getU64Encoder()],
-    ['revealedScore', getU64Encoder()],
-    ['revealedAmount', getU64Encoder()],
+    ['stakeAmount', getU64Encoder()],
+    ['score', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
 }
@@ -74,8 +74,8 @@ export function getRewardClaimedEventDecoder(): FixedSizeDecoder<RewardClaimedEv
     ['rewardAmount', getU64Decoder()],
     ['stakedAtTimestamp', getU64Decoder()],
     ['unstakedAtTimestamp', getU64Decoder()],
-    ['revealedScore', getU64Decoder()],
-    ['revealedAmount', getU64Decoder()],
+    ['stakeAmount', getU64Decoder()],
+    ['score', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);
 }

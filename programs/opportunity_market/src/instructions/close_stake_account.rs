@@ -110,6 +110,7 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_index: u16, _
     );
 
     // Check if this stake was for a winning option and user incremented the tally
+    // If so, calculate reward
     let mut user_reward: u64 = 0;
     if let Some(winning) = market.selected_options.as_ref().and_then(|opts| opts.iter().find(|w| w.option_index == revealed_option)) {
         if stake_account.total_incremented {
@@ -132,7 +133,7 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_index: u16, _
         }
     }
 
-    // Transfer reward only (staked tokens already returned via reclaim_stake or do_unstake_early)
+    // If user has a reward, transfer
     if user_reward > 0 {
         let creator_key = market.creator;
         let index_bytes = market.index.to_le_bytes();
@@ -167,7 +168,6 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_index: u16, _
             .ok_or(ErrorCode::Overflow)?
     );
     let score = stake_account.score.unwrap_or(0);
-
     emit_ts!(RewardClaimedEvent {
         owner: ctx.accounts.owner.key(),
         market: market.key(),

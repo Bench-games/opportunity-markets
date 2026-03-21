@@ -38,7 +38,7 @@ export const OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE = 0x1779; // 6009
 export const OPPORTUNITY_MARKET_ERROR__WINNER_ALREADY_SELECTED = 0x177a; // 6010
 /** AlreadyRevealed: Stake already revealed */
 export const OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED = 0x177b; // 6011
-/** MarketNotResolved: Staking period not over */
+/** MarketNotResolved: Market not yet resolved */
 export const OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED = 0x177c; // 6012
 /** NotRevealed: Stake not yet revealed */
 export const OPPORTUNITY_MARKET_ERROR__NOT_REVEALED = 0x177d; // 6013
@@ -133,7 +133,7 @@ if (process.env.NODE_ENV !== 'production') {
     [OPPORTUNITY_MARKET_ERROR__LOCKED]: `Account is locked`,
     [OPPORTUNITY_MARKET_ERROR__MARKET_ALREADY_OPEN]: `Market is already open`,
     [OPPORTUNITY_MARKET_ERROR__MARKET_NOT_OPEN]: `Market is not open`,
-    [OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED]: `Staking period not over`,
+    [OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED]: `Market not yet resolved`,
     [OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM]: `No fees to claim`,
     [OPPORTUNITY_MARKET_ERROR__NOT_REVEALED]: `Stake not yet revealed`,
     [OPPORTUNITY_MARKET_ERROR__OVERFLOW]: `Arithmetic overflow`,

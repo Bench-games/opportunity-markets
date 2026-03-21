@@ -2881,7 +2881,7 @@
     {
       "code": 6012,
       "name": "MarketNotResolved",
-      "msg": "Staking period not over"
+      "msg": "Market not yet resolved"
     },
     {
       "code": 6013,
@@ -3487,6 +3487,14 @@
           },
           {
             "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "reward_amount",
             "type": "u64"
           },
           {

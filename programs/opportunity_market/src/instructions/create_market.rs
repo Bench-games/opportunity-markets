@@ -57,6 +57,7 @@ pub fn create_market(
     allow_closing_early: bool,
 ) -> Result<()> {
     let market = &mut ctx.accounts.market;
+    let mint = ctx.accounts.token_mint.key();
     market.bump = ctx.bumps.market;
     market.creator = ctx.accounts.creator.key();
     market.index = market_index;
@@ -65,7 +66,7 @@ pub fn create_market(
     market.time_to_reveal = time_to_reveal;
     market.selected_options = None;
     market.reward_amount = reward_amount;
-    market.mint = ctx.accounts.token_mint.key();
+    market.mint = mint;
     market.market_authority = market_authority;
     market.earliness_cutoff_seconds = ctx.accounts.central_state.earliness_cutoff_seconds;
     market.unstake_delay_seconds = unstake_delay_seconds;
@@ -74,9 +75,11 @@ pub fn create_market(
     market.reward_withdrawn = false;
 
     emit_ts!(MarketCreatedEvent {
-        market: ctx.accounts.market.key(),
+        market: market.key(),
         creator: ctx.accounts.creator.key(),
         index: market_index,
+        mint: mint,
+        reward_amount: reward_amount,
         time_to_reveal: time_to_reveal,
         time_to_stake : time_to_stake,
         market_authority: market_authority,

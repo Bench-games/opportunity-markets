@@ -26,7 +26,7 @@ pub enum ErrorCode {
     WinnerAlreadySelected,
     #[msg("Stake already revealed")]
     AlreadyRevealed,
-    #[msg("Staking period not over")]
+    #[msg("Market not yet resolved")]
     MarketNotResolved,
     #[msg("Stake not yet revealed")]
     NotRevealed,

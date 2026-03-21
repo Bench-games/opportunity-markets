@@ -20,6 +20,8 @@ pub struct MarketCreatedEvent {
     pub market: Pubkey,
     pub creator: Pubkey,
     pub index: u64,
+    pub mint: Pubkey,
+    pub reward_amount: u64,
     pub time_to_stake: u64,
     pub time_to_reveal: u64,
     pub market_authority: Option<Pubkey>,

@@ -120,7 +120,6 @@ export async function sendTransaction(
   }
 
   if (simResult.value.err) {
-    console.log("SIM RESULT",simResult.value)
     throw new OnChainError(simResult.value.err);
   }
 

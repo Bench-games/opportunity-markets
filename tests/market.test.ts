@@ -280,4 +280,162 @@ describe("OpportunityMarket", () => {
     const vaultAfter = await fetchTokenVault(rpc, tokenVaultAddress);
     expect(vaultAfter.data.collectedFees).to.equal(0n, "Vault collected fees should be 0 after claiming");
   });
+
+  it("distributes rewards across multiple winning options", async () => {
+    const marketFundingAmount = 1_000_000_000n;
+    const stakeAmount = 1000n;
+
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 2,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: marketFundingAmount,
+        timeToStake: 120n,
+        timeToReveal: 30n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await runner.fundMarket();
+    const openTimestamp = await runner.openMarket();
+
+    const [user1, user2] = runner.participants;
+
+    // Create 7 options: A-G
+    const options: number[] = [];
+    for (let i = 0; i < 7; i++) {
+      const { optionId } = await runner.addOption();
+      options.push(optionId);
+    }
+    const [optA, optB, optC, _optD, optE, optF, optG] = options;
+
+    // Wait for staking period
+    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    // User 1 stakes on A, B, C
+    const u1StakeIds = await runner.stakeOnOptionBatch([
+      { userId: user1, amount: stakeAmount, optionId: optA },
+      { userId: user1, amount: stakeAmount, optionId: optB },
+      { userId: user1, amount: stakeAmount, optionId: optC },
+    ]);
+
+    // User 2 stakes on E, F, G
+    const u2StakeIds = await runner.stakeOnOptionBatch([
+      { userId: user2, amount: stakeAmount, optionId: optE },
+      { userId: user2, amount: stakeAmount, optionId: optF },
+      { userId: user2, amount: stakeAmount, optionId: optG },
+    ]);
+
+    // Creator selects 3 winning options with different percentages: A=50%, B=30%, E=20%
+    await runner.selectWinningOptions([
+      { optionId: optA, rewardPercentage: 50 },
+      { optionId: optB, rewardPercentage: 30 },
+      { optionId: optE, rewardPercentage: 20 },
+    ]);
+
+    // Verify selected options
+    const resolvedMarket = await runner.fetchMarket();
+    expect(resolvedMarket.data.selectedOptions).to.deep.equal(some([
+      { optionId: BigInt(optA), rewardPercentage: 50 },
+      { optionId: BigInt(optB), rewardPercentage: 30 },
+      { optionId: BigInt(optE), rewardPercentage: 20 },
+    ]));
+
+    // selectWinningOptions with allow_closing_early shortens time_to_stake, so reveal window starts now.
+    const updatedMarket = await runner.fetchMarket();
+    const updatedOpenTs = updatedMarket.data.openTimestamp.__option === "Some"
+      ? Number(updatedMarket.data.openTimestamp.value)
+      : 0;
+    const revealStart = updatedOpenTs + Number(updatedMarket.data.timeToStake);
+    await sleepUntilOnChainTimestamp(revealStart + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    // Reveal all stake accounts
+    await Promise.all([
+      runner.revealStakeBatch(u1StakeIds.map(sid => ({ userId: user1, stakeAccountId: sid }))),
+      runner.revealStakeBatch(u2StakeIds.map(sid => ({ userId: user2, stakeAccountId: sid }))),
+    ]);
+
+    // Increment tally for winning stake accounts only
+    // User 1: A (stake 0), B (stake 1) — C is a loser
+    // User 2: E (stake 0) — F, G are losers
+    await Promise.all([
+      runner.incrementOptionTally(user1, optA, u1StakeIds[0]),
+      runner.incrementOptionTally(user1, optB, u1StakeIds[1]),
+      runner.incrementOptionTally(user2, optE, u2StakeIds[0]),
+    ]);
+
+    // Wait for reveal period to end
+    const timeToReveal = Number(runner.getTimeToReveal());
+    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
+
+    // Reclaim staked tokens for all accounts (required before close_stake_account)
+    await runner.reclaimStakeBatch([
+      ...u1StakeIds.map(sid => ({ userId: user1, stakeAccountId: sid })),
+      ...u2StakeIds.map(sid => ({ userId: user2, stakeAccountId: sid })),
+    ]);
+
+    const rpc = runner.getRpc();
+
+    // Get user1 balance before closing
+    const u1BalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user1))).data.amount;
+
+    // Close all user1 stake accounts (A, B winning; C losing)
+    await runner.closeStakeAccountBatch([
+      { userId: user1, optionId: optA, stakeAccountId: u1StakeIds[0] },
+      { userId: user1, optionId: optB, stakeAccountId: u1StakeIds[1] },
+      { userId: user1, optionId: optC, stakeAccountId: u1StakeIds[2] },
+    ]);
+
+    const u1BalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user1))).data.amount;
+    const u1Gain = u1BalanceAfter - u1BalanceBefore;
+
+    // Get user2 balance before closing
+    const u2BalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user2))).data.amount;
+
+    // Close all user2 stake accounts (E winning; F, G losing)
+    await runner.closeStakeAccountBatch([
+      { userId: user2, optionId: optE, stakeAccountId: u2StakeIds[0] },
+      { userId: user2, optionId: optF, stakeAccountId: u2StakeIds[1] },
+      { userId: user2, optionId: optG, stakeAccountId: u2StakeIds[2] },
+    ]);
+
+    const u2BalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user2))).data.amount;
+    const u2Gain = u2BalanceAfter - u2BalanceBefore;
+
+    // User 1 should receive rewards from A (50%) and B (30%) = 80% of total
+    // User 2 should receive rewards from E (20%) = 20% of total
+    const expectedU1Gain = marketFundingAmount * 80n / 100n;
+    const expectedU2Gain = marketFundingAmount * 20n / 100n;
+
+    // Allow tolerance of 2 for rounding
+    expect(
+      u1Gain >= expectedU1Gain - 2n && u1Gain <= expectedU1Gain,
+      `User 1 should gain ~${expectedU1Gain} (80%), got ${u1Gain}`
+    ).to.be.true;
+
+    expect(
+      u2Gain >= expectedU2Gain - 2n && u2Gain <= expectedU2Gain,
+      `User 2 should gain ~${expectedU2Gain} (20%), got ${u2Gain}`
+    ).to.be.true;
+
+    // Total paid out should equal the full reward amount
+    const totalGains = u1Gain + u2Gain;
+    expect(
+      totalGains >= marketFundingAmount - 3n && totalGains <= marketFundingAmount,
+      `Total gains should be ~${marketFundingAmount}, got ${totalGains}`
+    ).to.be.true;
+
+    // All stake accounts should be closed
+    for (const [userId, stakeIds] of [[user1, u1StakeIds], [user2, u2StakeIds]] as const) {
+      for (const sid of stakeIds) {
+        const addr = await runner.getStakeAccountAddress(userId, sid);
+        expect(await runner.accountExists(addr)).to.be.false;
+      }
+    }
+  });
 });

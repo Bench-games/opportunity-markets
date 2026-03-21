@@ -27,7 +27,7 @@ pub struct InitStakeAccount<'info> {
 pub fn init_stake_account(
     ctx: Context<InitStakeAccount>,
     state_nonce: u128,
-    _stake_account_id: u32,
+    stake_account_id: u32,
 ) -> Result<()> {
     let stake_account = &mut ctx.accounts.stake_account;
 
@@ -47,6 +47,7 @@ pub fn init_stake_account(
     emit_ts!(StakeAccountInitializedEvent {
         stake_account: stake_account.key(),
         owner: stake_account.owner,
+        account_id: stake_account_id,
         market: stake_account.market,
     });
 

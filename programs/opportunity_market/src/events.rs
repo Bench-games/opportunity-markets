@@ -173,6 +173,7 @@ pub struct StakeAccountInitializedEvent {
     pub stake_account: Pubkey,
     pub owner: Pubkey,
     pub market: Pubkey,
+    pub account_id: u32,
     pub timestamp: i64,
 }
 

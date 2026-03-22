@@ -8,7 +8,7 @@ The Opportunity Markets program is deployed on Solana devnet at `BencHEXKYZ8HJ9L
 
 ## Build & Test
 
-Arcium v0.9.0 cli required.
+Arcium v0.9.2 cli required.
 
 Before testing, make sure you build without the feature `hosted-compdefs`.
 In `programs/opportunity_market/Cargo.toml` make sure it's not in the defaults array.

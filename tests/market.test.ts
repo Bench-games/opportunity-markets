@@ -159,7 +159,7 @@ describe("OpportunityMarket", () => {
       return sum + expectedNetPerUser[idx];
     }, 0n);
     const optionAccount = await runner.fetchOptionData(winningOptionIndex);
-    expect(optionAccount.data.totalStaked).to.deep.equal(some(totalWinningStaked));
+    expect(optionAccount.data.totalStaked).to.equal(totalWinningStaked);
 
     // Get timestamps for reward calculation
     const updatedMarket = await runner.fetchMarket();

@@ -14,6 +14,7 @@ export interface EnsureCentralStateParams extends BaseInstructionParams {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: bigint | number;
 }
 
 export async function ensureCentralState(
@@ -33,7 +34,8 @@ export async function ensureCentralState(
       s.minOptionDeposit === BigInt(args.minOptionDeposit) &&
       s.protocolFeeBp === args.protocolFeeBp &&
       s.feeRecipient === args.feeRecipient &&
-      s.rewardWithdrawStakedLimit === args.rewardWithdrawStakedLimit
+      s.rewardWithdrawStakedLimit === args.rewardWithdrawStakedLimit &&
+      s.minimumInitialRevealPeriod === BigInt(args.minimumInitialRevealPeriod)
     ) {
       return null;
     }

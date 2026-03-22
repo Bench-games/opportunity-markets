@@ -62,6 +62,7 @@ export type CentralState = {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: bigint;
 };
 
 export type CentralStateArgs = {
@@ -72,6 +73,7 @@ export type CentralStateArgs = {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: number | bigint;
 };
 
 export function getCentralStateEncoder(): FixedSizeEncoder<CentralStateArgs> {
@@ -85,6 +87,7 @@ export function getCentralStateEncoder(): FixedSizeEncoder<CentralStateArgs> {
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
       ['rewardWithdrawStakedLimit', getU32Encoder()],
+      ['minimumInitialRevealPeriod', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -100,6 +103,7 @@ export function getCentralStateDecoder(): FixedSizeDecoder<CentralState> {
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
     ['rewardWithdrawStakedLimit', getU32Decoder()],
+    ['minimumInitialRevealPeriod', getU64Decoder()],
   ]);
 }
 

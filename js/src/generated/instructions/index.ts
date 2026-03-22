@@ -11,7 +11,7 @@ export * from './claimFees';
 export * from './closeStakeAccount';
 export * from './createMarket';
 export * from './doUnstakeEarly';
-export * from './extendRevealPeriod';
+export * from './endRevealPeriod';
 export * from './increaseRewardPool';
 export * from './incrementOptionTally';
 export * from './initCentralState';

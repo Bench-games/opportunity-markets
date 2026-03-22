@@ -23,6 +23,7 @@ pub fn update_central_state(
     protocol_fee_bp: u16,
     fee_recipient: Pubkey,
     reward_withdraw_staked_limit: u32,
+    minimum_initial_reveal_period: u64,
 ) -> Result<()> {
     let central_state = &mut ctx.accounts.central_state;
     central_state.earliness_cutoff_seconds = earliness_cutoff_seconds;
@@ -30,5 +31,6 @@ pub fn update_central_state(
     central_state.protocol_fee_bp = protocol_fee_bp;
     central_state.fee_recipient = fee_recipient;
     central_state.reward_withdraw_staked_limit = reward_withdraw_staked_limit;
+    central_state.minimum_initial_reveal_period = minimum_initial_reveal_period;
     Ok(())
 }

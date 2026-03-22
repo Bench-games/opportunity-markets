@@ -1,21 +1,20 @@
 import { type TransactionSigner, type Address } from "@solana/kit";
 import {
-  getExtendRevealPeriodInstruction,
-  type ExtendRevealPeriodInstruction,
+  getEndRevealPeriodInstruction,
+  type EndRevealPeriodInstruction,
 } from "../generated";
 import { type BaseInstructionParams } from "./instructionParams";
 
-export interface ExtendRevealPeriodParams extends BaseInstructionParams {
+export interface EndRevealPeriodParams extends BaseInstructionParams {
   authority: TransactionSigner;
   market: Address;
-  newTimeToReveal: bigint;
 }
 
-export function extendRevealPeriod(
-  input: ExtendRevealPeriodParams
-): ExtendRevealPeriodInstruction<string> {
+export function endRevealPeriod(
+  input: EndRevealPeriodParams
+): EndRevealPeriodInstruction<string> {
   const { programAddress, ...params } = input;
-  return getExtendRevealPeriodInstruction(
+  return getEndRevealPeriodInstruction(
     params,
     programAddress ? { programAddress } : undefined
   );

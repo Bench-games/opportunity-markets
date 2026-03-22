@@ -88,6 +88,7 @@ async function main() {
     unstakeDelaySeconds: BigInt(config.unstakeDelaySeconds),
     authorizedReaderPubkey,
     allowClosingEarly: config.allowClosingEarly,
+    revealPeriodAuthority: payer.address,
     programAddress: PROGRAM_ID,
   });
 

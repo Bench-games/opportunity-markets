@@ -33,8 +33,9 @@ pub mod opportunity_market {
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
         reward_withdraw_staked_limit: u32,
+        minimum_initial_reveal_period: u64,
     ) -> Result<()> {
-        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit)
+        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit, minimum_initial_reveal_period)
     }
 
     pub fn transfer_central_state_authority(
@@ -51,8 +52,9 @@ pub mod opportunity_market {
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
         reward_withdraw_staked_limit: u32,
+        minimum_initial_reveal_period: u64,
     ) -> Result<()> {
-        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit)
+        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit, minimum_initial_reveal_period)
     }
 
     pub fn create_market(
@@ -65,6 +67,7 @@ pub mod opportunity_market {
         unstake_delay_seconds: u64,
         authorized_reader_pubkey: [u8; 32],
         allow_closing_early: bool,
+        reveal_period_authority: Pubkey,
     ) -> Result<()> {
         instructions::create_market(
             ctx,
@@ -76,6 +79,7 @@ pub mod opportunity_market {
             unstake_delay_seconds,
             authorized_reader_pubkey,
             allow_closing_early,
+            reveal_period_authority,
         )
     }
 
@@ -98,8 +102,8 @@ pub mod opportunity_market {
         instructions::withdraw_reward(ctx)
     }
 
-    pub fn extend_reveal_period(ctx: Context<ExtendRevealPeriod>, new_time_to_reveal: u64) -> Result<()> {
-        instructions::extend_reveal_period(ctx, new_time_to_reveal)
+    pub fn end_reveal_period(ctx: Context<EndRevealPeriod>) -> Result<()> {
+        instructions::end_reveal_period(ctx)
     }
 
     pub fn increase_reward_pool(ctx: Context<IncreaseRewardPool>, new_reward_amount: u64) -> Result<()> {

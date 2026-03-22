@@ -74,7 +74,8 @@ export type OpportunityMarket = {
   timeToReveal: bigint;
   selectedOptions: Option<Array<WinningOption>>;
   rewardAmount: bigint;
-  marketAuthority: Option<Address>;
+  marketAuthority: Address;
+  revealPeriodAuthority: Address;
   mint: Address;
   earlinessCutoffSeconds: bigint;
   unstakeDelaySeconds: bigint;
@@ -94,7 +95,8 @@ export type OpportunityMarketArgs = {
   timeToReveal: number | bigint;
   selectedOptions: OptionOrNullable<Array<WinningOptionArgs>>;
   rewardAmount: number | bigint;
-  marketAuthority: OptionOrNullable<Address>;
+  marketAuthority: Address;
+  revealPeriodAuthority: Address;
   mint: Address;
   earlinessCutoffSeconds: number | bigint;
   unstakeDelaySeconds: number | bigint;
@@ -120,7 +122,8 @@ export function getOpportunityMarketEncoder(): Encoder<OpportunityMarketArgs> {
         getOptionEncoder(getArrayEncoder(getWinningOptionEncoder())),
       ],
       ['rewardAmount', getU64Encoder()],
-      ['marketAuthority', getOptionEncoder(getAddressEncoder())],
+      ['marketAuthority', getAddressEncoder()],
+      ['revealPeriodAuthority', getAddressEncoder()],
       ['mint', getAddressEncoder()],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['unstakeDelaySeconds', getU64Encoder()],
@@ -148,7 +151,8 @@ export function getOpportunityMarketDecoder(): Decoder<OpportunityMarket> {
       getOptionDecoder(getArrayDecoder(getWinningOptionDecoder())),
     ],
     ['rewardAmount', getU64Decoder()],
-    ['marketAuthority', getOptionDecoder(getAddressDecoder())],
+    ['marketAuthority', getAddressDecoder()],
+    ['revealPeriodAuthority', getAddressDecoder()],
     ['mint', getAddressDecoder()],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['unstakeDelaySeconds', getU64Decoder()],

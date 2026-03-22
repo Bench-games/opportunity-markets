@@ -579,6 +579,10 @@
         {
           "name": "allow_closing_early",
           "type": "bool"
+        },
+        {
+          "name": "reveal_period_authority",
+          "type": "pubkey"
         }
       ]
     },
@@ -731,16 +735,16 @@
       ]
     },
     {
-      "name": "extend_reveal_period",
+      "name": "end_reveal_period",
       "discriminator": [
-        95,
-        102,
-        32,
-        59,
-        88,
-        1,
-        211,
-        128
+        144,
+        81,
+        42,
+        65,
+        127,
+        60,
+        134,
+        92
       ],
       "accounts": [
         {
@@ -752,12 +756,7 @@
           "writable": true
         }
       ],
-      "args": [
-        {
-          "name": "new_time_to_reveal",
-          "type": "u64"
-        }
-      ]
+      "args": []
     },
     {
       "name": "increase_reward_pool",
@@ -1027,6 +1026,10 @@
         {
           "name": "reward_withdraw_staked_limit",
           "type": "u32"
+        },
+        {
+          "name": "minimum_initial_reveal_period",
+          "type": "u64"
         }
       ]
     },
@@ -2348,6 +2351,10 @@
         {
           "name": "reward_withdraw_staked_limit",
           "type": "u32"
+        },
+        {
+          "name": "minimum_initial_reveal_period",
+          "type": "u64"
         }
       ]
     },
@@ -2365,11 +2372,8 @@
       ],
       "accounts": [
         {
-          "name": "creator",
-          "signer": true,
-          "relations": [
-            "market"
-          ]
+          "name": "authority",
+          "signer": true
         },
         {
           "name": "market",
@@ -3098,6 +3102,10 @@
           {
             "name": "reward_withdraw_staked_limit",
             "type": "u32"
+          },
+          {
+            "name": "minimum_initial_reveal_period",
+            "type": "u64"
           }
         ]
       }
@@ -3802,9 +3810,11 @@
           },
           {
             "name": "market_authority",
-            "type": {
-              "option": "pubkey"
-            }
+            "type": "pubkey"
+          },
+          {
+            "name": "reveal_period_authority",
+            "type": "pubkey"
           },
           {
             "name": "mint",

@@ -75,7 +75,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake: 120n,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -184,9 +184,7 @@ describe("OpportunityMarket", () => {
       })
     );
 
-    // Wait for reveal period to end
-    const timeToReveal = Number(runner.getTimeToReveal());
-    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
+    await runner.endRevealPeriod();
 
     // Get token balances before closing (after reclaim, so only reward transfer remains)
     const rpc = runner.getRpc();
@@ -302,7 +300,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake: 120n,
-        timeToReveal: 25n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -379,9 +377,7 @@ describe("OpportunityMarket", () => {
       ...u2StakeIds.map(sid => ({ userId: user2, stakeAccountId: sid })),
     ]);
 
-    // Wait for reveal period to end
-    const timeToReveal = Number(runner.getTimeToReveal());
-    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
+    await runner.endRevealPeriod();
 
     const rpc = runner.getRpc();
 
@@ -458,7 +454,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake: 120n,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -544,9 +540,7 @@ describe("OpportunityMarket", () => {
       userStakeAccounts.map((sa) => ({ userId: user, stakeAccountId: sa.id }))
     );
 
-    // Wait for reveal period to end
-    const timeToReveal = Number(runner.getTimeToReveal());
-    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
+    await runner.endRevealPeriod();
 
     // Get balances before closing
     const rpc = runner.getRpc();
@@ -609,7 +603,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
         allowClosingEarly: false,
       },
@@ -663,7 +657,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: initialReward,
         timeToStake: 120n,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -704,8 +698,6 @@ describe("OpportunityMarket", () => {
 
   it("allows creator to withdraw reward and resolve market without winners", async () => {
     const marketFundingAmount = 1_000_000_000n;
-    const timeToStake = 10n;
-    const timeToReveal = 20n;
 
     const observer = loadObserverKeypair();
 
@@ -717,8 +709,8 @@ describe("OpportunityMarket", () => {
       initialTokenAmount: 2_000_000_000n,
       marketConfig: {
         rewardAmount: marketFundingAmount,
-        timeToStake,
-        timeToReveal,
+        timeToStake: 10n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -778,11 +770,7 @@ describe("OpportunityMarket", () => {
     expect(userBalanceAfter - userBalanceBefore).to.equal(expectedNet,
       `User should receive ${expectedNet} staked tokens back after reclaim`);
 
-    // Wait for reveal period to end
-    const updatedMarket = await runner.fetchMarket();
-    const updatedOpenTs = Number(unwrapOption(updatedMarket.data.openTimestamp) ?? 0n);
-    const revealEnd = updatedOpenTs + Number(updatedMarket.data.timeToStake) + Number(updatedMarket.data.timeToReveal);
-    await sleepUntilOnChainTimestamp(revealEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+    await runner.endRevealPeriod();
 
     // Close stake account without revealing — reward was withdrawn
     await runner.closeStakeAccount(user, optionA, stakeAccountId);
@@ -806,7 +794,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake: 120n,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -847,7 +835,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         unstakeDelaySeconds,
         authorizedReaderPubkey: observer.publicKey,
       },
@@ -934,7 +922,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: 1_000_000_000n,
         timeToStake: 120n,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -960,7 +948,7 @@ describe("OpportunityMarket", () => {
       marketConfig: {
         rewardAmount: 1_000_000_000n,
         timeToStake: 120n,
-        timeToReveal: 20n,
+        timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });

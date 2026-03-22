@@ -73,6 +73,7 @@ async function main() {
     protocolFeeBp: 0,
     feeRecipient: payer.address,
     rewardWithdrawStakedLimit: 100,
+    minimumInitialRevealPeriod: 0n,
   });
 
   if (!ix) {

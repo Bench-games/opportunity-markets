@@ -6,7 +6,7 @@ import {
 import { type BaseInstructionParams } from "./instructionParams";
 
 export interface WithdrawRewardParams extends BaseInstructionParams {
-  creator: TransactionSigner;
+  authority: TransactionSigner;
   market: Address;
   tokenMint: Address;
   refundTokenAccount: Address;

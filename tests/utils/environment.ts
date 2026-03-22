@@ -249,6 +249,7 @@ export async function createTestEnvironment(
     protocolFeeBp: 0,
     feeRecipient: creatorAccount.keypair.address,
     rewardWithdrawStakedLimit: 100,
+    minimumInitialRevealPeriod: 0n,
   });
 
   const { value: csBlockhash } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
@@ -278,6 +279,7 @@ export async function createTestEnvironment(
     unstakeDelaySeconds: marketConfig.unstakeDelaySeconds,
     authorizedReaderPubkey: creatorAccount.x25519Keypair.publicKey,
     allowClosingEarly: true,
+    revealPeriodAuthority: creatorAccount.keypair.address,
   });
 
   // Get latest blockhash

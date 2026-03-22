@@ -119,6 +119,7 @@ export type CreateMarketInstructionData = {
   unstakeDelaySeconds: bigint;
   authorizedReaderPubkey: Array<number>;
   allowClosingEarly: boolean;
+  revealPeriodAuthority: Address;
 };
 
 export type CreateMarketInstructionDataArgs = {
@@ -130,6 +131,7 @@ export type CreateMarketInstructionDataArgs = {
   unstakeDelaySeconds: number | bigint;
   authorizedReaderPubkey: Array<number>;
   allowClosingEarly: boolean;
+  revealPeriodAuthority: Address;
 };
 
 export function getCreateMarketInstructionDataEncoder(): Encoder<CreateMarketInstructionDataArgs> {
@@ -144,6 +146,7 @@ export function getCreateMarketInstructionDataEncoder(): Encoder<CreateMarketIns
       ['unstakeDelaySeconds', getU64Encoder()],
       ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
       ['allowClosingEarly', getBooleanEncoder()],
+      ['revealPeriodAuthority', getAddressEncoder()],
     ]),
     (value) => ({ ...value, discriminator: CREATE_MARKET_DISCRIMINATOR })
   );
@@ -160,6 +163,7 @@ export function getCreateMarketInstructionDataDecoder(): Decoder<CreateMarketIns
     ['unstakeDelaySeconds', getU64Decoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['allowClosingEarly', getBooleanDecoder()],
+    ['revealPeriodAuthority', getAddressDecoder()],
   ]);
 }
 
@@ -200,6 +204,7 @@ export type CreateMarketAsyncInput<
   unstakeDelaySeconds: CreateMarketInstructionDataArgs['unstakeDelaySeconds'];
   authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
   allowClosingEarly: CreateMarketInstructionDataArgs['allowClosingEarly'];
+  revealPeriodAuthority: CreateMarketInstructionDataArgs['revealPeriodAuthority'];
 };
 
 export async function getCreateMarketInstructionAsync<
@@ -367,6 +372,7 @@ export type CreateMarketInput<
   unstakeDelaySeconds: CreateMarketInstructionDataArgs['unstakeDelaySeconds'];
   authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
   allowClosingEarly: CreateMarketInstructionDataArgs['allowClosingEarly'];
+  revealPeriodAuthority: CreateMarketInstructionDataArgs['revealPeriodAuthority'];
 };
 
 export function getCreateMarketInstruction<

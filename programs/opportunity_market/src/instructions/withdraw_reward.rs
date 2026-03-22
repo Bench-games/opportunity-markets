@@ -9,11 +9,12 @@ use crate::state::{CentralState, OpportunityMarket};
 
 #[derive(Accounts)]
 pub struct WithdrawReward<'info> {
-    pub creator: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(
         mut,
-        has_one = creator @ ErrorCode::Unauthorized,
+        constraint = market.creator == authority.key()
+            || market.market_authority == authority.key() @ ErrorCode::Unauthorized,
     )]
     pub market: Account<'info, OpportunityMarket>,
 
@@ -118,7 +119,7 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
 
     emit_ts!(RewardWithdrawnEvent {
         market: market.key(),
-        creator: ctx.accounts.creator.key(),
+        creator: ctx.accounts.authority.key(),
         reward_amount: reward_amount,
         refund_token_account: ctx.accounts.refund_token_account.key(),
     });

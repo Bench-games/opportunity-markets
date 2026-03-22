@@ -13,7 +13,7 @@ pub struct AddMarketOption<'info> {
     #[account(
         mut,
         constraint = market.selected_options.is_none() @ ErrorCode::WinnerAlreadySelected,
-        constraint = market.creator == creator.key() || market.market_authority == Some(creator.key()) @ ErrorCode::Unauthorized,
+        constraint = market.creator == creator.key() || market.market_authority == creator.key() @ ErrorCode::Unauthorized,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 

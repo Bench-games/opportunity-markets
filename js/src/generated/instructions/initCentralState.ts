@@ -84,6 +84,7 @@ export type InitCentralStateInstructionData = {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: bigint;
 };
 
 export type InitCentralStateInstructionDataArgs = {
@@ -92,6 +93,7 @@ export type InitCentralStateInstructionDataArgs = {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: number | bigint;
 };
 
 export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<InitCentralStateInstructionDataArgs> {
@@ -103,6 +105,7 @@ export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<In
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
       ['rewardWithdrawStakedLimit', getU32Encoder()],
+      ['minimumInitialRevealPeriod', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: INIT_CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -116,6 +119,7 @@ export function getInitCentralStateInstructionDataDecoder(): FixedSizeDecoder<In
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
     ['rewardWithdrawStakedLimit', getU32Decoder()],
+    ['minimumInitialRevealPeriod', getU64Decoder()],
   ]);
 }
 
@@ -142,6 +146,7 @@ export type InitCentralStateAsyncInput<
   protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
   rewardWithdrawStakedLimit: InitCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
+  minimumInitialRevealPeriod: InitCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
 };
 
 export async function getInitCentralStateInstructionAsync<
@@ -232,6 +237,7 @@ export type InitCentralStateInput<
   protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
   rewardWithdrawStakedLimit: InitCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
+  minimumInitialRevealPeriod: InitCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
 };
 
 export function getInitCentralStateInstruction<

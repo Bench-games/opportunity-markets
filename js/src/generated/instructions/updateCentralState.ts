@@ -78,6 +78,7 @@ export type UpdateCentralStateInstructionData = {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: bigint;
 };
 
 export type UpdateCentralStateInstructionDataArgs = {
@@ -86,6 +87,7 @@ export type UpdateCentralStateInstructionDataArgs = {
   protocolFeeBp: number;
   feeRecipient: Address;
   rewardWithdrawStakedLimit: number;
+  minimumInitialRevealPeriod: number | bigint;
 };
 
 export function getUpdateCentralStateInstructionDataEncoder(): FixedSizeEncoder<UpdateCentralStateInstructionDataArgs> {
@@ -97,6 +99,7 @@ export function getUpdateCentralStateInstructionDataEncoder(): FixedSizeEncoder<
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
       ['rewardWithdrawStakedLimit', getU32Encoder()],
+      ['minimumInitialRevealPeriod', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: UPDATE_CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -110,6 +113,7 @@ export function getUpdateCentralStateInstructionDataDecoder(): FixedSizeDecoder<
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
     ['rewardWithdrawStakedLimit', getU32Decoder()],
+    ['minimumInitialRevealPeriod', getU64Decoder()],
   ]);
 }
 
@@ -134,6 +138,7 @@ export type UpdateCentralStateAsyncInput<
   protocolFeeBp: UpdateCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: UpdateCentralStateInstructionDataArgs['feeRecipient'];
   rewardWithdrawStakedLimit: UpdateCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
+  minimumInitialRevealPeriod: UpdateCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
 };
 
 export async function getUpdateCentralStateInstructionAsync<
@@ -209,6 +214,7 @@ export type UpdateCentralStateInput<
   protocolFeeBp: UpdateCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: UpdateCentralStateInstructionDataArgs['feeRecipient'];
   rewardWithdrawStakedLimit: UpdateCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
+  minimumInitialRevealPeriod: UpdateCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
 };
 
 export function getUpdateCentralStateInstruction<

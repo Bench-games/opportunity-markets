@@ -42,6 +42,7 @@ import {
   openMarket as openMarketIx,
   increaseRewardPool as increaseRewardPoolIx,
   withdrawReward as withdrawRewardIx,
+  endRevealPeriod as endRevealPeriodIx,
   awaitComputationFinalization,
   type ComputationResult,
   getStakeAccountAddress as getStakeAccountAddressPda,
@@ -272,6 +273,7 @@ export class TestRunner {
       protocolFeeBp: 100,
       feeRecipient: creatorAccountBase.keypair.address,
       rewardWithdrawStakedLimit: 1,
+      minimumInitialRevealPeriod: 0n,
     });
     if (centralStateIx) {
       await sendTransaction(runner.rpc, runner.sendAndConfirm, deployer, [centralStateIx], {
@@ -387,6 +389,7 @@ export class TestRunner {
       unstakeDelaySeconds: marketConfig.unstakeDelaySeconds,
       authorizedReaderPubkey: marketConfig.authorizedReaderPubkey,
       allowClosingEarly: marketConfig.allowClosingEarly,
+      revealPeriodAuthority: runner.marketCreator.solanaKeypair.address,
     });
 
     await sendTransaction(runner.rpc, runner.sendAndConfirm, runner.marketCreator.solanaKeypair, [createMarketIx], {
@@ -548,7 +551,7 @@ export class TestRunner {
     const refund = refundTokenAccount ?? this.marketCreator.tokenAccount;
 
     const ix = await withdrawRewardIx({
-      creator: this.marketCreator.solanaKeypair,
+      authority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       refundTokenAccount: refund,
@@ -557,6 +560,17 @@ export class TestRunner {
 
     await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
       label: "Withdraw reward",
+    });
+  }
+
+  async endRevealPeriod(): Promise<void> {
+    const ix = endRevealPeriodIx({
+      authority: this.marketCreator.solanaKeypair,
+      market: this.marketAddress,
+    });
+
+    await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
+      label: "End reveal period",
     });
   }
 

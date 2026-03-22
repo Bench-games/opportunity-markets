@@ -16,7 +16,7 @@ cluster = "http://127.0.0.1:8899"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "bun run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.test.ts\""
+test = "bun run ts-mocha -p ./tsconfig.json -t 1000000 --slow 120000 \"tests/**/*.test.ts\""
 
 [test]
 startup_wait = 9000000

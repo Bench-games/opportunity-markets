@@ -32,6 +32,8 @@ pub struct CentralState {
 
     // Reward cannot be withdrawn if more than this amount of stakes.
     pub reward_withdraw_staked_limit: u32,
+
+    pub minimum_initial_reveal_period: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace)]
@@ -65,8 +67,9 @@ pub struct OpportunityMarket {
     // Reward to be shared with stakers (in SPL token base units)
     pub reward_amount: u64,
 
-    // Optional authority that can manage the market (select winning option, extend reveal period)
-    pub market_authority: Option<Pubkey>,
+    pub market_authority: Pubkey,
+
+    pub reveal_period_authority: Pubkey,
 
     // SPL token mint for this market (vote tokens and rewards)
     pub mint: Pubkey,

@@ -14,8 +14,6 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU64Decoder,
-  getU64Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
@@ -34,17 +32,17 @@ import {
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
-export const EXTEND_REVEAL_PERIOD_DISCRIMINATOR = new Uint8Array([
-  95, 102, 32, 59, 88, 1, 211, 128,
+export const END_REVEAL_PERIOD_DISCRIMINATOR = new Uint8Array([
+  144, 81, 42, 65, 127, 60, 134, 92,
 ]);
 
-export function getExtendRevealPeriodDiscriminatorBytes() {
+export function getEndRevealPeriodDiscriminatorBytes() {
   return fixEncoderSize(getBytesEncoder(), 8).encode(
-    EXTEND_REVEAL_PERIOD_DISCRIMINATOR
+    END_REVEAL_PERIOD_DISCRIMINATOR
   );
 }
 
-export type ExtendRevealPeriodInstruction<
+export type EndRevealPeriodInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountAuthority extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
@@ -64,59 +62,51 @@ export type ExtendRevealPeriodInstruction<
     ]
   >;
 
-export type ExtendRevealPeriodInstructionData = {
+export type EndRevealPeriodInstructionData = {
   discriminator: ReadonlyUint8Array;
-  newTimeToReveal: bigint;
 };
 
-export type ExtendRevealPeriodInstructionDataArgs = {
-  newTimeToReveal: number | bigint;
-};
+export type EndRevealPeriodInstructionDataArgs = {};
 
-export function getExtendRevealPeriodInstructionDataEncoder(): FixedSizeEncoder<ExtendRevealPeriodInstructionDataArgs> {
+export function getEndRevealPeriodInstructionDataEncoder(): FixedSizeEncoder<EndRevealPeriodInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([
-      ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['newTimeToReveal', getU64Encoder()],
-    ]),
-    (value) => ({ ...value, discriminator: EXTEND_REVEAL_PERIOD_DISCRIMINATOR })
+    getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
+    (value) => ({ ...value, discriminator: END_REVEAL_PERIOD_DISCRIMINATOR })
   );
 }
 
-export function getExtendRevealPeriodInstructionDataDecoder(): FixedSizeDecoder<ExtendRevealPeriodInstructionData> {
+export function getEndRevealPeriodInstructionDataDecoder(): FixedSizeDecoder<EndRevealPeriodInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['newTimeToReveal', getU64Decoder()],
   ]);
 }
 
-export function getExtendRevealPeriodInstructionDataCodec(): FixedSizeCodec<
-  ExtendRevealPeriodInstructionDataArgs,
-  ExtendRevealPeriodInstructionData
+export function getEndRevealPeriodInstructionDataCodec(): FixedSizeCodec<
+  EndRevealPeriodInstructionDataArgs,
+  EndRevealPeriodInstructionData
 > {
   return combineCodec(
-    getExtendRevealPeriodInstructionDataEncoder(),
-    getExtendRevealPeriodInstructionDataDecoder()
+    getEndRevealPeriodInstructionDataEncoder(),
+    getEndRevealPeriodInstructionDataDecoder()
   );
 }
 
-export type ExtendRevealPeriodInput<
+export type EndRevealPeriodInput<
   TAccountAuthority extends string = string,
   TAccountMarket extends string = string,
 > = {
   authority: TransactionSigner<TAccountAuthority>;
   market: Address<TAccountMarket>;
-  newTimeToReveal: ExtendRevealPeriodInstructionDataArgs['newTimeToReveal'];
 };
 
-export function getExtendRevealPeriodInstruction<
+export function getEndRevealPeriodInstruction<
   TAccountAuthority extends string,
   TAccountMarket extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: ExtendRevealPeriodInput<TAccountAuthority, TAccountMarket>,
+  input: EndRevealPeriodInput<TAccountAuthority, TAccountMarket>,
   config?: { programAddress?: TProgramAddress }
-): ExtendRevealPeriodInstruction<
+): EndRevealPeriodInstruction<
   TProgramAddress,
   TAccountAuthority,
   TAccountMarket
@@ -135,27 +125,22 @@ export function getExtendRevealPeriodInstruction<
     ResolvedAccount
   >;
 
-  // Original args.
-  const args = { ...input };
-
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.authority),
       getAccountMeta(accounts.market),
     ],
-    data: getExtendRevealPeriodInstructionDataEncoder().encode(
-      args as ExtendRevealPeriodInstructionDataArgs
-    ),
+    data: getEndRevealPeriodInstructionDataEncoder().encode({}),
     programAddress,
-  } as ExtendRevealPeriodInstruction<
+  } as EndRevealPeriodInstruction<
     TProgramAddress,
     TAccountAuthority,
     TAccountMarket
   >);
 }
 
-export type ParsedExtendRevealPeriodInstruction<
+export type ParsedEndRevealPeriodInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
@@ -164,17 +149,17 @@ export type ParsedExtendRevealPeriodInstruction<
     authority: TAccountMetas[0];
     market: TAccountMetas[1];
   };
-  data: ExtendRevealPeriodInstructionData;
+  data: EndRevealPeriodInstructionData;
 };
 
-export function parseExtendRevealPeriodInstruction<
+export function parseEndRevealPeriodInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedExtendRevealPeriodInstruction<TProgram, TAccountMetas> {
+): ParsedEndRevealPeriodInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 2) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
@@ -188,8 +173,6 @@ export function parseExtendRevealPeriodInstruction<
   return {
     programAddress: instruction.programAddress,
     accounts: { authority: getNextAccount(), market: getNextAccount() },
-    data: getExtendRevealPeriodInstructionDataDecoder().decode(
-      instruction.data
-    ),
+    data: getEndRevealPeriodInstructionDataDecoder().decode(instruction.data),
   };
 }

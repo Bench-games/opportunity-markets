@@ -4,6 +4,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
 
+use crate::error::ErrorCode;
 use crate::state::{CentralState, OpportunityMarket};
 use crate::events::{emit_ts, MarketCreatedEvent};
 
@@ -55,12 +56,21 @@ pub fn create_market(
     unstake_delay_seconds: u64,
     authorized_reader_pubkey: [u8; 32],
     allow_closing_early: bool,
+    reveal_period_authority: Pubkey,
 ) -> Result<()> {
+    let central_state = &ctx.accounts.central_state;
+
+    require!(
+        time_to_reveal >= central_state.minimum_initial_reveal_period,
+        ErrorCode::InvalidTimestamp
+    );
+
+    let creator_key = ctx.accounts.creator.key();
     let market = &mut ctx.accounts.market;
     let mint = ctx.accounts.token_mint.key();
-    let earliness_cutoff_seconds = ctx.accounts.central_state.earliness_cutoff_seconds;
+    let earliness_cutoff_seconds = central_state.earliness_cutoff_seconds;
     market.bump = ctx.bumps.market;
-    market.creator = ctx.accounts.creator.key();
+    market.creator = creator_key;
     market.index = market_index;
     market.total_options = 0;
     market.time_to_stake = time_to_stake;
@@ -68,7 +78,8 @@ pub fn create_market(
     market.selected_options = None;
     market.reward_amount = reward_amount;
     market.mint = mint;
-    market.market_authority = market_authority;
+    market.market_authority = market_authority.unwrap_or(creator_key);
+    market.reveal_period_authority = reveal_period_authority;
     market.earliness_cutoff_seconds = earliness_cutoff_seconds;
     market.unstake_delay_seconds = unstake_delay_seconds;
     market.authorized_reader_pubkey = authorized_reader_pubkey;
@@ -77,7 +88,7 @@ pub fn create_market(
 
     emit_ts!(MarketCreatedEvent {
         market: market.key(),
-        creator: ctx.accounts.creator.key(),
+        creator: creator_key,
         index: market_index,
         mint: mint,
         reward_amount: reward_amount,

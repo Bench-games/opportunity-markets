@@ -1023,6 +1023,10 @@
         {
           "name": "fee_recipient",
           "type": "pubkey"
+        },
+        {
+          "name": "reward_withdraw_staked_limit",
+          "type": "u32"
         }
       ]
     },
@@ -2088,6 +2092,10 @@
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
+          "name": "market",
+          "writable": true
+        },
+        {
           "name": "stake_account",
           "writable": true
         }
@@ -2336,6 +2344,10 @@
         {
           "name": "fee_recipient",
           "type": "pubkey"
+        },
+        {
+          "name": "reward_withdraw_staked_limit",
+          "type": "u32"
         }
       ]
     },
@@ -2432,6 +2444,31 @@
             "Creator-specified destination for refunded reward tokens"
           ],
           "writable": true
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "token_program"
@@ -3057,6 +3094,10 @@
           {
             "name": "fee_recipient",
             "type": "pubkey"
+          },
+          {
+            "name": "reward_withdraw_staked_limit",
+            "type": "u32"
           }
         ]
       }
@@ -3793,6 +3834,10 @@
           {
             "name": "reward_withdrawn",
             "type": "bool"
+          },
+          {
+            "name": "total_staked_count",
+            "type": "u64"
           }
         ]
       }

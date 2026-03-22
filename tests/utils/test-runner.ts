@@ -271,6 +271,7 @@ export class TestRunner {
       minOptionDeposit: 1n,
       protocolFeeBp: 100,
       feeRecipient: creatorAccountBase.keypair.address,
+      rewardWithdrawStakedLimit: 1,
     });
     if (centralStateIx) {
       await sendTransaction(runner.rpc, runner.sendAndConfirm, deployer, [centralStateIx], {

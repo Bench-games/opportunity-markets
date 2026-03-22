@@ -11,6 +11,7 @@ import {
   OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN,
   OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE,
   OPPORTUNITY_MARKET_ERROR__UNSTAKE_DELAY_NOT_MET,
+  OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
 } from "../js/src";
 
 import { OpportunityMarket } from "../target/types/opportunity_market";
@@ -161,6 +162,14 @@ describe("OpportunityMarket", () => {
     const optionAccount = await runner.fetchOptionData(winningOptionIndex);
     expect(optionAccount.data.totalStaked).to.equal(totalWinningStaked);
 
+    // Reclaim staked tokens for winners
+    await runner.reclaimStakeBatch(
+      winners.map((userId, i) => ({
+        userId,
+        stakeAccountId: winnerStakeAccounts[i].id,
+      }))
+    );
+
     // Get timestamps for reward calculation
     const updatedMarket = await runner.fetchMarket();
     const marketCloseTimestamp =
@@ -178,14 +187,6 @@ describe("OpportunityMarket", () => {
     // Wait for reveal period to end
     const timeToReveal = Number(runner.getTimeToReveal());
     await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
-
-    // Reclaim staked tokens for winners (required before close_stake_account)
-    await runner.reclaimStakeBatch(
-      winners.map((userId, i) => ({
-        userId,
-        stakeAccountId: winnerStakeAccounts[i].id,
-      }))
-    );
 
     // Get token balances before closing (after reclaim, so only reward transfer remains)
     const rpc = runner.getRpc();
@@ -372,15 +373,15 @@ describe("OpportunityMarket", () => {
       runner.incrementOptionTally(user2, optE, u2StakeIds[0]),
     ]);
 
-    // Wait for reveal period to end
-    const timeToReveal = Number(runner.getTimeToReveal());
-    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
-
-    // Reclaim staked tokens for all accounts (required before close_stake_account)
+    // Reclaim staked tokens for all accounts
     await runner.reclaimStakeBatch([
       ...u1StakeIds.map(sid => ({ userId: user1, stakeAccountId: sid })),
       ...u2StakeIds.map(sid => ({ userId: user2, stakeAccountId: sid })),
     ]);
+
+    // Wait for reveal period to end
+    const timeToReveal = Number(runner.getTimeToReveal());
+    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
 
     const rpc = runner.getRpc();
 
@@ -538,14 +539,14 @@ describe("OpportunityMarket", () => {
       }))
     );
 
-    // Wait for reveal period to end
-    const timeToReveal = Number(runner.getTimeToReveal());
-    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
-
     // Reclaim staked tokens for all accounts
     await runner.reclaimStakeBatch(
       userStakeAccounts.map((sa) => ({ userId: user, stakeAccountId: sa.id }))
     );
+
+    // Wait for reveal period to end
+    const timeToReveal = Number(runner.getTimeToReveal());
+    await sleepUntilOnChainTimestamp(new Date().getTime() / 1000 + timeToReveal);
 
     // Get balances before closing
     const rpc = runner.getRpc();
@@ -765,14 +766,7 @@ describe("OpportunityMarket", () => {
       OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN
     );
 
-    // Wait for reveal period to end so close_stake_account is allowed
-    // withdraw_reward truncates time_to_stake, so fetch the updated market state
-    const updatedMarket = await runner.fetchMarket();
-    const updatedOpenTs = Number(unwrapOption(updatedMarket.data.openTimestamp) ?? 0n);
-    const revealEnd = updatedOpenTs + Number(updatedMarket.data.timeToStake) + Number(updatedMarket.data.timeToReveal);
-    await sleepUntilOnChainTimestamp(revealEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
-
-    // Reclaim staked tokens (required before closing, even when reward is withdrawn)
+    // Reclaim staked tokens
     const userBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user))).data.amount;
     await runner.reclaimStake(user, stakeAccountId);
     const userBalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user))).data.amount;
@@ -784,7 +778,13 @@ describe("OpportunityMarket", () => {
     expect(userBalanceAfter - userBalanceBefore).to.equal(expectedNet,
       `User should receive ${expectedNet} staked tokens back after reclaim`);
 
-    // Close stake account WITHOUT revealing — allowed when reward is withdrawn
+    // Wait for reveal period to end
+    const updatedMarket = await runner.fetchMarket();
+    const updatedOpenTs = Number(unwrapOption(updatedMarket.data.openTimestamp) ?? 0n);
+    const revealEnd = updatedOpenTs + Number(updatedMarket.data.timeToStake) + Number(updatedMarket.data.timeToReveal);
+    await sleepUntilOnChainTimestamp(revealEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    // Close stake account without revealing — reward was withdrawn
     await runner.closeStakeAccount(user, optionA, stakeAccountId);
 
     // Verify stake account was closed
@@ -920,5 +920,65 @@ describe("OpportunityMarket", () => {
     await runner.revealStake(staker, stakeAccountId);
     stakeAccount = await runner.fetchStakeAccountData(staker, stakeAccountId);
     expect(stakeAccount.data.revealedOption).to.deep.equal(some(BigInt(optionA)));
+  });
+
+  it("allows reward withdrawal when staked count is within limit", async () => {
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 1,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: 1_000_000_000n,
+        timeToStake: 120n,
+        timeToReveal: 20n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await runner.fundMarket();
+    const openTimestamp = await runner.openMarket();
+    await runner.addOption();
+
+    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    await runner.withdrawReward();
+  });
+
+  it("rejects reward withdrawal when staked count exceeds limit", async () => {
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 2,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: 1_000_000_000n,
+        timeToStake: 120n,
+        timeToReveal: 20n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await runner.fundMarket();
+    const openTimestamp = await runner.openMarket();
+    const { optionId } = await runner.addOption();
+
+    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    const [user1, user2] = runner.participants;
+    await runner.stakeOnOption(user1, 50_000_000n, optionId);
+    await runner.stakeOnOption(user2, 50_000_000n, optionId);
+
+    // 2 stakers, limit is 1 — withdrawal should fail
+    await shouldThrowCustomError(
+      () => runner.withdrawReward(),
+      OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
+    );
   });
 });

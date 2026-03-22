@@ -87,7 +87,7 @@ During this time, more options can still be added.
 Staking is done with the `stake` instruction. This requires the user to transfer at least the minimum stake amount to the Token Vault account. The user encrypts their option choice, which is then stored in their `StakeAccount`.
 
 The user can claim back their stake amount with a delay by calling the `unstake_early` instruction (the delay can be set to zero, we have this mechanism just to allow flexibility for future design).
-After calling that, they must wait a certain period of time before actually claiming back their stake via `do_unstake_early`.
+After the delay has passed that, the stake can be claimed via `do_unstake_early`.
 The latter instruction is permissionless, and can be moved to a "cranker" process to improve UX.
 Users are incentivized to keep their stake in the market as long as possible. More about that in later section [Distributing the Reward](#distributing-the-reward).
 
@@ -96,6 +96,12 @@ Users are incentivized to keep their stake in the market as long as possible. Mo
 The market creator can choose up to 10 winning options and choose how the reward pool is split between them.
 This is done via the `select_winning_option` instruction.
 If the market is configured to allow closing early, this instruction can be called while the staking is still active, ending the staking period immediately.
+
+Instead of selecting any winners, if the market had a small enough number of stakers, the creator can choose to withdraw the reward pool back for themselves and reward no-one by calling `withdraw_reward`.
+
+### Unstaking
+
+Now that the winning options have been selected, users can withdraw their stake with no penalty via `reclaim_stake`.
 
 ### Distributing the Reward
 

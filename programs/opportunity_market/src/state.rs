@@ -29,6 +29,9 @@ pub struct CentralState {
 
     // Receives claimed fees
     pub fee_recipient: Pubkey,
+
+    // Reward cannot be withdrawn if more than this amount of stakes.
+    pub reward_withdraw_staked_limit: u32,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace)]
@@ -82,6 +85,8 @@ pub struct OpportunityMarket {
 
     // If true, reward has been withdrawn by the creator (market resolved without winners)
     pub reward_withdrawn: bool,
+
+    pub total_staked_count: u64,
 }
 
 #[account]

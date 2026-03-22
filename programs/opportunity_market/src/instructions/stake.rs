@@ -190,6 +190,7 @@ pub fn stake(
     ctx.accounts.stake_account.user_pubkey = user_pubkey;
     ctx.accounts.stake_account.locked = true;
 
+    let market_key = ctx.accounts.market.key();
     let stake_account_key = ctx.accounts.stake_account.key();
 
     // Build args for encrypted computation
@@ -218,6 +219,10 @@ pub fn stake(
             computation_offset,
             &ctx.accounts.mxe_account,
             &[
+                CallbackAccount {
+                    pubkey: market_key,
+                    is_writable: true,
+                },
                 CallbackAccount {
                     pubkey: stake_account_key,
                     is_writable: true,
@@ -248,6 +253,8 @@ pub struct StakeCallback<'info> {
     pub instructions_sysvar: AccountInfo<'info>,
 
     // Callback accounts
+    #[account(mut)]
+    pub market: Box<Account<'info, OpportunityMarket>>,
     #[account(mut)]
     pub stake_account: Box<Account<'info, StakeAccount>>,
 }
@@ -283,6 +290,8 @@ pub fn stake_callback(
     ctx.accounts.stake_account.encrypted_option = stake_data_mxe.ciphertexts[0];
     ctx.accounts.stake_account.state_nonce_disclosure = stake_data_shared.nonce;
     ctx.accounts.stake_account.encrypted_option_disclosure = stake_data_shared.ciphertexts[0];
+
+    ctx.accounts.market.total_staked_count = ctx.accounts.market.total_staked_count.saturating_add(1);
 
     emit_ts!(StakedEvent {
         user: ctx.accounts.stake_account.owner,

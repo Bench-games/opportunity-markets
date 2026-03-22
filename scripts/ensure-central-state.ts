@@ -72,6 +72,7 @@ async function main() {
     minOptionDeposit: MIN_OPTION_DEPOSIT,
     protocolFeeBp: 0,
     feeRecipient: payer.address,
+    rewardWithdrawStakedLimit: 100,
   });
 
   if (!ix) {

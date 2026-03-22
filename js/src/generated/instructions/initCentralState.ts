@@ -19,6 +19,8 @@ import {
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   transformEncoder,
@@ -81,6 +83,7 @@ export type InitCentralStateInstructionData = {
   minOptionDeposit: bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
+  rewardWithdrawStakedLimit: number;
 };
 
 export type InitCentralStateInstructionDataArgs = {
@@ -88,6 +91,7 @@ export type InitCentralStateInstructionDataArgs = {
   minOptionDeposit: number | bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
+  rewardWithdrawStakedLimit: number;
 };
 
 export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<InitCentralStateInstructionDataArgs> {
@@ -98,6 +102,7 @@ export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<In
       ['minOptionDeposit', getU64Encoder()],
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
+      ['rewardWithdrawStakedLimit', getU32Encoder()],
     ]),
     (value) => ({ ...value, discriminator: INIT_CENTRAL_STATE_DISCRIMINATOR })
   );
@@ -110,6 +115,7 @@ export function getInitCentralStateInstructionDataDecoder(): FixedSizeDecoder<In
     ['minOptionDeposit', getU64Decoder()],
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
+    ['rewardWithdrawStakedLimit', getU32Decoder()],
   ]);
 }
 
@@ -135,6 +141,7 @@ export type InitCentralStateAsyncInput<
   minOptionDeposit: InitCentralStateInstructionDataArgs['minOptionDeposit'];
   protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
+  rewardWithdrawStakedLimit: InitCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
 };
 
 export async function getInitCentralStateInstructionAsync<
@@ -224,6 +231,7 @@ export type InitCentralStateInput<
   minOptionDeposit: InitCentralStateInstructionDataArgs['minOptionDeposit'];
   protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
+  rewardWithdrawStakedLimit: InitCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
 };
 
 export function getInitCentralStateInstruction<

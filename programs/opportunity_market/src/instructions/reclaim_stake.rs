@@ -17,6 +17,9 @@ pub struct ReclaimStake<'info> {
     /// CHECK: Any account — this is the stake account owner. Permissionless.
     pub owner: UncheckedAccount<'info>,
 
+    #[account(
+        constraint = market.selected_options.is_some() || market.reward_withdrawn @ ErrorCode::MarketNotResolved,
+    )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
     #[account(
@@ -60,18 +63,6 @@ pub fn reclaim_stake(
     _stake_account_id: u32,
 ) -> Result<()> {
     let market = &ctx.accounts.market;
-
-    // Available after reveal period ends
-    let clock = Clock::get()?;
-    let current_time = clock.unix_timestamp as u64;
-
-    let open_timestamp = market.open_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
-    let reveal_end = open_timestamp
-        .checked_add(market.time_to_stake)
-        .and_then(|t| t.checked_add(market.time_to_reveal))
-        .ok_or(ErrorCode::Overflow)?;
-
-    require!(current_time >= reveal_end, ErrorCode::MarketNotResolved);
 
     let amount = ctx.accounts.stake_account.amount;
 

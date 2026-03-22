@@ -5,7 +5,7 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardWithdrawnEvent};
-use crate::state::OpportunityMarket;
+use crate::state::{CentralState, OpportunityMarket};
 
 #[derive(Accounts)]
 pub struct WithdrawReward<'info> {
@@ -37,6 +37,12 @@ pub struct WithdrawReward<'info> {
     )]
     pub refund_token_account: InterfaceAccount<'info, TokenAccount>,
 
+    #[account(
+        seeds = [b"central_state"],
+        bump = central_state.bump,
+    )]
+    pub central_state: Account<'info, CentralState>,
+
     pub token_program: Interface<'info, TokenInterface>,
 }
 
@@ -48,6 +54,12 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
 
     // Cannot withdraw twice
     require!(!market.reward_withdrawn, ErrorCode::RewardAlreadyWithdrawn);
+
+    let limit = ctx.accounts.central_state.reward_withdraw_staked_limit;
+    require!(
+        market.total_staked_count <= limit as u64,
+        ErrorCode::Unauthorized
+    );
 
     // Market must be opened
     let open_timestamp = market.open_timestamp.ok_or(ErrorCode::MarketNotOpen)?;

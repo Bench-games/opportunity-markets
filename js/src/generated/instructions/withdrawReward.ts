@@ -56,6 +56,7 @@ export type WithdrawRewardInstruction<
   TAccountTokenMint extends string | AccountMeta<string> = string,
   TAccountMarketTokenAta extends string | AccountMeta<string> = string,
   TAccountRefundTokenAccount extends string | AccountMeta<string> = string,
+  TAccountCentralState extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
@@ -78,6 +79,9 @@ export type WithdrawRewardInstruction<
       TAccountRefundTokenAccount extends string
         ? WritableAccount<TAccountRefundTokenAccount>
         : TAccountRefundTokenAccount,
+      TAccountCentralState extends string
+        ? ReadonlyAccount<TAccountCentralState>
+        : TAccountCentralState,
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
@@ -120,6 +124,7 @@ export type WithdrawRewardAsyncInput<
   TAccountTokenMint extends string = string,
   TAccountMarketTokenAta extends string = string,
   TAccountRefundTokenAccount extends string = string,
+  TAccountCentralState extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
   creator: TransactionSigner<TAccountCreator>;
@@ -129,6 +134,7 @@ export type WithdrawRewardAsyncInput<
   marketTokenAta?: Address<TAccountMarketTokenAta>;
   /** Creator-specified destination for refunded reward tokens */
   refundTokenAccount: Address<TAccountRefundTokenAccount>;
+  centralState?: Address<TAccountCentralState>;
   tokenProgram: Address<TAccountTokenProgram>;
 };
 
@@ -138,6 +144,7 @@ export async function getWithdrawRewardInstructionAsync<
   TAccountTokenMint extends string,
   TAccountMarketTokenAta extends string,
   TAccountRefundTokenAccount extends string,
+  TAccountCentralState extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
@@ -147,6 +154,7 @@ export async function getWithdrawRewardInstructionAsync<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
+    TAccountCentralState,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
@@ -158,6 +166,7 @@ export async function getWithdrawRewardInstructionAsync<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
+    TAccountCentralState,
     TAccountTokenProgram
   >
 > {
@@ -175,6 +184,7 @@ export async function getWithdrawRewardInstructionAsync<
       value: input.refundTokenAccount ?? null,
       isWritable: true,
     },
+    centralState: { value: input.centralState ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -194,6 +204,18 @@ export async function getWithdrawRewardInstructionAsync<
       ],
     });
   }
+  if (!accounts.centralState.value) {
+    accounts.centralState.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([
+            99, 101, 110, 116, 114, 97, 108, 95, 115, 116, 97, 116, 101,
+          ])
+        ),
+      ],
+    });
+  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
@@ -203,6 +225,7 @@ export async function getWithdrawRewardInstructionAsync<
       getAccountMeta(accounts.tokenMint),
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.refundTokenAccount),
+      getAccountMeta(accounts.centralState),
       getAccountMeta(accounts.tokenProgram),
     ],
     data: getWithdrawRewardInstructionDataEncoder().encode({}),
@@ -214,6 +237,7 @@ export async function getWithdrawRewardInstructionAsync<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
+    TAccountCentralState,
     TAccountTokenProgram
   >);
 }
@@ -224,6 +248,7 @@ export type WithdrawRewardInput<
   TAccountTokenMint extends string = string,
   TAccountMarketTokenAta extends string = string,
   TAccountRefundTokenAccount extends string = string,
+  TAccountCentralState extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
   creator: TransactionSigner<TAccountCreator>;
@@ -233,6 +258,7 @@ export type WithdrawRewardInput<
   marketTokenAta: Address<TAccountMarketTokenAta>;
   /** Creator-specified destination for refunded reward tokens */
   refundTokenAccount: Address<TAccountRefundTokenAccount>;
+  centralState: Address<TAccountCentralState>;
   tokenProgram: Address<TAccountTokenProgram>;
 };
 
@@ -242,6 +268,7 @@ export function getWithdrawRewardInstruction<
   TAccountTokenMint extends string,
   TAccountMarketTokenAta extends string,
   TAccountRefundTokenAccount extends string,
+  TAccountCentralState extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
@@ -251,6 +278,7 @@ export function getWithdrawRewardInstruction<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
+    TAccountCentralState,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
@@ -261,6 +289,7 @@ export function getWithdrawRewardInstruction<
   TAccountTokenMint,
   TAccountMarketTokenAta,
   TAccountRefundTokenAccount,
+  TAccountCentralState,
   TAccountTokenProgram
 > {
   // Program address.
@@ -277,6 +306,7 @@ export function getWithdrawRewardInstruction<
       value: input.refundTokenAccount ?? null,
       isWritable: true,
     },
+    centralState: { value: input.centralState ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -292,6 +322,7 @@ export function getWithdrawRewardInstruction<
       getAccountMeta(accounts.tokenMint),
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.refundTokenAccount),
+      getAccountMeta(accounts.centralState),
       getAccountMeta(accounts.tokenProgram),
     ],
     data: getWithdrawRewardInstructionDataEncoder().encode({}),
@@ -303,6 +334,7 @@ export function getWithdrawRewardInstruction<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
+    TAccountCentralState,
     TAccountTokenProgram
   >);
 }
@@ -320,7 +352,8 @@ export type ParsedWithdrawRewardInstruction<
     marketTokenAta: TAccountMetas[3];
     /** Creator-specified destination for refunded reward tokens */
     refundTokenAccount: TAccountMetas[4];
-    tokenProgram: TAccountMetas[5];
+    centralState: TAccountMetas[5];
+    tokenProgram: TAccountMetas[6];
   };
   data: WithdrawRewardInstructionData;
 };
@@ -333,7 +366,7 @@ export function parseWithdrawRewardInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedWithdrawRewardInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 6) {
+  if (instruction.accounts.length < 7) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -351,6 +384,7 @@ export function parseWithdrawRewardInstruction<
       tokenMint: getNextAccount(),
       marketTokenAta: getNextAccount(),
       refundTokenAccount: getNextAccount(),
+      centralState: getNextAccount(),
       tokenProgram: getNextAccount(),
     },
     data: getWithdrawRewardInstructionDataDecoder().decode(instruction.data),

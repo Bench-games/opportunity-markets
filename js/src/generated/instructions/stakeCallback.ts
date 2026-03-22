@@ -66,6 +66,7 @@ export type StakeCallbackInstruction<
   TAccountClusterAccount extends string | AccountMeta<string> = string,
   TAccountInstructionsSysvar extends string | AccountMeta<string> =
     'Sysvar1nstructions1111111111111111111111111',
+  TAccountMarket extends string | AccountMeta<string> = string,
   TAccountStakeAccount extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
@@ -90,6 +91,9 @@ export type StakeCallbackInstruction<
       TAccountInstructionsSysvar extends string
         ? ReadonlyAccount<TAccountInstructionsSysvar>
         : TAccountInstructionsSysvar,
+      TAccountMarket extends string
+        ? WritableAccount<TAccountMarket>
+        : TAccountMarket,
       TAccountStakeAccount extends string
         ? WritableAccount<TAccountStakeAccount>
         : TAccountStakeAccount,
@@ -198,6 +202,7 @@ export type StakeCallbackInput<
   TAccountComputationAccount extends string = string,
   TAccountClusterAccount extends string = string,
   TAccountInstructionsSysvar extends string = string,
+  TAccountMarket extends string = string,
   TAccountStakeAccount extends string = string,
 > = {
   arciumProgram?: Address<TAccountArciumProgram>;
@@ -206,6 +211,7 @@ export type StakeCallbackInput<
   computationAccount: Address<TAccountComputationAccount>;
   clusterAccount: Address<TAccountClusterAccount>;
   instructionsSysvar?: Address<TAccountInstructionsSysvar>;
+  market: Address<TAccountMarket>;
   stakeAccount: Address<TAccountStakeAccount>;
   output: StakeCallbackInstructionDataArgs['output'];
 };
@@ -217,6 +223,7 @@ export function getStakeCallbackInstruction<
   TAccountComputationAccount extends string,
   TAccountClusterAccount extends string,
   TAccountInstructionsSysvar extends string,
+  TAccountMarket extends string,
   TAccountStakeAccount extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
@@ -227,6 +234,7 @@ export function getStakeCallbackInstruction<
     TAccountComputationAccount,
     TAccountClusterAccount,
     TAccountInstructionsSysvar,
+    TAccountMarket,
     TAccountStakeAccount
   >,
   config?: { programAddress?: TProgramAddress }
@@ -238,6 +246,7 @@ export function getStakeCallbackInstruction<
   TAccountComputationAccount,
   TAccountClusterAccount,
   TAccountInstructionsSysvar,
+  TAccountMarket,
   TAccountStakeAccount
 > {
   // Program address.
@@ -258,6 +267,7 @@ export function getStakeCallbackInstruction<
       value: input.instructionsSysvar ?? null,
       isWritable: false,
     },
+    market: { value: input.market ?? null, isWritable: true },
     stakeAccount: { value: input.stakeAccount ?? null, isWritable: true },
   };
   const accounts = originalAccounts as Record<
@@ -287,6 +297,7 @@ export function getStakeCallbackInstruction<
       getAccountMeta(accounts.computationAccount),
       getAccountMeta(accounts.clusterAccount),
       getAccountMeta(accounts.instructionsSysvar),
+      getAccountMeta(accounts.market),
       getAccountMeta(accounts.stakeAccount),
     ],
     data: getStakeCallbackInstructionDataEncoder().encode(
@@ -301,6 +312,7 @@ export function getStakeCallbackInstruction<
     TAccountComputationAccount,
     TAccountClusterAccount,
     TAccountInstructionsSysvar,
+    TAccountMarket,
     TAccountStakeAccount
   >);
 }
@@ -317,7 +329,8 @@ export type ParsedStakeCallbackInstruction<
     computationAccount: TAccountMetas[3];
     clusterAccount: TAccountMetas[4];
     instructionsSysvar: TAccountMetas[5];
-    stakeAccount: TAccountMetas[6];
+    market: TAccountMetas[6];
+    stakeAccount: TAccountMetas[7];
   };
   data: StakeCallbackInstructionData;
 };
@@ -330,7 +343,7 @@ export function parseStakeCallbackInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedStakeCallbackInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 7) {
+  if (instruction.accounts.length < 8) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -349,6 +362,7 @@ export function parseStakeCallbackInstruction<
       computationAccount: getNextAccount(),
       clusterAccount: getNextAccount(),
       instructionsSysvar: getNextAccount(),
+      market: getNextAccount(),
       stakeAccount: getNextAccount(),
     },
     data: getStakeCallbackInstructionDataDecoder().decode(instruction.data),

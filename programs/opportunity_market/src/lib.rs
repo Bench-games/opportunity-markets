@@ -32,8 +32,9 @@ pub mod opportunity_market {
         min_option_deposit: u64,
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
+        reward_withdraw_staked_limit: u32,
     ) -> Result<()> {
-        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient)
+        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit)
     }
 
     pub fn transfer_central_state_authority(
@@ -49,8 +50,9 @@ pub mod opportunity_market {
         min_option_deposit: u64,
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
+        reward_withdraw_staked_limit: u32,
     ) -> Result<()> {
-        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient)
+        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit)
     }
 
     pub fn create_market(

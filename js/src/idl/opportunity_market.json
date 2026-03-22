@@ -3506,6 +3506,10 @@
             "type": "u64"
           },
           {
+            "name": "earliness_cutoff_seconds",
+            "type": "u64"
+          },
+          {
             "name": "market_authority",
             "type": {
               "option": "pubkey"
@@ -3807,15 +3811,11 @@
             "docs": [
               "Total staked for this option (tally)"
             ],
-            "type": {
-              "option": "u64"
-            }
+            "type": "u64"
           },
           {
             "name": "total_score",
-            "type": {
-              "option": "u64"
-            }
+            "type": "u64"
           }
         ]
       }
@@ -4559,11 +4559,19 @@
             "type": "u64"
           },
           {
-            "name": "amount",
+            "name": "user_stake",
             "type": "u64"
           },
           {
             "name": "user_score",
+            "type": "u64"
+          },
+          {
+            "name": "total_score",
+            "type": "u64"
+          },
+          {
+            "name": "total_stake",
             "type": "u64"
           },
           {

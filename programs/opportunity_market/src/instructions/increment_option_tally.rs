@@ -61,15 +61,11 @@ pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_id: u64
     let revealed_option = ctx.accounts.stake_account.revealed_option.ok_or(ErrorCode::NotRevealed)?;
     require!(revealed_option == option_id, ErrorCode::InvalidOptionId);
 
-    let amount = ctx.accounts.stake_account.amount;
+    let stake_amount = ctx.accounts.stake_account.amount;
 
-    // Initialize total_staked to 0 if None, then add amount
-    let current_total = ctx.accounts.option.total_staked.unwrap_or(0);
-    ctx.accounts.option.total_staked = Some(
-        current_total
-            .checked_add(amount)
-            .ok_or(ErrorCode::Overflow)?
-    );
+    ctx.accounts.option.total_staked = ctx.accounts.option.total_staked
+        .checked_add(stake_amount)
+        .ok_or(ErrorCode::Overflow)?;
 
     let stake_account = &ctx.accounts.stake_account;
 
@@ -82,15 +78,13 @@ pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_id: u64
         open_timestamp,
         stake_end,
         staked_at_timestamp,
-        amount,
+        stake_amount,
         market.earliness_cutoff_seconds,
     )?;
 
-    let current_total_score = ctx.accounts.option.total_score.unwrap_or(0);
-
-    ctx.accounts.option.total_score = Some(
-        current_total_score.checked_add(user_score).ok_or(ErrorCode::Overflow)?
-    );
+    ctx.accounts.option.total_score = ctx.accounts.option.total_score
+        .checked_add(user_score)
+        .ok_or(ErrorCode::Overflow)?;
 
     // Store the user's score on their stake account for reward calculation
     ctx.accounts.stake_account.score = Some(user_score);
@@ -101,8 +95,11 @@ pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_id: u64
         market: ctx.accounts.market.key(),
         stake_account: ctx.accounts.stake_account.key(),
         option_id: option_id,
-        amount: amount,
+        user_stake: stake_amount,
         user_score: user_score,
+
+        total_score: ctx.accounts.option.total_score,
+        total_stake: ctx.accounts.option.total_staked,
     });
 
     Ok(())

@@ -113,7 +113,7 @@ pub struct OpportunityMarketOption {
     pub id: u64,
 
     /// Total staked for this option (tally)
-    pub total_staked: Option<u64>,
+    pub total_staked: u64,
 
-    pub total_score: Option<u64>,
+    pub total_score: u64,
 }

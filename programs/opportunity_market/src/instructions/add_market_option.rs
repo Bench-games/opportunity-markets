@@ -53,8 +53,8 @@ pub fn add_market_option(
     let option = &mut ctx.accounts.option;
     option.bump = ctx.bumps.option;
     option.id = option_id;
-    option.total_staked = None;
-    option.total_score = None;
+    option.total_staked = 0;
+    option.total_score = 0;
 
     emit_ts!(MarketOptionCreatedEvent {
         option: option.key(),

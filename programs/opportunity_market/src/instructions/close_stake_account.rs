@@ -115,7 +115,7 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_id: u64, _sta
     if let Some(winning) = market.selected_options.as_ref().and_then(|opts| opts.iter().find(|w| w.option_id == revealed_option)) {
         if stake_account.total_incremented {
             let user_score = stake_account.score.ok_or(ErrorCode::NotRevealed)?;
-            let total_score = option.total_score.ok_or(ErrorCode::NotRevealed)?;
+            let total_score = option.total_score;
 
             let reward_amount = market.reward_amount as u128;
             let percentage = winning.reward_percentage as u128;

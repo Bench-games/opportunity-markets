@@ -4,6 +4,10 @@ use crate::error::ErrorCode;
 use crate::events::{emit_ts, RevealPeriodExtendedEvent};
 use crate::state::OpportunityMarket;
 
+// TODO:
+// lets rather have an authority account that can close the reveal period
+// lets set it initially as something ridiculously high
+
 #[derive(Accounts)]
 pub struct ExtendRevealPeriod<'info> {
     pub authority: Signer<'info>,

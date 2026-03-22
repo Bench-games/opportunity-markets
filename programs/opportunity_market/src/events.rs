@@ -24,6 +24,7 @@ pub struct MarketCreatedEvent {
     pub reward_amount: u64,
     pub time_to_stake: u64,
     pub time_to_reveal: u64,
+    pub earliness_cutoff_seconds: u64,
     pub market_authority: Option<Pubkey>,
     pub authorized_reader_pubkey: [u8; 32],
     pub unstake_delay_seconds: u64,
@@ -128,8 +129,12 @@ pub struct TallyIncrementedEvent {
     pub market: Pubkey,
     pub stake_account: Pubkey,
     pub option_id: u64,
-    pub amount: u64,
+    pub user_stake: u64,
     pub user_score: u64,
+
+    pub total_score: u64,
+    pub total_stake: u64,
+
     pub timestamp: i64,
 }
 

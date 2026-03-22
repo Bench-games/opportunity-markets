@@ -17,8 +17,6 @@ import {
   fixEncoderSize,
   getBytesDecoder,
   getBytesEncoder,
-  getOptionDecoder,
-  getOptionEncoder,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -28,16 +26,14 @@ import {
   transformEncoder,
   type Account,
   type Address,
-  type Codec,
-  type Decoder,
   type EncodedAccount,
-  type Encoder,
   type FetchAccountConfig,
   type FetchAccountsConfig,
+  type FixedSizeCodec,
+  type FixedSizeDecoder,
+  type FixedSizeEncoder,
   type MaybeAccount,
   type MaybeEncodedAccount,
-  type Option,
-  type OptionOrNullable,
   type ReadonlyUint8Array,
 } from '@solana/kit';
 
@@ -56,26 +52,26 @@ export type OpportunityMarketOption = {
   bump: number;
   id: bigint;
   /** Total staked for this option (tally) */
-  totalStaked: Option<bigint>;
-  totalScore: Option<bigint>;
+  totalStaked: bigint;
+  totalScore: bigint;
 };
 
 export type OpportunityMarketOptionArgs = {
   bump: number;
   id: number | bigint;
   /** Total staked for this option (tally) */
-  totalStaked: OptionOrNullable<number | bigint>;
-  totalScore: OptionOrNullable<number | bigint>;
+  totalStaked: number | bigint;
+  totalScore: number | bigint;
 };
 
-export function getOpportunityMarketOptionEncoder(): Encoder<OpportunityMarketOptionArgs> {
+export function getOpportunityMarketOptionEncoder(): FixedSizeEncoder<OpportunityMarketOptionArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['bump', getU8Encoder()],
       ['id', getU64Encoder()],
-      ['totalStaked', getOptionEncoder(getU64Encoder())],
-      ['totalScore', getOptionEncoder(getU64Encoder())],
+      ['totalStaked', getU64Encoder()],
+      ['totalScore', getU64Encoder()],
     ]),
     (value) => ({
       ...value,
@@ -84,17 +80,17 @@ export function getOpportunityMarketOptionEncoder(): Encoder<OpportunityMarketOp
   );
 }
 
-export function getOpportunityMarketOptionDecoder(): Decoder<OpportunityMarketOption> {
+export function getOpportunityMarketOptionDecoder(): FixedSizeDecoder<OpportunityMarketOption> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['bump', getU8Decoder()],
     ['id', getU64Decoder()],
-    ['totalStaked', getOptionDecoder(getU64Decoder())],
-    ['totalScore', getOptionDecoder(getU64Decoder())],
+    ['totalStaked', getU64Decoder()],
+    ['totalScore', getU64Decoder()],
   ]);
 }
 
-export function getOpportunityMarketOptionCodec(): Codec<
+export function getOpportunityMarketOptionCodec(): FixedSizeCodec<
   OpportunityMarketOptionArgs,
   OpportunityMarketOption
 > {

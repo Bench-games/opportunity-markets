@@ -58,6 +58,7 @@ pub fn create_market(
 ) -> Result<()> {
     let market = &mut ctx.accounts.market;
     let mint = ctx.accounts.token_mint.key();
+    let earliness_cutoff_seconds = ctx.accounts.central_state.earliness_cutoff_seconds;
     market.bump = ctx.bumps.market;
     market.creator = ctx.accounts.creator.key();
     market.index = market_index;
@@ -68,7 +69,7 @@ pub fn create_market(
     market.reward_amount = reward_amount;
     market.mint = mint;
     market.market_authority = market_authority;
-    market.earliness_cutoff_seconds = ctx.accounts.central_state.earliness_cutoff_seconds;
+    market.earliness_cutoff_seconds = earliness_cutoff_seconds;
     market.unstake_delay_seconds = unstake_delay_seconds;
     market.authorized_reader_pubkey = authorized_reader_pubkey;
     market.allow_closing_early = allow_closing_early;
@@ -86,6 +87,7 @@ pub fn create_market(
         authorized_reader_pubkey: authorized_reader_pubkey,
         unstake_delay_seconds: unstake_delay_seconds,
         allow_closing_early: allow_closing_early,
+        earliness_cutoff_seconds: earliness_cutoff_seconds
     });
 
     Ok(())

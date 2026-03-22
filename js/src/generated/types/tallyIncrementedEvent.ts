@@ -27,8 +27,10 @@ export type TallyIncrementedEvent = {
   market: Address;
   stakeAccount: Address;
   optionId: bigint;
-  amount: bigint;
+  userStake: bigint;
   userScore: bigint;
+  totalScore: bigint;
+  totalStake: bigint;
   timestamp: bigint;
 };
 
@@ -37,8 +39,10 @@ export type TallyIncrementedEventArgs = {
   market: Address;
   stakeAccount: Address;
   optionId: number | bigint;
-  amount: number | bigint;
+  userStake: number | bigint;
   userScore: number | bigint;
+  totalScore: number | bigint;
+  totalStake: number | bigint;
   timestamp: number | bigint;
 };
 
@@ -48,8 +52,10 @@ export function getTallyIncrementedEventEncoder(): FixedSizeEncoder<TallyIncreme
     ['market', getAddressEncoder()],
     ['stakeAccount', getAddressEncoder()],
     ['optionId', getU64Encoder()],
-    ['amount', getU64Encoder()],
+    ['userStake', getU64Encoder()],
     ['userScore', getU64Encoder()],
+    ['totalScore', getU64Encoder()],
+    ['totalStake', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
 }
@@ -60,8 +66,10 @@ export function getTallyIncrementedEventDecoder(): FixedSizeDecoder<TallyIncreme
     ['market', getAddressDecoder()],
     ['stakeAccount', getAddressDecoder()],
     ['optionId', getU64Decoder()],
-    ['amount', getU64Decoder()],
+    ['userStake', getU64Decoder()],
     ['userScore', getU64Decoder()],
+    ['totalScore', getU64Decoder()],
+    ['totalStake', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);
 }

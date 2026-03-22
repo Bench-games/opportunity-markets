@@ -40,6 +40,7 @@ export type MarketCreatedEvent = {
   rewardAmount: bigint;
   timeToStake: bigint;
   timeToReveal: bigint;
+  earlinessCutoffSeconds: bigint;
   marketAuthority: Option<Address>;
   authorizedReaderPubkey: Array<number>;
   unstakeDelaySeconds: bigint;
@@ -55,6 +56,7 @@ export type MarketCreatedEventArgs = {
   rewardAmount: number | bigint;
   timeToStake: number | bigint;
   timeToReveal: number | bigint;
+  earlinessCutoffSeconds: number | bigint;
   marketAuthority: OptionOrNullable<Address>;
   authorizedReaderPubkey: Array<number>;
   unstakeDelaySeconds: number | bigint;
@@ -71,6 +73,7 @@ export function getMarketCreatedEventEncoder(): Encoder<MarketCreatedEventArgs> 
     ['rewardAmount', getU64Encoder()],
     ['timeToStake', getU64Encoder()],
     ['timeToReveal', getU64Encoder()],
+    ['earlinessCutoffSeconds', getU64Encoder()],
     ['marketAuthority', getOptionEncoder(getAddressEncoder())],
     ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
     ['unstakeDelaySeconds', getU64Encoder()],
@@ -88,6 +91,7 @@ export function getMarketCreatedEventDecoder(): Decoder<MarketCreatedEvent> {
     ['rewardAmount', getU64Decoder()],
     ['timeToStake', getU64Decoder()],
     ['timeToReveal', getU64Decoder()],
+    ['earlinessCutoffSeconds', getU64Decoder()],
     ['marketAuthority', getOptionDecoder(getAddressDecoder())],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['unstakeDelaySeconds', getU64Decoder()],

@@ -81,7 +81,6 @@ async function main() {
     tokenMint: address(config.tokenMint),
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
     marketIndex,
-    rewardAmount: BigInt(config.rewardAmount),
     timeToStake: BigInt(config.timeToStake),
     timeToReveal: BigInt(config.timeToReveal),
     marketAuthority: config.marketAuthority ? address(config.marketAuthority) : null,

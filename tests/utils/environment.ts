@@ -248,7 +248,6 @@ export async function createTestEnvironment(
     minOptionDeposit: 1n,
     protocolFeeBp: 0,
     feeRecipient: creatorAccount.keypair.address,
-    rewardWithdrawStakedLimit: 100,
     minimumInitialRevealPeriod: 0n,
   });
 
@@ -272,7 +271,6 @@ export async function createTestEnvironment(
     tokenMint: mint.address,
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
     marketIndex,
-    rewardAmount: marketConfig.rewardAmount,
     timeToStake: marketConfig.timeToStake,
     timeToReveal: marketConfig.timeToReveal,
     marketAuthority: null,

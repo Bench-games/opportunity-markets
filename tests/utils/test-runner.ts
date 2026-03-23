@@ -41,7 +41,7 @@ import {
   unstakeEarly as unstakeEarlyIx,
   doUnstakeEarly as doUnstakeEarlyIx,
   openMarket as openMarketIx,
-  increaseRewardPool as increaseRewardPoolIx,
+  addReward as addRewardIx,
   withdrawReward as withdrawRewardIx,
   endRevealPeriod as endRevealPeriodIx,
   awaitComputationFinalization,
@@ -273,7 +273,6 @@ export class TestRunner {
       minOptionDeposit: 1n,
       protocolFeeBp: 100,
       feeRecipient: creatorAccountBase.keypair.address,
-      rewardWithdrawStakedLimit: 1,
       minimumInitialRevealPeriod: 0n,
     });
     if (centralStateIx) {
@@ -383,7 +382,6 @@ export class TestRunner {
       tokenMint: runner.mint.address,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
       marketIndex,
-      rewardAmount: marketConfig.rewardAmount,
       timeToStake: marketConfig.timeToStake,
       timeToReveal: marketConfig.timeToReveal,
       marketAuthority: null,
@@ -400,6 +398,12 @@ export class TestRunner {
     // Get market address from the instruction accounts
     runner.marketAddress = createMarketIx.accounts[3].address as Address;
     console.log(`  Market created: ${runner.marketAddress}`);
+
+    // Add initial reward from creator if configured
+    if (marketConfig.rewardAmount > 0n) {
+      await runner.addReward(runner.marketCreator.solanaKeypair.address, marketConfig.rewardAmount, true);
+      console.log(`  Creator added reward: ${marketConfig.rewardAmount}`);
+    }
 
     return runner;
   }
@@ -488,18 +492,9 @@ export class TestRunner {
   async openMarket(openTimestampArg?: bigint): Promise<bigint> {
     const timestamp = openTimestampArg ?? BigInt(Math.floor(Date.now() / 1000) + 6);
 
-    const [marketAta] = await findAssociatedTokenPda({
-      mint: this.mint.address,
-      owner: this.marketAddress,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    });
-
     const ix = openMarketIx({
       creator: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
-      tokenMint: this.mint.address,
-      marketTokenAta: marketAta,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
       openTimestamp: timestamp,
     });
 
@@ -527,39 +522,38 @@ export class TestRunner {
     await this.selectWinningOptions([{ optionId, rewardPercentage: 100 }]);
   }
 
-  async increaseRewardPool(newRewardAmount: bigint): Promise<void> {
-    const [marketAta] = await findAssociatedTokenPda({
-      mint: this.mint.address,
-      owner: this.marketAddress,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    });
+  async addReward(userId: Address, amount: bigint, lock: boolean = false): Promise<void> {
+    const user = this.getUser(userId);
 
-    const ix = increaseRewardPoolIx({
-      authority: this.marketCreator.solanaKeypair,
+    const ix = await addRewardIx({
+      sponsor: user.solanaKeypair,
       market: this.marketAddress,
       tokenMint: this.mint.address,
-      marketTokenAta: marketAta,
+      sponsorTokenAccount: user.tokenAccount,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      newRewardAmount,
+      amount,
+      lock,
     });
 
-    await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
-      label: "Increase reward pool",
+    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
+      label: "Add reward",
     });
   }
 
-  async withdrawReward(refundTokenAccount?: Address): Promise<void> {
-    const refund = refundTokenAccount ?? this.marketCreator.tokenAccount;
+  async withdrawReward(userId?: Address, refundTokenAccount?: Address): Promise<void> {
+    const sponsorId = userId ?? this.marketCreator.solanaKeypair.address;
+    const user = this.getUser(sponsorId);
+    const refund = refundTokenAccount ?? user.tokenAccount;
 
     const ix = await withdrawRewardIx({
-      authority: this.marketCreator.solanaKeypair,
+      sponsor: user.solanaKeypair,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       refundTokenAccount: refund,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
     });
 
-    await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
+    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
       label: "Withdraw reward",
     });
   }

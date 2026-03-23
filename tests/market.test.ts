@@ -7,8 +7,6 @@ import {
   fetchTokenVault,
   getTokenVaultAddress,
   OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED,
-  OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED,
-  OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN,
   OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE,
   OPPORTUNITY_MARKET_ERROR__UNSTAKE_DELAY_NOT_MET,
   OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
@@ -80,8 +78,7 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    // Fund and open market
-    await runner.fundMarket();
+    // Open market
     const openTimestamp = await runner.openMarket();
 
     // Add two options
@@ -305,7 +302,6 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    await runner.fundMarket();
     const openTimestamp = await runner.openMarket();
 
     const [user1, user2] = runner.participants;
@@ -459,8 +455,7 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    // Fund and open market
-    await runner.fundMarket();
+    // Open market
     const openTimestamp = await runner.openMarket();
 
     // Get the single participant
@@ -609,8 +604,7 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    // Fund and open market
-    await runner.fundMarket();
+    // Open market
     const openTimestamp = await runner.openMarket();
 
     // Add options as creator
@@ -642,9 +636,9 @@ describe("OpportunityMarket", () => {
     expect(market.data.selectedOptions).to.deep.equal(some([{ optionId: BigInt(optionA), rewardPercentage: 100 }]));
   });
 
-  it("allows increasing the reward pool during staking", async () => {
+  it("allows adding more reward during staking", async () => {
     const initialReward = 1_000_000_000n;
-    const increasedReward = 2_000_000_000n;
+    const additionalReward = 1_000_000_000n;
 
     const observer = loadObserverKeypair();
 
@@ -662,8 +656,6 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    // Fund with enough for the increased reward, open market
-    await runner.fundMarket(increasedReward);
     const openTimestamp = await runner.openMarket();
 
     // Add an option so staking can happen
@@ -676,31 +668,20 @@ describe("OpportunityMarket", () => {
     let market = await runner.fetchMarket();
     expect(market.data.rewardAmount).to.equal(initialReward);
 
-    // Increase the reward pool
-    await runner.increaseRewardPool(increasedReward);
+    // Add more reward from creator
+    await runner.addReward(runner.creator, additionalReward);
 
     // Verify updated reward amount
     market = await runner.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(increasedReward);
-
-    // Negative: try to decrease (set to a smaller amount) — should fail
-    await shouldThrowCustomError(
-      () => runner.increaseRewardPool(initialReward),
-      OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED
-    );
-
-    // Negative: try to set same amount — should fail
-    await shouldThrowCustomError(
-      () => runner.increaseRewardPool(increasedReward),
-      OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED
-    );
+    expect(market.data.rewardAmount).to.equal(initialReward + additionalReward);
   });
 
-  it("allows creator to withdraw reward and resolve market without winners", async () => {
+  it("allows unlocked sponsor to withdraw reward before winners selected", async () => {
     const marketFundingAmount = 1_000_000_000n;
 
     const observer = loadObserverKeypair();
 
+    // Create market with no initial reward (we'll add it unlocked)
     const runner = await TestRunner.initialize(provider, programId, {
       rpcUrl: RPC_URL,
       wsUrl: WS_URL,
@@ -708,32 +689,34 @@ describe("OpportunityMarket", () => {
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
       marketConfig: {
-        rewardAmount: marketFundingAmount,
-        timeToStake: 10n,
+        rewardAmount: 0n,
+        timeToStake: 120n,
         timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
 
-    // Fund and open market
-    await runner.fundMarket();
+    // Add reward unlocked (lock=false)
+    await runner.addReward(runner.creator, marketFundingAmount, false);
+
     const openTimestamp = await runner.openMarket();
 
     // Add options
-    const { optionId: optionA } = await runner.addOption();
+    await runner.addOption();
     await runner.addOption();
 
-    // Wait for staking period to be active, then stake
+    // Wait for staking period to be active
     await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
 
-    const user = runner.participants[0];
-    const stakeAccountId = await runner.stakeOnOption(user, 50_000_000n, optionA);
+    // Verify reward amount
+    let market = await runner.fetchMarket();
+    expect(market.data.rewardAmount).to.equal(marketFundingAmount);
 
     // Get creator balance before withdrawal
     const rpc = runner.getRpc();
     const creatorBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(runner.creator))).data.amount;
 
-    // Withdraw reward
+    // Withdraw reward (unlocked sponsor can withdraw)
     await runner.withdrawReward();
 
     // Verify creator received the reward tokens back
@@ -741,43 +724,9 @@ describe("OpportunityMarket", () => {
     expect(creatorBalanceAfter - creatorBalanceBefore).to.equal(marketFundingAmount);
 
     // Verify market state
-    const market = await runner.fetchMarket();
-    expect(market.data.rewardWithdrawn).to.be.true;
+    market = await runner.fetchMarket();
     expect(market.data.rewardAmount).to.equal(0n);
     expect(isNone(market.data.selectedOptions)).to.be.true;
-
-    // Cannot withdraw again
-    await shouldThrowCustomError(
-      () => runner.withdrawReward(),
-      OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN
-    );
-
-    // Cannot select winners after withdrawal
-    await shouldThrowCustomError(
-      () => runner.selectSingleWinningOption(optionA),
-      OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN
-    );
-
-    // Reclaim staked tokens
-    const userBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user))).data.amount;
-    await runner.reclaimStake(user, stakeAccountId);
-    const userBalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user))).data.amount;
-
-    // Verify user received staked tokens back (50M minus 1% protocol fee = 49.5M)
-    const stakeAmount = 50_000_000n;
-    const protocolFeeBp = 100n;
-    const expectedNet = stakeAmount - (stakeAmount * protocolFeeBp / 10_000n);
-    expect(userBalanceAfter - userBalanceBefore).to.equal(expectedNet,
-      `User should receive ${expectedNet} staked tokens back after reclaim`);
-
-    await runner.endRevealPeriod();
-
-    // Close stake account without revealing — reward was withdrawn
-    await runner.closeStakeAccount(user, optionA, stakeAccountId);
-
-    // Verify stake account was closed
-    const addr = await runner.getStakeAccountAddress(user, stakeAccountId);
-    expect(await runner.accountExists(addr)).to.be.false;
   });
 
   it("rejects staking before staking period is active", async () => {
@@ -798,8 +747,6 @@ describe("OpportunityMarket", () => {
         authorizedReaderPubkey: observer.publicKey,
       },
     });
-
-    await runner.fundMarket();
 
     // Open market with a timestamp far in the future so staking is not yet active
     const futureTimestamp = BigInt(Math.floor(Date.now() / 1000) + 600);
@@ -841,8 +788,7 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    // Fund and open market
-    await runner.fundMarket();
+    // Open market
     const openTimestamp = await runner.openMarket();
 
     const [staker, executor] = runner.participants;
@@ -910,35 +856,13 @@ describe("OpportunityMarket", () => {
     expect(stakeAccount.data.revealedOption).to.deep.equal(some(BigInt(optionA)));
   });
 
-  it("allows reward withdrawal when staked count is within limit", async () => {
+  it("locked sponsor cannot withdraw but unlocked sponsor can", async () => {
+    const lockedAmount = 500_000_000n;
+    const unlockedAmount = 300_000_000n;
+
     const observer = loadObserverKeypair();
 
-    const runner = await TestRunner.initialize(provider, programId, {
-      rpcUrl: RPC_URL,
-      wsUrl: WS_URL,
-      numParticipants: 1,
-      airdropLamports: 2_000_000_000n,
-      initialTokenAmount: 2_000_000_000n,
-      marketConfig: {
-        rewardAmount: 1_000_000_000n,
-        timeToStake: 120n,
-        timeToReveal: 120n,
-        authorizedReaderPubkey: observer.publicKey,
-      },
-    });
-
-    await runner.fundMarket();
-    const openTimestamp = await runner.openMarket();
-    await runner.addOption();
-
-    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
-
-    await runner.withdrawReward();
-  });
-
-  it("rejects reward withdrawal when staked count exceeds limit", async () => {
-    const observer = loadObserverKeypair();
-
+    // Create market with no initial reward — sponsors will add explicitly
     const runner = await TestRunner.initialize(provider, programId, {
       rpcUrl: RPC_URL,
       wsUrl: WS_URL,
@@ -946,28 +870,62 @@ describe("OpportunityMarket", () => {
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
       marketConfig: {
-        rewardAmount: 1_000_000_000n,
+        rewardAmount: 0n,
         timeToStake: 120n,
         timeToReveal: 120n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
 
-    await runner.fundMarket();
-    const openTimestamp = await runner.openMarket();
-    const { optionId } = await runner.addOption();
+    const [lockedSponsor, unlockedSponsor] = runner.participants;
+    const rpc = runner.getRpc();
 
-    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+    // Record balances before sponsoring
+    const lockedBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(lockedSponsor))).data.amount;
+    const unlockedBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(unlockedSponsor))).data.amount;
 
-    const [user1, user2] = runner.participants;
-    await runner.stakeOnOption(user1, 50_000_000n, optionId);
-    await runner.stakeOnOption(user2, 50_000_000n, optionId);
+    // Locked sponsor adds reward with lock=true
+    await runner.addReward(lockedSponsor, lockedAmount, true);
 
-    // 2 stakers, limit is 1 — withdrawal should fail
+    // Unlocked sponsor adds reward with lock=false
+    await runner.addReward(unlockedSponsor, unlockedAmount, false);
+
+    // Verify market reward amount is the sum of both
+    let market = await runner.fetchMarket();
+    expect(market.data.rewardAmount).to.equal(lockedAmount + unlockedAmount);
+
+    // Verify token balances decreased
+    const lockedBalanceAfterAdd = (await fetchToken(rpc, runner.getUserTokenAccount(lockedSponsor))).data.amount;
+    expect(lockedBalanceBefore - lockedBalanceAfterAdd).to.equal(lockedAmount);
+
+    const unlockedBalanceAfterAdd = (await fetchToken(rpc, runner.getUserTokenAccount(unlockedSponsor))).data.amount;
+    expect(unlockedBalanceBefore - unlockedBalanceAfterAdd).to.equal(unlockedAmount);
+
+    // Verify market ATA holds total reward
+    const marketAta = await runner.getMarketAta();
+    const marketAtaBalance = (await fetchToken(rpc, marketAta)).data.amount;
+    expect(marketAtaBalance).to.equal(lockedAmount + unlockedAmount);
+
+    // Locked sponsor cannot withdraw
     await shouldThrowCustomError(
-      () => runner.withdrawReward(),
+      () => runner.withdrawReward(lockedSponsor),
       OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
     );
+
+    // Unlocked sponsor can withdraw
+    await runner.withdrawReward(unlockedSponsor);
+
+    // Verify unlocked sponsor received tokens back
+    const unlockedBalanceAfterWithdraw = (await fetchToken(rpc, runner.getUserTokenAccount(unlockedSponsor))).data.amount;
+    expect(unlockedBalanceAfterWithdraw).to.equal(unlockedBalanceBefore);
+
+    // Verify market reward decreased by unlocked amount
+    market = await runner.fetchMarket();
+    expect(market.data.rewardAmount).to.equal(lockedAmount);
+
+    // Verify market ATA balance decreased accordingly
+    const marketAtaBalanceAfter = (await fetchToken(rpc, marketAta)).data.amount;
+    expect(marketAtaBalanceAfter).to.equal(lockedAmount);
   });
 
   it("can close a stuck stake account and refund", async () => {
@@ -987,7 +945,6 @@ describe("OpportunityMarket", () => {
       },
     });
 
-    await runner.fundMarket();
     const openTimestamp = await runner.openMarket();
     const { optionId } = await runner.addOption();
 

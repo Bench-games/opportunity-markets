@@ -190,3 +190,13 @@ pub struct FeesClaimedEvent {
     pub amount: u64,
     pub timestamp: i64,
 }
+
+#[event]
+pub struct StuckStakeClosedEvent {
+    pub owner: Pubkey,
+    pub market: Pubkey,
+    pub stake_account_id: u32,
+    pub refunded_amount: u64,
+    pub refunded_fee: u64,
+    pub timestamp: i64,
+}

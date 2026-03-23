@@ -40,9 +40,11 @@ pub fn init_stake_account(
     stake_account.encrypted_option_disclosure = [0u8; 32];
     stake_account.user_pubkey = [0u8; 32];
     stake_account.amount = 0;
+    stake_account.fee = 0;
     stake_account.revealed_option = None;
     stake_account.locked = false;
     stake_account.stake_reclaimed = false;
+    stake_account.pending_stake = false;
 
     emit_ts!(StakeAccountInitializedEvent {
         stake_account: stake_account.key(),

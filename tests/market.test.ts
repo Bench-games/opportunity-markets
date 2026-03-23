@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { address, some, isNone, isSome, unwrapOption, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory } from "@solana/kit";
-import { fetchToken } from "@solana-program/token";
+import { fetchToken, findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import { expect } from "chai";
 import {
   fetchTokenVault,
@@ -968,5 +968,74 @@ describe("OpportunityMarket", () => {
       () => runner.withdrawReward(),
       OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
     );
+  });
+
+  it("can close a stuck stake account and refund", async () => {
+    const observer = loadObserverKeypair();
+
+    const runner = await TestRunner.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 1,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: 1_000_000_000n,
+        timeToStake: 120n,
+        timeToReveal: 120n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await runner.fundMarket();
+    const openTimestamp = await runner.openMarket();
+    const { optionId } = await runner.addOption();
+
+    await sleepUntilOnChainTimestamp(Number(openTimestamp) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
+
+    const [user] = runner.participants;
+    const rpc = runner.getRpc();
+    const stakeAmount = 100_000_000n;
+
+    // Record balances before
+    const userBalanceBefore = (await fetchToken(rpc, runner.getUserTokenAccount(user))).data.amount;
+    const marketAta = await runner.getMarketAta();
+    const marketBalanceBefore = (await fetchToken(rpc, marketAta)).data.amount;
+    const [tokenVaultAddress] = await getTokenVaultAddress(runner.mintAddress, programId);
+    const [tokenVaultAta] = await findAssociatedTokenPda({
+      mint: runner.mintAddress,
+      owner: tokenVaultAddress,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+    const vaultAtaBalanceBefore = (await fetchToken(rpc, tokenVaultAta)).data.amount;
+    const vaultBefore = await fetchTokenVault(rpc, tokenVaultAddress);
+
+    // Stake and immediately close stuck in the same transaction
+    const stakeAccountId = await runner.stakeAndCloseStuck(user, stakeAmount, optionId);
+
+    // Verify stake account PDA no longer exists
+    const stakeAccountAddress = await runner.getStakeAccountAddress(user, stakeAccountId);
+    const exists = await runner.accountExists(stakeAccountAddress);
+    expect(exists).to.be.false;
+
+    // Verify user token balance is restored (net_amount from market + fee from vault)
+    const userBalanceAfter = (await fetchToken(rpc, runner.getUserTokenAccount(user))).data.amount;
+    expect(userBalanceAfter).to.equal(userBalanceBefore,
+      "User balance should be fully restored after close_stuck");
+
+    // Verify market ATA balance unchanged (net_amount went in and came back out)
+    const marketBalanceAfter = (await fetchToken(rpc, marketAta)).data.amount;
+    expect(marketBalanceAfter).to.equal(marketBalanceBefore,
+      "Market ATA balance should be unchanged");
+
+    // Verify vault ATA balance unchanged (fee went in and came back out)
+    const vaultAtaBalanceAfter = (await fetchToken(rpc, tokenVaultAta)).data.amount;
+    expect(vaultAtaBalanceAfter).to.equal(vaultAtaBalanceBefore,
+      "Vault ATA balance should be unchanged");
+
+    // Verify collected_fees was NOT incremented (fee never counted as collected)
+    const vaultAfter = await fetchTokenVault(rpc, tokenVaultAddress);
+    expect(vaultAfter.data.collectedFees).to.equal(vaultBefore.data.collectedFees,
+      "Vault collected_fees should not have changed");
   });
 });

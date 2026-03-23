@@ -6,7 +6,7 @@ use arcium_anchor::prelude::*;
 use arcium_client::idl::arcium::types::CallbackAccount;
 
 use crate::error::ErrorCode;
-use crate::events::{emit_ts, StakedError, StakedEvent};
+use crate::events::{emit_ts, StakedEvent};
 use crate::instructions::init_token_vault::TOKEN_VAULT_SEED;
 use crate::state::{OpportunityMarket, StakeAccount, TokenVault};
 use crate::COMP_DEF_OFFSET_STAKE;
@@ -33,7 +33,7 @@ pub struct Stake<'info> {
         mut,
         seeds = [STAKE_ACCOUNT_SEED, signer.key().as_ref(), market.key().as_ref(), &stake_account_id.to_le_bytes()],
         bump,
-        constraint = stake_account.staked_at_timestamp.is_none() @ ErrorCode::AlreadyPurchased,
+        constraint = stake_account.staked_at_timestamp.is_none() @ ErrorCode::AlreadyStaked,
         constraint = stake_account.unstaked_at_timestamp.is_none() @ ErrorCode::AlreadyUnstaked,
         constraint = !stake_account.locked @ ErrorCode::Locked,
     )]
@@ -148,6 +148,7 @@ pub fn stake(
         .ok_or(ErrorCode::Overflow)?;
 
     // Transfer net_amount from user to market ATA
+    // Allow retry and reclaim if no callback after 180 slots
     transfer_checked(
         CpiContext::new(
             ctx.accounts.token_program.to_account_info(),
@@ -177,21 +178,19 @@ pub fn stake(
             fee,
             ctx.accounts.token_mint.decimals,
         )?;
-
-        ctx.accounts.token_vault.collected_fees = ctx.accounts.token_vault
-            .collected_fees
-            .checked_add(fee)
-            .ok_or(ErrorCode::Overflow)?;
     }
 
     // Set stake account fields
     ctx.accounts.stake_account.staked_at_timestamp = Some(current_timestamp);
     ctx.accounts.stake_account.amount = net_amount;
+    ctx.accounts.stake_account.fee = fee;
     ctx.accounts.stake_account.user_pubkey = user_pubkey;
     ctx.accounts.stake_account.locked = true;
+    ctx.accounts.stake_account.pending_stake = true;
 
     let market_key = ctx.accounts.market.key();
     let stake_account_key = ctx.accounts.stake_account.key();
+    let token_vault_key = ctx.accounts.token_vault.key();
 
     // Build args for encrypted computation
     let args = ArgBuilder::new()
@@ -202,7 +201,7 @@ pub fn stake(
 
         // Authorized reader context (Shared)
         .x25519_pubkey(authorized_reader_pubkey)
-        .plaintext_u128(authorized_reader_nonce)
+        .plaintext_u128(authorized_reader_nonce) // .account => no locking by hand
 
         // Stake account context (Shared for MXE output encryption)
         .x25519_pubkey(user_pubkey)
@@ -225,6 +224,10 @@ pub fn stake(
                 },
                 CallbackAccount {
                     pubkey: stake_account_key,
+                    is_writable: true,
+                },
+                CallbackAccount {
+                    pubkey: token_vault_key,
                     is_writable: true,
                 },
             ],
@@ -257,30 +260,31 @@ pub struct StakeCallback<'info> {
     pub market: Box<Account<'info, OpportunityMarket>>,
     #[account(mut)]
     pub stake_account: Box<Account<'info, StakeAccount>>,
+    #[account(
+        mut,
+        seeds = [TOKEN_VAULT_SEED, market.mint.as_ref()],
+        bump = token_vault.bump,
+    )]
+    pub token_vault: Box<Account<'info, TokenVault>>,
 }
 
 pub fn stake_callback(
     ctx: Context<StakeCallback>,
     output: SignedComputationOutputs<StakeOutput>,
 ) -> Result<()> {
-    // Unlock
-    ctx.accounts.stake_account.locked = false;
-
-    // Verify output
+    // Verify output — on failure, revert so the account stays stuck
+    // and the owner can recover via close_stuck_stake_account
     let res = match output.verify_output(
         &ctx.accounts.cluster_account,
         &ctx.accounts.computation_account,
     ) {
         Ok(StakeOutput { field_0 }) => field_0,
-        Err(_) => {
-            ctx.accounts.stake_account.staked_at_timestamp = None;
-            ctx.accounts.stake_account.amount = 0;
-            emit_ts!(StakedError {
-                user: ctx.accounts.stake_account.owner,
-            });
-            return Ok(());
-        }
+        Err(e) => return Err(e),
     };
+
+    // Unlock
+    ctx.accounts.stake_account.locked = false;
+    ctx.accounts.stake_account.pending_stake = false;
 
     let stake_data_mxe = res.field_0;
     let stake_data_shared = res.field_1;
@@ -290,6 +294,15 @@ pub fn stake_callback(
     ctx.accounts.stake_account.encrypted_option = stake_data_mxe.ciphertexts[0];
     ctx.accounts.stake_account.state_nonce_disclosure = stake_data_shared.nonce;
     ctx.accounts.stake_account.encrypted_option_disclosure = stake_data_shared.ciphertexts[0];
+
+    // Count fee as collected only on successful stake
+    let fee = ctx.accounts.stake_account.fee;
+    if fee > 0 {
+        ctx.accounts.token_vault.collected_fees = ctx.accounts.token_vault
+            .collected_fees
+            .checked_add(fee)
+            .ok_or(ErrorCode::Overflow)?;
+    }
 
     ctx.accounts.market.total_staked_count = ctx.accounts.market.total_staked_count.saturating_add(1);
 

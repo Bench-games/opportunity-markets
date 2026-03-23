@@ -11,6 +11,7 @@ export * from "./endRevealPeriod";
 export * from "./increaseRewardPool";
 export * from "./initStakeAccount";
 export * from "./closeStakeAccount";
+export * from "./closeStuckStakeAccount";
 export * from "./reclaimStake";
 export * from "./incrementOptionTally";
 export * from "./unstakeEarly";

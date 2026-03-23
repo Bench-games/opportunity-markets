@@ -52,8 +52,8 @@ export const OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED = 0x1780; // 6016
 export const OPPORTUNITY_MARKET_ERROR__INVALID_MINT = 0x1781; // 6017
 /** AlreadyUnstaked: Already unstaked */
 export const OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED = 0x1782; // 6018
-/** AlreadyPurchased: Already staked for this stake account */
-export const OPPORTUNITY_MARKET_ERROR__ALREADY_PURCHASED = 0x1783; // 6019
+/** AlreadyStaked: Already staked for this stake account */
+export const OPPORTUNITY_MARKET_ERROR__ALREADY_STAKED = 0x1783; // 6019
 /** DepositBelowMinimum: Deposit amount below minimum required for option creation */
 export const OPPORTUNITY_MARKET_ERROR__DEPOSIT_BELOW_MINIMUM = 0x1784; // 6020
 /** AddOptionStakeFailed: Add option stake failed: insufficient balance or below minimum deposit */
@@ -76,12 +76,14 @@ export const OPPORTUNITY_MARKET_ERROR__INVALID_WINNING_OPTIONS_INPUT = 0x178c; /
 export const OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED = 0x178d; // 6029
 /** RewardAlreadyWithdrawn: Reward has already been withdrawn */
 export const OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN = 0x178e; // 6030
+/** StakeNotStuck: Stake account is not in a stuck or failed state */
+export const OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK = 0x178f; // 6031
 
 export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__ABORTED_COMPUTATION
   | typeof OPPORTUNITY_MARKET_ERROR__ADD_OPTION_STAKE_FAILED
-  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_PURCHASED
   | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED
+  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_STAKED
   | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED
   | typeof OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED
   | typeof OPPORTUNITY_MARKET_ERROR__CLUSTER_NOT_SET
@@ -103,6 +105,7 @@ export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED
   | typeof OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN
   | typeof OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED
+  | typeof OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK
   | typeof OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE
   | typeof OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED
   | typeof OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
@@ -117,8 +120,8 @@ if (process.env.NODE_ENV !== 'production') {
   opportunityMarketErrorMessages = {
     [OPPORTUNITY_MARKET_ERROR__ABORTED_COMPUTATION]: `Computation aborted`,
     [OPPORTUNITY_MARKET_ERROR__ADD_OPTION_STAKE_FAILED]: `Add option stake failed: insufficient balance or below minimum deposit`,
-    [OPPORTUNITY_MARKET_ERROR__ALREADY_PURCHASED]: `Already staked for this stake account`,
     [OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED]: `Stake already revealed`,
+    [OPPORTUNITY_MARKET_ERROR__ALREADY_STAKED]: `Already staked for this stake account`,
     [OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED]: `Already unstaked`,
     [OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED]: `Market cannot be closed before stake period ends`,
     [OPPORTUNITY_MARKET_ERROR__CLUSTER_NOT_SET]: `Cluster not set`,
@@ -140,6 +143,7 @@ if (process.env.NODE_ENV !== 'production') {
     [OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED]: `Reveal period has already ended`,
     [OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN]: `Reward has already been withdrawn`,
     [OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED]: `New reward amount must be greater than current`,
+    [OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK]: `Stake account is not in a stuck or failed state`,
     [OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE]: `Staking period is not active`,
     [OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED]: `Tally already incremented for this stake account`,
     [OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED]: `Unauthorized`,

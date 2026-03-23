@@ -60,7 +60,7 @@ Account representing the Opportunity Market itself. This account stores the mark
 
 ### `TokenVault`
 
-Vault account that holds the staked tokens and keeps track of collected fees.
+Vault account that tracks collected protocol fee amount. One such account per token mint.
 
 ## Opportunity Market Lifecycle
 

@@ -37,6 +37,7 @@ export * from './stakeOutputStruct0';
 export * from './stakeReclaimedEvent';
 export * from './stakeRevealedError';
 export * from './stakeRevealedEvent';
+export * from './stuckStakeClosedEvent';
 export * from './tallyIncrementedEvent';
 export * from './timestamp';
 export * from './unstakedEvent';

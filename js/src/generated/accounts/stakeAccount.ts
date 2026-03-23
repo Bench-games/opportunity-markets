@@ -72,12 +72,14 @@ export type StakeAccount = {
   stakedAtTimestamp: Option<bigint>;
   unstakedAtTimestamp: Option<bigint>;
   amount: bigint;
+  fee: bigint;
   revealedOption: Option<bigint>;
   score: Option<bigint>;
   totalIncremented: boolean;
   unstakeableAtTimestamp: Option<bigint>;
   locked: boolean;
   stakeReclaimed: boolean;
+  pendingStake: boolean;
 };
 
 export type StakeAccountArgs = {
@@ -92,12 +94,14 @@ export type StakeAccountArgs = {
   stakedAtTimestamp: OptionOrNullable<number | bigint>;
   unstakedAtTimestamp: OptionOrNullable<number | bigint>;
   amount: number | bigint;
+  fee: number | bigint;
   revealedOption: OptionOrNullable<number | bigint>;
   score: OptionOrNullable<number | bigint>;
   totalIncremented: boolean;
   unstakeableAtTimestamp: OptionOrNullable<number | bigint>;
   locked: boolean;
   stakeReclaimed: boolean;
+  pendingStake: boolean;
 };
 
 export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
@@ -118,12 +122,14 @@ export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
       ['stakedAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['unstakedAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['amount', getU64Encoder()],
+      ['fee', getU64Encoder()],
       ['revealedOption', getOptionEncoder(getU64Encoder())],
       ['score', getOptionEncoder(getU64Encoder())],
       ['totalIncremented', getBooleanEncoder()],
       ['unstakeableAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['locked', getBooleanEncoder()],
       ['stakeReclaimed', getBooleanEncoder()],
+      ['pendingStake', getBooleanEncoder()],
     ]),
     (value) => ({ ...value, discriminator: STAKE_ACCOUNT_DISCRIMINATOR })
   );
@@ -146,12 +152,14 @@ export function getStakeAccountDecoder(): Decoder<StakeAccount> {
     ['stakedAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['unstakedAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['amount', getU64Decoder()],
+    ['fee', getU64Decoder()],
     ['revealedOption', getOptionDecoder(getU64Decoder())],
     ['score', getOptionDecoder(getU64Decoder())],
     ['totalIncremented', getBooleanDecoder()],
     ['unstakeableAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['locked', getBooleanDecoder()],
     ['stakeReclaimed', getBooleanDecoder()],
+    ['pendingStake', getBooleanDecoder()],
   ]);
 }
 

@@ -384,6 +384,238 @@
       ]
     },
     {
+      "name": "close_stuck_stake_account",
+      "discriminator": [
+        41,
+        239,
+        108,
+        203,
+        185,
+        230,
+        165,
+        181
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market"
+        },
+        {
+          "name": "stake_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "arg",
+                "path": "stake_account_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "docs": [
+            "Market's ATA holding staked tokens"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "signer_token_account",
+          "docs": [
+            "Signer's token account to receive refund"
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_vault_ata",
+          "docs": [
+            "Token vault ATA holding fee tokens"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "token_vault"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "stake_account_id",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "create_market",
       "discriminator": [
         103,
@@ -2101,6 +2333,35 @@
         {
           "name": "stake_account",
           "writable": true
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.mint",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -2810,6 +3071,19 @@
       ]
     },
     {
+      "name": "StuckStakeClosedEvent",
+      "discriminator": [
+        0,
+        100,
+        58,
+        203,
+        169,
+        54,
+        149,
+        152
+      ]
+    },
+    {
       "name": "TallyIncrementedEvent",
       "discriminator": [
         201,
@@ -2960,7 +3234,7 @@
     },
     {
       "code": 6019,
-      "name": "AlreadyPurchased",
+      "name": "AlreadyStaked",
       "msg": "Already staked for this stake account"
     },
     {
@@ -3017,6 +3291,11 @@
       "code": 6030,
       "name": "RewardAlreadyWithdrawn",
       "msg": "Reward has already been withdrawn"
+    },
+    {
+      "code": 6031,
+      "name": "StakeNotStuck",
+      "msg": "Stake account is not in a stuck or failed state"
     }
   ],
   "types": [
@@ -3867,9 +4146,6 @@
           },
           {
             "name": "total_staked",
-            "docs": [
-              "Total staked for this option (tally)"
-            ],
             "type": "u64"
           },
           {
@@ -4334,6 +4610,10 @@
             "type": "u64"
           },
           {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
             "name": "revealed_option",
             "type": {
               "option": "u64"
@@ -4361,6 +4641,10 @@
           },
           {
             "name": "stake_reclaimed",
+            "type": "bool"
+          },
+          {
+            "name": "pending_stake",
             "type": "bool"
           }
         ]
@@ -4587,6 +4871,38 @@
           },
           {
             "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StuckStakeClosedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "refunded_amount",
+            "type": "u64"
+          },
+          {
+            "name": "refunded_fee",
             "type": "u64"
           },
           {

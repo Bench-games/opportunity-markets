@@ -36,6 +36,7 @@ import {
   revealStake,
   incrementOptionTally,
   closeStakeAccount,
+  closeStuckStakeAccount as closeStuckStakeAccountIx,
   reclaimStake as reclaimStakeIx,
   unstakeEarly as unstakeEarlyIx,
   doUnstakeEarly as doUnstakeEarlyIx,
@@ -835,6 +836,91 @@ export class TestRunner {
 
   async closeStakeAccount(userId: Address, optionId: number, stakeAccountId: number): Promise<void> {
     await this.closeStakeAccountBatch([{ userId, optionId, stakeAccountId }]);
+  }
+
+  /**
+   * Stakes and immediately closes the stuck stake account in the same transaction.
+   * Since the MPC callback hasn't fired yet, the account is in pending_stake=true state,
+   * which makes it eligible for close_stuck_stake_account.
+   * Returns the stakeAccountId used.
+   */
+  async stakeAndCloseStuck(
+    userId: Address,
+    amount: bigint,
+    optionId: number
+  ): Promise<number> {
+    const user = this.getUser(userId);
+
+    const cipher = createCipher(user.x25519Keypair.secretKey, this.mxePublicKey);
+    const stakeAccountId = this.getNextStakeAccountId(user);
+    const stakeAccountNonce = deserializeLE(randomBytes(16));
+
+    // Init stake account
+    const initIx = await initStakeAccount({
+      signer: user.solanaKeypair,
+      market: this.marketAddress,
+      stateNonce: stakeAccountNonce,
+      stakeAccountId,
+    });
+
+    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [initIx], {
+      label: `Init stake account`,
+    });
+
+    // Build stake instruction
+    const inputNonce = randomBytes(16);
+    const optionCiphertext = cipher.encrypt([BigInt(optionId)], inputNonce);
+    const computationOffset = randomComputationOffset();
+
+    const [tokenVaultAddress] = await getTokenVaultAddress(this.mint.address, this.programId);
+    const [marketAta] = await findAssociatedTokenPda({
+      mint: this.mint.address,
+      owner: this.marketAddress,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+    const [tokenVaultAta] = await findAssociatedTokenPda({
+      mint: this.mint.address,
+      owner: tokenVaultAddress,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+
+    const stakeIx = await stake(
+      {
+        signer: user.solanaKeypair,
+        payer: user.solanaKeypair,
+        market: this.marketAddress,
+        stakeAccountId,
+        tokenMint: this.mint.address,
+        signerTokenAccount: user.tokenAccount,
+        marketTokenAta: marketAta,
+        tokenVault: tokenVaultAddress,
+        tokenVaultAta,
+        tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        amount,
+        selectedOptionCiphertext: optionCiphertext[0],
+        inputNonce: deserializeLE(inputNonce),
+        authorizedReaderNonce: deserializeLE(randomBytes(16)),
+        userPubkey: user.x25519Keypair.publicKey,
+      },
+      this.getArciumConfig(computationOffset)
+    );
+
+    // Build close stuck instruction
+    const closeStuckIx = await closeStuckStakeAccountIx({
+      signer: user.solanaKeypair,
+      market: this.marketAddress,
+      tokenMint: this.mint.address,
+      signerTokenAccount: user.tokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      stakeAccountId,
+    });
+
+    // Send both in the same transaction
+    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [stakeIx, closeStuckIx], {
+      label: `Stake + close stuck stake account`,
+    });
+
+    return stakeAccountId;
   }
 
   async reclaimStakeBatch(requests: RevealRequest[]): Promise<void> {

@@ -16,7 +16,8 @@ mod circuits {
         stake_recipient_ctx: Shared,
         stake_account_ctx: Shared,
     ) -> (
-        Enc<Shared, SelectedOption>,  // stake data for MXE storage
+        // Shared more expensive than mxe btw!
+        Enc<Shared, SelectedOption>,  // stake data for user
         Enc<Shared, SelectedOption>,  // stake data for disclosure
     ) {
         let input = input_ctx.to_arcis();

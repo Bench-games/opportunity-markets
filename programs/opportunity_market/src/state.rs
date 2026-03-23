@@ -105,13 +105,15 @@ pub struct StakeAccount {
     pub state_nonce_disclosure: u128,
     pub staked_at_timestamp: Option<u64>,
     pub unstaked_at_timestamp: Option<u64>,
-    pub amount: u64,                         // plaintext stake amount
+    pub amount: u64,                         // stake amount in market token mint base units
+    pub fee: u64,                            // fee paid during stake(), for stuck refunds
     pub revealed_option: Option<u64>,
     pub score: Option<u64>,
     pub total_incremented: bool,
     pub unstakeable_at_timestamp: Option<u64>,
     pub locked: bool,
     pub stake_reclaimed: bool,               // whether staked tokens have been returned
+    pub pending_stake: bool,                 // true while MPC stake computation is in flight
 }
 
 #[account]
@@ -120,8 +122,7 @@ pub struct OpportunityMarketOption {
     pub bump: u8,
     pub id: u64,
 
-    /// Total staked for this option (tally)
+    // Total tallies, collected in `increment_option_tally`
     pub total_staked: u64,
-
     pub total_score: u64,
 }

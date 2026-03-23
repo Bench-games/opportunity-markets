@@ -118,6 +118,10 @@ pub mod opportunity_market {
         instructions::close_stake_account(ctx, option_id, stake_account_id)
     }
 
+    pub fn close_stuck_stake_account(ctx: Context<CloseStuckStakeAccount>, stake_account_id: u32) -> Result<()> {
+        instructions::close_stuck_stake_account(ctx, stake_account_id)
+    }
+
     pub fn reclaim_stake(ctx: Context<ReclaimStake>, stake_account_id: u32) -> Result<()> {
         instructions::reclaim_stake(ctx, stake_account_id)
     }

@@ -41,7 +41,7 @@ pub enum ErrorCode {
     #[msg("Already unstaked")]
     AlreadyUnstaked,
     #[msg("Already staked for this stake account")]
-    AlreadyPurchased,
+    AlreadyStaked,
     #[msg("Deposit amount below minimum required for option creation")]
     DepositBelowMinimum,
     #[msg("Add option stake failed: insufficient balance or below minimum deposit")]
@@ -64,4 +64,6 @@ pub enum ErrorCode {
     RewardAmountNotIncreased,
     #[msg("Reward has already been withdrawn")]
     RewardAlreadyWithdrawn,
+    #[msg("Stake account is not in a stuck or failed state")]
+    StakeNotStuck,
 }

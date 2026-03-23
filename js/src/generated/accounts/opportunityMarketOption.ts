@@ -51,7 +51,6 @@ export type OpportunityMarketOption = {
   discriminator: ReadonlyUint8Array;
   bump: number;
   id: bigint;
-  /** Total staked for this option (tally) */
   totalStaked: bigint;
   totalScore: bigint;
 };
@@ -59,7 +58,6 @@ export type OpportunityMarketOption = {
 export type OpportunityMarketOptionArgs = {
   bump: number;
   id: number | bigint;
-  /** Total staked for this option (tally) */
   totalStaked: number | bigint;
   totalScore: number | bigint;
 };

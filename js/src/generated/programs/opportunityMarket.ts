@@ -17,6 +17,7 @@ import {
   type ParsedAddMarketOptionInstruction,
   type ParsedClaimFeesInstruction,
   type ParsedCloseStakeAccountInstruction,
+  type ParsedCloseStuckStakeAccountInstruction,
   type ParsedCreateMarketInstruction,
   type ParsedDoUnstakeEarlyInstruction,
   type ParsedEndRevealPeriodInstruction,
@@ -191,6 +192,7 @@ export enum OpportunityMarketInstruction {
   AddMarketOption,
   ClaimFees,
   CloseStakeAccount,
+  CloseStuckStakeAccount,
   CreateMarket,
   DoUnstakeEarly,
   EndRevealPeriod,
@@ -250,6 +252,17 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.CloseStakeAccount;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([41, 239, 108, 203, 185, 230, 165, 181])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.CloseStuckStakeAccount;
   }
   if (
     containsBytes(
@@ -499,6 +512,9 @@ export type ParsedOpportunityMarketInstruction<
   | ({
       instructionType: OpportunityMarketInstruction.CloseStakeAccount;
     } & ParsedCloseStakeAccountInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.CloseStuckStakeAccount;
+    } & ParsedCloseStuckStakeAccountInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.CreateMarket;
     } & ParsedCreateMarketInstruction<TProgram>)

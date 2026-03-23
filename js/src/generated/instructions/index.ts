@@ -9,6 +9,7 @@
 export * from './addMarketOption';
 export * from './claimFees';
 export * from './closeStakeAccount';
+export * from './closeStuckStakeAccount';
 export * from './createMarket';
 export * from './doUnstakeEarly';
 export * from './endRevealPeriod';

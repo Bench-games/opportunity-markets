@@ -80,6 +80,7 @@ export type StakeAccount = {
   locked: boolean;
   stakeReclaimed: boolean;
   pendingStake: boolean;
+  pendingReveal: boolean;
 };
 
 export type StakeAccountArgs = {
@@ -102,6 +103,7 @@ export type StakeAccountArgs = {
   locked: boolean;
   stakeReclaimed: boolean;
   pendingStake: boolean;
+  pendingReveal: boolean;
 };
 
 export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
@@ -130,6 +132,7 @@ export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
       ['locked', getBooleanEncoder()],
       ['stakeReclaimed', getBooleanEncoder()],
       ['pendingStake', getBooleanEncoder()],
+      ['pendingReveal', getBooleanEncoder()],
     ]),
     (value) => ({ ...value, discriminator: STAKE_ACCOUNT_DISCRIMINATOR })
   );
@@ -160,6 +163,7 @@ export function getStakeAccountDecoder(): Decoder<StakeAccount> {
     ['locked', getBooleanDecoder()],
     ['stakeReclaimed', getBooleanDecoder()],
     ['pendingStake', getBooleanDecoder()],
+    ['pendingReveal', getBooleanDecoder()],
   ]);
 }
 

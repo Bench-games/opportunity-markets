@@ -32,10 +32,9 @@ pub mod opportunity_market {
         min_option_deposit: u64,
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
-        reward_withdraw_staked_limit: u32,
         minimum_initial_reveal_period: u64,
     ) -> Result<()> {
-        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit, minimum_initial_reveal_period)
+        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, minimum_initial_reveal_period)
     }
 
     pub fn transfer_central_state_authority(
@@ -51,16 +50,14 @@ pub mod opportunity_market {
         min_option_deposit: u64,
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
-        reward_withdraw_staked_limit: u32,
         minimum_initial_reveal_period: u64,
     ) -> Result<()> {
-        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, reward_withdraw_staked_limit, minimum_initial_reveal_period)
+        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, minimum_initial_reveal_period)
     }
 
     pub fn create_market(
         ctx: Context<CreateMarket>,
         market_index: u64,
-        reward_amount: u64,
         time_to_stake: u64,
         time_to_reveal: u64,
         market_authority: Option<Pubkey>,
@@ -72,7 +69,6 @@ pub mod opportunity_market {
         instructions::create_market(
             ctx,
             market_index,
-            reward_amount,
             time_to_stake,
             time_to_reveal,
             market_authority,
@@ -106,8 +102,8 @@ pub mod opportunity_market {
         instructions::end_reveal_period(ctx)
     }
 
-    pub fn increase_reward_pool(ctx: Context<IncreaseRewardPool>, new_reward_amount: u64) -> Result<()> {
-        instructions::increase_reward_pool(ctx, new_reward_amount)
+    pub fn add_reward(ctx: Context<AddReward>, amount: u64, lock: bool) -> Result<()> {
+        instructions::add_reward(ctx, amount, lock)
     }
 
     pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_id: u64, stake_account_id: u32) -> Result<()> {

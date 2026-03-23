@@ -49,7 +49,6 @@ pub struct CreateMarket<'info> {
 pub fn create_market(
     ctx: Context<CreateMarket>,
     market_index: u64,
-    reward_amount: u64,
     time_to_stake: u64,
     time_to_reveal: u64,
     market_authority: Option<Pubkey>,
@@ -76,7 +75,7 @@ pub fn create_market(
     market.time_to_stake = time_to_stake;
     market.time_to_reveal = time_to_reveal;
     market.selected_options = None;
-    market.reward_amount = reward_amount;
+    market.reward_amount = 0;
     market.mint = mint;
     market.market_authority = market_authority.unwrap_or(creator_key);
     market.reveal_period_authority = reveal_period_authority;
@@ -84,14 +83,12 @@ pub fn create_market(
     market.unstake_delay_seconds = unstake_delay_seconds;
     market.authorized_reader_pubkey = authorized_reader_pubkey;
     market.allow_closing_early = allow_closing_early;
-    market.reward_withdrawn = false;
 
     emit_ts!(MarketCreatedEvent {
         market: market.key(),
         creator: creator_key,
         index: market_index,
         mint: mint,
-        reward_amount: reward_amount,
         time_to_reveal: time_to_reveal,
         time_to_stake : time_to_stake,
         market_authority: market_authority,

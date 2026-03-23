@@ -15,13 +15,13 @@ import {
 } from '@solana/kit';
 import {
   type ParsedAddMarketOptionInstruction,
+  type ParsedAddRewardInstruction,
   type ParsedClaimFeesInstruction,
   type ParsedCloseStakeAccountInstruction,
   type ParsedCloseStuckStakeAccountInstruction,
   type ParsedCreateMarketInstruction,
   type ParsedDoUnstakeEarlyInstruction,
   type ParsedEndRevealPeriodInstruction,
-  type ParsedIncreaseRewardPoolInstruction,
   type ParsedIncrementOptionTallyInstruction,
   type ParsedInitCentralStateInstruction,
   type ParsedInitStakeAccountInstruction,
@@ -54,6 +54,7 @@ export enum OpportunityMarketAccount {
   MXEAccount,
   OpportunityMarket,
   OpportunityMarketOption,
+  OpportunityMarketSponsor,
   StakeAccount,
   TokenVault,
 }
@@ -165,6 +166,17 @@ export function identifyOpportunityMarketAccount(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([207, 139, 192, 91, 37, 190, 2, 192])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketAccount.OpportunityMarketSponsor;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([80, 158, 67, 124, 50, 189, 192, 255])
       ),
       0
@@ -190,13 +202,13 @@ export function identifyOpportunityMarketAccount(
 
 export enum OpportunityMarketInstruction {
   AddMarketOption,
+  AddReward,
   ClaimFees,
   CloseStakeAccount,
   CloseStuckStakeAccount,
   CreateMarket,
   DoUnstakeEarly,
   EndRevealPeriod,
-  IncreaseRewardPool,
   IncrementOptionTally,
   InitCentralState,
   InitStakeAccount,
@@ -230,6 +242,17 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.AddMarketOption;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([4, 114, 188, 164, 149, 249, 198, 237])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.AddReward;
   }
   if (
     containsBytes(
@@ -296,17 +319,6 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.EndRevealPeriod;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([140, 244, 44, 96, 126, 219, 140, 0])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.IncreaseRewardPool;
   }
   if (
     containsBytes(
@@ -507,6 +519,9 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.AddMarketOption;
     } & ParsedAddMarketOptionInstruction<TProgram>)
   | ({
+      instructionType: OpportunityMarketInstruction.AddReward;
+    } & ParsedAddRewardInstruction<TProgram>)
+  | ({
       instructionType: OpportunityMarketInstruction.ClaimFees;
     } & ParsedClaimFeesInstruction<TProgram>)
   | ({
@@ -524,9 +539,6 @@ export type ParsedOpportunityMarketInstruction<
   | ({
       instructionType: OpportunityMarketInstruction.EndRevealPeriod;
     } & ParsedEndRevealPeriodInstruction<TProgram>)
-  | ({
-      instructionType: OpportunityMarketInstruction.IncreaseRewardPool;
-    } & ParsedIncreaseRewardPoolInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.IncrementOptionTally;
     } & ParsedIncrementOptionTallyInstruction<TProgram>)

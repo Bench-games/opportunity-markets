@@ -304,8 +304,6 @@ pub fn stake_callback(
             .ok_or(ErrorCode::Overflow)?;
     }
 
-    ctx.accounts.market.total_staked_count = ctx.accounts.market.total_staked_count.saturating_add(1);
-
     emit_ts!(StakedEvent {
         user: ctx.accounts.stake_account.owner,
         market: ctx.accounts.stake_account.market,

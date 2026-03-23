@@ -69,6 +69,142 @@
       ]
     },
     {
+      "name": "add_reward",
+      "discriminator": [
+        4,
+        114,
+        188,
+        164,
+        149,
+        249,
+        198,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "sponsor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "sponsor_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  111,
+                  110,
+                  115,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sponsor"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "sponsor_token_account",
+          "writable": true
+        },
+        {
+          "name": "market_token_ata",
+          "docs": [
+            "Market's ATA holding reward tokens"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "lock",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "claim_fees",
       "discriminator": [
         82,
@@ -778,10 +914,6 @@
           "type": "u64"
         },
         {
-          "name": "reward_amount",
-          "type": "u64"
-        },
-        {
           "name": "time_to_stake",
           "type": "u64"
         },
@@ -991,100 +1123,6 @@
       "args": []
     },
     {
-      "name": "increase_reward_pool",
-      "discriminator": [
-        140,
-        244,
-        44,
-        96,
-        126,
-        219,
-        140,
-        0
-      ],
-      "accounts": [
-        {
-          "name": "authority",
-          "signer": true
-        },
-        {
-          "name": "market",
-          "writable": true
-        },
-        {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "docs": [
-            "Market's ATA holding reward tokens"
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "token_program"
-        }
-      ],
-      "args": [
-        {
-          "name": "new_reward_amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "increment_option_tally",
       "discriminator": [
         93,
@@ -1254,10 +1292,6 @@
         {
           "name": "fee_recipient",
           "type": "pubkey"
-        },
-        {
-          "name": "reward_withdraw_staked_limit",
-          "type": "u32"
         },
         {
           "name": "minimum_initial_reveal_period",
@@ -1449,71 +1483,6 @@
         {
           "name": "market",
           "writable": true
-        },
-        {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "docs": [
-            "Market's ATA holding reward tokens"
-          ],
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "token_program"
         }
       ],
       "args": [
@@ -2610,10 +2579,6 @@
           "type": "pubkey"
         },
         {
-          "name": "reward_withdraw_staked_limit",
-          "type": "u32"
-        },
-        {
           "name": "minimum_initial_reveal_period",
           "type": "u64"
         }
@@ -2633,12 +2598,41 @@
       ],
       "accounts": [
         {
-          "name": "authority",
+          "name": "sponsor",
+          "writable": true,
           "signer": true
         },
         {
           "name": "market",
           "writable": true
+        },
+        {
+          "name": "sponsor_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  112,
+                  111,
+                  110,
+                  115,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "sponsor"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
         },
         {
           "name": "token_mint"
@@ -2706,34 +2700,9 @@
         {
           "name": "refund_token_account",
           "docs": [
-            "Creator-specified destination for refunded reward tokens"
+            "Sponsor's destination for refunded reward tokens"
           ],
           "writable": true
-        },
-        {
-          "name": "central_state",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  101,
-                  110,
-                  116,
-                  114,
-                  97,
-                  108,
-                  95,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101
-                ]
-              }
-            ]
-          }
         },
         {
           "name": "token_program"
@@ -2861,6 +2830,19 @@
       ]
     },
     {
+      "name": "OpportunityMarketSponsor",
+      "discriminator": [
+        207,
+        139,
+        192,
+        91,
+        37,
+        190,
+        2,
+        192
+      ]
+    },
+    {
       "name": "StakeAccount",
       "discriminator": [
         80,
@@ -2954,6 +2936,19 @@
       ]
     },
     {
+      "name": "RewardAddedEvent",
+      "discriminator": [
+        37,
+        185,
+        95,
+        34,
+        144,
+        49,
+        194,
+        91
+      ]
+    },
+    {
       "name": "RewardClaimedEvent",
       "discriminator": [
         246,
@@ -2964,19 +2959,6 @@
         49,
         230,
         56
-      ]
-    },
-    {
-      "name": "RewardPoolIncreasedEvent",
-      "discriminator": [
-        48,
-        60,
-        73,
-        27,
-        87,
-        2,
-        31,
-        79
       ]
     },
     {
@@ -3019,19 +3001,6 @@
       ]
     },
     {
-      "name": "StakeRevealedError",
-      "discriminator": [
-        169,
-        109,
-        247,
-        140,
-        147,
-        140,
-        228,
-        164
-      ]
-    },
-    {
       "name": "StakeRevealedEvent",
       "discriminator": [
         251,
@@ -3042,19 +3011,6 @@
         24,
         248,
         211
-      ]
-    },
-    {
-      "name": "StakedError",
-      "discriminator": [
-        7,
-        66,
-        106,
-        168,
-        168,
-        100,
-        110,
-        1
       ]
     },
     {
@@ -3284,16 +3240,6 @@
     },
     {
       "code": 6029,
-      "name": "RewardAmountNotIncreased",
-      "msg": "New reward amount must be greater than current"
-    },
-    {
-      "code": 6030,
-      "name": "RewardAlreadyWithdrawn",
-      "msg": "Reward has already been withdrawn"
-    },
-    {
-      "code": 6031,
       "name": "StakeNotStuck",
       "msg": "Stake account is not in a stuck or failed state"
     }
@@ -3377,10 +3323,6 @@
           {
             "name": "fee_recipient",
             "type": "pubkey"
-          },
-          {
-            "name": "reward_withdraw_staked_limit",
-            "type": "u32"
           },
           {
             "name": "minimum_initial_reveal_period",
@@ -3826,10 +3768,6 @@
             "type": "pubkey"
           },
           {
-            "name": "reward_amount",
-            "type": "u64"
-          },
-          {
             "name": "time_to_stake",
             "type": "u64"
           },
@@ -4119,14 +4057,6 @@
           {
             "name": "allow_closing_early",
             "type": "bool"
-          },
-          {
-            "name": "reward_withdrawn",
-            "type": "bool"
-          },
-          {
-            "name": "total_staked_count",
-            "type": "u64"
           }
         ]
       }
@@ -4151,6 +4081,34 @@
           {
             "name": "total_score",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OpportunityMarketSponsor",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "sponsor",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "reward_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "reward_locked",
+            "type": "bool"
           }
         ]
       }
@@ -4317,6 +4275,38 @@
       }
     },
     {
+      "name": "RewardAddedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "sponsor",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_reward_amount",
+            "type": "u64"
+          },
+          {
+            "name": "locked",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "RewardClaimedEvent",
       "type": {
         "kind": "struct",
@@ -4365,34 +4355,6 @@
       }
     },
     {
-      "name": "RewardPoolIncreasedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "old_reward_amount",
-            "type": "u64"
-          },
-          {
-            "name": "new_reward_amount",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
       "name": "RewardWithdrawnEvent",
       "type": {
         "kind": "struct",
@@ -4402,7 +4364,7 @@
             "type": "pubkey"
           },
           {
-            "name": "creator",
+            "name": "sponsor",
             "type": "pubkey"
           },
           {
@@ -4646,6 +4608,10 @@
           {
             "name": "pending_stake",
             "type": "bool"
+          },
+          {
+            "name": "pending_reveal",
+            "type": "bool"
           }
         ]
       }
@@ -4763,22 +4729,6 @@
       }
     },
     {
-      "name": "StakeRevealedError",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
       "name": "StakeRevealedEvent",
       "type": {
         "kind": "struct",
@@ -4802,22 +4752,6 @@
           {
             "name": "selected_option",
             "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakedError",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
           },
           {
             "name": "timestamp",

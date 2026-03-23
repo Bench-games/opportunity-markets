@@ -5,18 +5,24 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardWithdrawnEvent};
-use crate::state::{CentralState, OpportunityMarket};
+use crate::instructions::add_reward::SPONSOR_SEED;
+use crate::state::{OpportunityMarket, OpportunityMarketSponsor};
 
 #[derive(Accounts)]
 pub struct WithdrawReward<'info> {
-    pub authority: Signer<'info>,
+    #[account(mut)]
+    pub sponsor: Signer<'info>,
+
+    #[account(mut)]
+    pub market: Account<'info, OpportunityMarket>,
 
     #[account(
         mut,
-        constraint = market.creator == authority.key()
-            || market.market_authority == authority.key() @ ErrorCode::Unauthorized,
+        seeds = [SPONSOR_SEED, sponsor.key().as_ref(), market.key().as_ref()],
+        bump = sponsor_account.bump,
+        close = sponsor,
     )]
-    pub market: Account<'info, OpportunityMarket>,
+    pub sponsor_account: Account<'info, OpportunityMarketSponsor>,
 
     #[account(address = market.mint)]
     pub token_mint: InterfaceAccount<'info, Mint>,
@@ -30,7 +36,7 @@ pub struct WithdrawReward<'info> {
     )]
     pub market_token_ata: InterfaceAccount<'info, TokenAccount>,
 
-    /// Creator-specified destination for refunded reward tokens
+    /// Sponsor's destination for refunded reward tokens
     #[account(
         mut,
         token::mint = token_mint,
@@ -38,55 +44,33 @@ pub struct WithdrawReward<'info> {
     )]
     pub refund_token_account: InterfaceAccount<'info, TokenAccount>,
 
-    #[account(
-        seeds = [b"central_state"],
-        bump = central_state.bump,
-    )]
-    pub central_state: Account<'info, CentralState>,
-
     pub token_program: Interface<'info, TokenInterface>,
 }
 
 pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
-    let market = &mut ctx.accounts.market;
+    let sponsor_account = &ctx.accounts.sponsor_account;
 
-    // Cannot withdraw if winners already selected
+    // Locked sponsors cannot withdraw
+    require!(!sponsor_account.reward_locked, ErrorCode::Unauthorized);
+
+    let market = &ctx.accounts.market;
+
+    // Cannot withdraw after winners selected
     require!(market.selected_options.is_none(), ErrorCode::WinnerAlreadySelected);
 
-    // Cannot withdraw twice
-    require!(!market.reward_withdrawn, ErrorCode::RewardAlreadyWithdrawn);
-
-    let limit = ctx.accounts.central_state.reward_withdraw_staked_limit;
-    require!(
-        market.total_staked_count <= limit as u64,
-        ErrorCode::Unauthorized
-    );
-
-    // Market must be opened
-    let open_timestamp = market.open_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
-
-    let clock = Clock::get()?;
-    let current_timestamp = clock.unix_timestamp as u64;
-
-    require!(current_timestamp >= open_timestamp, ErrorCode::InvalidTimestamp);
-
-    // Check if closing early is allowed
-    let stake_end_timestamp = open_timestamp + market.time_to_stake;
-    if !market.allow_closing_early {
-        require!(
-            current_timestamp >= stake_end_timestamp,
-            ErrorCode::ClosingEarlyNotAllowed
-        );
+    // Allow anytime before staking ends
+    if let Some(open_timestamp) = market.open_timestamp {
+        let clock = Clock::get()?;
+        let current_timestamp = clock.unix_timestamp as u64;
+        let stake_end = open_timestamp
+            .checked_add(market.time_to_stake)
+            .ok_or(ErrorCode::Overflow)?;
+        require!(current_timestamp < stake_end, ErrorCode::StakingNotActive);
     }
 
-    // If staking is still open, close it by setting time_to_stake to end now
-    if current_timestamp < stake_end_timestamp {
-        market.time_to_stake = current_timestamp - open_timestamp;
-    }
+    let reward_amount = sponsor_account.reward_deposited;
 
-    let reward_amount = market.reward_amount;
-
-    // Transfer reward tokens from market ATA to refund account
+    // Transfer sponsor's deposited amount from market ATA to refund account
     if reward_amount > 0 {
         let creator_key = market.creator;
         let index_bytes = market.index.to_le_bytes();
@@ -114,12 +98,15 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
         )?;
     }
 
-    market.reward_withdrawn = true;
-    market.reward_amount = 0;
+    let market = &mut ctx.accounts.market;
+    market.reward_amount = market
+        .reward_amount
+        .checked_sub(reward_amount)
+        .ok_or(ErrorCode::Overflow)?;
 
     emit_ts!(RewardWithdrawnEvent {
         market: market.key(),
-        creator: ctx.accounts.authority.key(),
+        sponsor: ctx.accounts.sponsor.key(),
         reward_amount: reward_amount,
         refund_token_account: ctx.accounts.refund_token_account.key(),
     });

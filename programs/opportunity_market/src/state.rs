@@ -30,9 +30,6 @@ pub struct CentralState {
     // Receives claimed fees
     pub fee_recipient: Pubkey,
 
-    // Reward cannot be withdrawn if more than this amount of stakes.
-    pub reward_withdraw_staked_limit: u32,
-
     pub minimum_initial_reveal_period: u64,
 }
 
@@ -86,10 +83,6 @@ pub struct OpportunityMarket {
     // If false, market can only be closed after stake period ends
     pub allow_closing_early: bool,
 
-    // If true, reward has been withdrawn by the creator (market resolved without winners)
-    pub reward_withdrawn: bool,
-
-    pub total_staked_count: u64,
 }
 
 #[account]
@@ -127,3 +120,14 @@ pub struct OpportunityMarketOption {
     pub total_staked: u64,
     pub total_score: u64,
 }
+
+#[account]
+#[derive(InitSpace)]
+pub struct OpportunityMarketSponsor {
+    pub bump: u8,
+    pub sponsor: Pubkey,
+    pub market: Pubkey,
+    pub reward_deposited: u64,
+    pub reward_locked: bool,
+}
+

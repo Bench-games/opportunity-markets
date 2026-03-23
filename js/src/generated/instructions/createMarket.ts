@@ -112,7 +112,6 @@ export type CreateMarketInstruction<
 export type CreateMarketInstructionData = {
   discriminator: ReadonlyUint8Array;
   marketIndex: bigint;
-  rewardAmount: bigint;
   timeToStake: bigint;
   timeToReveal: bigint;
   marketAuthority: Option<Address>;
@@ -124,7 +123,6 @@ export type CreateMarketInstructionData = {
 
 export type CreateMarketInstructionDataArgs = {
   marketIndex: number | bigint;
-  rewardAmount: number | bigint;
   timeToStake: number | bigint;
   timeToReveal: number | bigint;
   marketAuthority: OptionOrNullable<Address>;
@@ -139,7 +137,6 @@ export function getCreateMarketInstructionDataEncoder(): Encoder<CreateMarketIns
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['marketIndex', getU64Encoder()],
-      ['rewardAmount', getU64Encoder()],
       ['timeToStake', getU64Encoder()],
       ['timeToReveal', getU64Encoder()],
       ['marketAuthority', getOptionEncoder(getAddressEncoder())],
@@ -156,7 +153,6 @@ export function getCreateMarketInstructionDataDecoder(): Decoder<CreateMarketIns
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['marketIndex', getU64Decoder()],
-    ['rewardAmount', getU64Decoder()],
     ['timeToStake', getU64Decoder()],
     ['timeToReveal', getU64Decoder()],
     ['marketAuthority', getOptionDecoder(getAddressDecoder())],
@@ -197,7 +193,6 @@ export type CreateMarketAsyncInput<
   tokenProgram: Address<TAccountTokenProgram>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   marketIndex: CreateMarketInstructionDataArgs['marketIndex'];
-  rewardAmount: CreateMarketInstructionDataArgs['rewardAmount'];
   timeToStake: CreateMarketInstructionDataArgs['timeToStake'];
   timeToReveal: CreateMarketInstructionDataArgs['timeToReveal'];
   marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
@@ -365,7 +360,6 @@ export type CreateMarketInput<
   tokenProgram: Address<TAccountTokenProgram>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   marketIndex: CreateMarketInstructionDataArgs['marketIndex'];
-  rewardAmount: CreateMarketInstructionDataArgs['rewardAmount'];
   timeToStake: CreateMarketInstructionDataArgs['timeToStake'];
   timeToReveal: CreateMarketInstructionDataArgs['timeToReveal'];
   marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];

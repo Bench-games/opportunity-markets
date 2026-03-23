@@ -19,8 +19,6 @@ import {
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
-  getU32Decoder,
-  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   transformEncoder,
@@ -77,7 +75,6 @@ export type UpdateCentralStateInstructionData = {
   minOptionDeposit: bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
-  rewardWithdrawStakedLimit: number;
   minimumInitialRevealPeriod: bigint;
 };
 
@@ -86,7 +83,6 @@ export type UpdateCentralStateInstructionDataArgs = {
   minOptionDeposit: number | bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
-  rewardWithdrawStakedLimit: number;
   minimumInitialRevealPeriod: number | bigint;
 };
 
@@ -98,7 +94,6 @@ export function getUpdateCentralStateInstructionDataEncoder(): FixedSizeEncoder<
       ['minOptionDeposit', getU64Encoder()],
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
-      ['rewardWithdrawStakedLimit', getU32Encoder()],
       ['minimumInitialRevealPeriod', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: UPDATE_CENTRAL_STATE_DISCRIMINATOR })
@@ -112,7 +107,6 @@ export function getUpdateCentralStateInstructionDataDecoder(): FixedSizeDecoder<
     ['minOptionDeposit', getU64Decoder()],
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
-    ['rewardWithdrawStakedLimit', getU32Decoder()],
     ['minimumInitialRevealPeriod', getU64Decoder()],
   ]);
 }
@@ -137,7 +131,6 @@ export type UpdateCentralStateAsyncInput<
   minOptionDeposit: UpdateCentralStateInstructionDataArgs['minOptionDeposit'];
   protocolFeeBp: UpdateCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: UpdateCentralStateInstructionDataArgs['feeRecipient'];
-  rewardWithdrawStakedLimit: UpdateCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
   minimumInitialRevealPeriod: UpdateCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
 };
 
@@ -213,7 +206,6 @@ export type UpdateCentralStateInput<
   minOptionDeposit: UpdateCentralStateInstructionDataArgs['minOptionDeposit'];
   protocolFeeBp: UpdateCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: UpdateCentralStateInstructionDataArgs['feeRecipient'];
-  rewardWithdrawStakedLimit: UpdateCentralStateInstructionDataArgs['rewardWithdrawStakedLimit'];
   minimumInitialRevealPeriod: UpdateCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
 };
 

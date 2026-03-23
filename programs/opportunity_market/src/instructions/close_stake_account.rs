@@ -65,9 +65,9 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_id: u64, _sta
     let market = &ctx.accounts.market;
     let option = &ctx.accounts.option;
 
-    // Market must be resolved: either winners selected or reward withdrawn
+    // Market must be resolved: winners selected
     require!(
-        market.selected_options.is_some() || market.reward_withdrawn,
+        market.selected_options.is_some(),
         ErrorCode::MarketNotResolved
     );
 
@@ -83,24 +83,7 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_id: u64, _sta
 
     require!(current_time >= reveal_end, ErrorCode::MarketNotResolved);
 
-    if market.reward_withdrawn {
-        // Reward was withdrawn — no reveal required, no reward to distribute.
-        emit_ts!(RewardClaimedEvent {
-            owner: ctx.accounts.owner.key(),
-            market: market.key(),
-            stake_account: ctx.accounts.stake_account.key(),
-            option_id: option_id,
-            stake_amount: stake_account.amount,
-            reward_amount: 0u64,
-            staked_at_timestamp: stake_account.staked_at_timestamp.unwrap_or(0),
-            unstaked_at_timestamp: stake_account.unstaked_at_timestamp.unwrap_or(0),
-            score: 0u64,
-        });
-
-        return Ok(());
-    }
-
-    // Normal path: winners were selected, stakes must be revealed
+    // Winners were selected, stakes must be revealed
     let revealed_option = stake_account.revealed_option.ok_or(ErrorCode::NotRevealed)?;
 
     // Check that the option_id matches the user's revealed option

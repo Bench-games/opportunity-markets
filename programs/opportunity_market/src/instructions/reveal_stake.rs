@@ -83,7 +83,7 @@ pub fn reveal_stake(
 
     require!(current_timestamp >= reveal_start, ErrorCode::MarketNotResolved);
     require!(
-        market.selected_options.is_some() || market.reward_withdrawn,
+        market.selected_options.is_some(),
         ErrorCode::MarketNotResolved
     );
 

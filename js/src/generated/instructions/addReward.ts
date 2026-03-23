@@ -11,6 +11,8 @@ import {
   fixDecoderSize,
   fixEncoderSize,
   getAddressEncoder,
+  getBooleanDecoder,
+  getBooleanEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
@@ -29,10 +31,10 @@ import {
   type InstructionWithAccounts,
   type InstructionWithData,
   type ReadonlyAccount,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
+  type WritableSignerAccount,
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import {
@@ -41,124 +43,155 @@ import {
   type ResolvedAccount,
 } from '../shared';
 
-export const INCREASE_REWARD_POOL_DISCRIMINATOR = new Uint8Array([
-  140, 244, 44, 96, 126, 219, 140, 0,
+export const ADD_REWARD_DISCRIMINATOR = new Uint8Array([
+  4, 114, 188, 164, 149, 249, 198, 237,
 ]);
 
-export function getIncreaseRewardPoolDiscriminatorBytes() {
-  return fixEncoderSize(getBytesEncoder(), 8).encode(
-    INCREASE_REWARD_POOL_DISCRIMINATOR
-  );
+export function getAddRewardDiscriminatorBytes() {
+  return fixEncoderSize(getBytesEncoder(), 8).encode(ADD_REWARD_DISCRIMINATOR);
 }
 
-export type IncreaseRewardPoolInstruction<
+export type AddRewardInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-  TAccountAuthority extends string | AccountMeta<string> = string,
+  TAccountSponsor extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
+  TAccountSponsorAccount extends string | AccountMeta<string> = string,
   TAccountTokenMint extends string | AccountMeta<string> = string,
+  TAccountSponsorTokenAccount extends string | AccountMeta<string> = string,
   TAccountMarketTokenAta extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> = string,
+  TAccountSystemProgram extends string | AccountMeta<string> =
+    '11111111111111111111111111111111',
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
   InstructionWithAccounts<
     [
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
+      TAccountSponsor extends string
+        ? WritableSignerAccount<TAccountSponsor> &
+            AccountSignerMeta<TAccountSponsor>
+        : TAccountSponsor,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
+      TAccountSponsorAccount extends string
+        ? WritableAccount<TAccountSponsorAccount>
+        : TAccountSponsorAccount,
       TAccountTokenMint extends string
         ? ReadonlyAccount<TAccountTokenMint>
         : TAccountTokenMint,
+      TAccountSponsorTokenAccount extends string
+        ? WritableAccount<TAccountSponsorTokenAccount>
+        : TAccountSponsorTokenAccount,
       TAccountMarketTokenAta extends string
-        ? ReadonlyAccount<TAccountMarketTokenAta>
+        ? WritableAccount<TAccountMarketTokenAta>
         : TAccountMarketTokenAta,
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
+      TAccountSystemProgram extends string
+        ? ReadonlyAccount<TAccountSystemProgram>
+        : TAccountSystemProgram,
       ...TRemainingAccounts,
     ]
   >;
 
-export type IncreaseRewardPoolInstructionData = {
+export type AddRewardInstructionData = {
   discriminator: ReadonlyUint8Array;
-  newRewardAmount: bigint;
+  amount: bigint;
+  lock: boolean;
 };
 
-export type IncreaseRewardPoolInstructionDataArgs = {
-  newRewardAmount: number | bigint;
+export type AddRewardInstructionDataArgs = {
+  amount: number | bigint;
+  lock: boolean;
 };
 
-export function getIncreaseRewardPoolInstructionDataEncoder(): FixedSizeEncoder<IncreaseRewardPoolInstructionDataArgs> {
+export function getAddRewardInstructionDataEncoder(): FixedSizeEncoder<AddRewardInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['newRewardAmount', getU64Encoder()],
+      ['amount', getU64Encoder()],
+      ['lock', getBooleanEncoder()],
     ]),
-    (value) => ({ ...value, discriminator: INCREASE_REWARD_POOL_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: ADD_REWARD_DISCRIMINATOR })
   );
 }
 
-export function getIncreaseRewardPoolInstructionDataDecoder(): FixedSizeDecoder<IncreaseRewardPoolInstructionData> {
+export function getAddRewardInstructionDataDecoder(): FixedSizeDecoder<AddRewardInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['newRewardAmount', getU64Decoder()],
+    ['amount', getU64Decoder()],
+    ['lock', getBooleanDecoder()],
   ]);
 }
 
-export function getIncreaseRewardPoolInstructionDataCodec(): FixedSizeCodec<
-  IncreaseRewardPoolInstructionDataArgs,
-  IncreaseRewardPoolInstructionData
+export function getAddRewardInstructionDataCodec(): FixedSizeCodec<
+  AddRewardInstructionDataArgs,
+  AddRewardInstructionData
 > {
   return combineCodec(
-    getIncreaseRewardPoolInstructionDataEncoder(),
-    getIncreaseRewardPoolInstructionDataDecoder()
+    getAddRewardInstructionDataEncoder(),
+    getAddRewardInstructionDataDecoder()
   );
 }
 
-export type IncreaseRewardPoolAsyncInput<
-  TAccountAuthority extends string = string,
+export type AddRewardAsyncInput<
+  TAccountSponsor extends string = string,
   TAccountMarket extends string = string,
+  TAccountSponsorAccount extends string = string,
   TAccountTokenMint extends string = string,
+  TAccountSponsorTokenAccount extends string = string,
   TAccountMarketTokenAta extends string = string,
   TAccountTokenProgram extends string = string,
+  TAccountSystemProgram extends string = string,
 > = {
-  authority: TransactionSigner<TAccountAuthority>;
+  sponsor: TransactionSigner<TAccountSponsor>;
   market: Address<TAccountMarket>;
+  sponsorAccount?: Address<TAccountSponsorAccount>;
   tokenMint: Address<TAccountTokenMint>;
+  sponsorTokenAccount: Address<TAccountSponsorTokenAccount>;
   /** Market's ATA holding reward tokens */
   marketTokenAta?: Address<TAccountMarketTokenAta>;
   tokenProgram: Address<TAccountTokenProgram>;
-  newRewardAmount: IncreaseRewardPoolInstructionDataArgs['newRewardAmount'];
+  systemProgram?: Address<TAccountSystemProgram>;
+  amount: AddRewardInstructionDataArgs['amount'];
+  lock: AddRewardInstructionDataArgs['lock'];
 };
 
-export async function getIncreaseRewardPoolInstructionAsync<
-  TAccountAuthority extends string,
+export async function getAddRewardInstructionAsync<
+  TAccountSponsor extends string,
   TAccountMarket extends string,
+  TAccountSponsorAccount extends string,
   TAccountTokenMint extends string,
+  TAccountSponsorTokenAccount extends string,
   TAccountMarketTokenAta extends string,
   TAccountTokenProgram extends string,
+  TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: IncreaseRewardPoolAsyncInput<
-    TAccountAuthority,
+  input: AddRewardAsyncInput<
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
+    TAccountSponsorTokenAccount,
     TAccountMarketTokenAta,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >,
   config?: { programAddress?: TProgramAddress }
 ): Promise<
-  IncreaseRewardPoolInstruction<
+  AddRewardInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
+    TAccountSponsorTokenAccount,
     TAccountMarketTokenAta,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >
 > {
   // Program address.
@@ -167,11 +200,17 @@ export async function getIncreaseRewardPoolInstructionAsync<
 
   // Original accounts.
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
+    sponsor: { value: input.sponsor ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
+    sponsorAccount: { value: input.sponsorAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
-    marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: false },
+    sponsorTokenAccount: {
+      value: input.sponsorTokenAccount ?? null,
+      isWritable: true,
+    },
+    marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -182,6 +221,18 @@ export async function getIncreaseRewardPoolInstructionAsync<
   const args = { ...input };
 
   // Resolve default values.
+  if (!accounts.sponsorAccount.value) {
+    accounts.sponsorAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([115, 112, 111, 110, 115, 111, 114])
+        ),
+        getAddressEncoder().encode(expectAddress(accounts.sponsor.value)),
+        getAddressEncoder().encode(expectAddress(accounts.market.value)),
+      ],
+    });
+  }
   if (!accounts.marketTokenAta.value) {
     accounts.marketTokenAta.value = await getProgramDerivedAddress({
       programAddress:
@@ -193,69 +244,95 @@ export async function getIncreaseRewardPoolInstructionAsync<
       ],
     });
   }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.sponsor),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.sponsorAccount),
       getAccountMeta(accounts.tokenMint),
+      getAccountMeta(accounts.sponsorTokenAccount),
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.tokenProgram),
+      getAccountMeta(accounts.systemProgram),
     ],
-    data: getIncreaseRewardPoolInstructionDataEncoder().encode(
-      args as IncreaseRewardPoolInstructionDataArgs
+    data: getAddRewardInstructionDataEncoder().encode(
+      args as AddRewardInstructionDataArgs
     ),
     programAddress,
-  } as IncreaseRewardPoolInstruction<
+  } as AddRewardInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
+    TAccountSponsorTokenAccount,
     TAccountMarketTokenAta,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >);
 }
 
-export type IncreaseRewardPoolInput<
-  TAccountAuthority extends string = string,
+export type AddRewardInput<
+  TAccountSponsor extends string = string,
   TAccountMarket extends string = string,
+  TAccountSponsorAccount extends string = string,
   TAccountTokenMint extends string = string,
+  TAccountSponsorTokenAccount extends string = string,
   TAccountMarketTokenAta extends string = string,
   TAccountTokenProgram extends string = string,
+  TAccountSystemProgram extends string = string,
 > = {
-  authority: TransactionSigner<TAccountAuthority>;
+  sponsor: TransactionSigner<TAccountSponsor>;
   market: Address<TAccountMarket>;
+  sponsorAccount: Address<TAccountSponsorAccount>;
   tokenMint: Address<TAccountTokenMint>;
+  sponsorTokenAccount: Address<TAccountSponsorTokenAccount>;
   /** Market's ATA holding reward tokens */
   marketTokenAta: Address<TAccountMarketTokenAta>;
   tokenProgram: Address<TAccountTokenProgram>;
-  newRewardAmount: IncreaseRewardPoolInstructionDataArgs['newRewardAmount'];
+  systemProgram?: Address<TAccountSystemProgram>;
+  amount: AddRewardInstructionDataArgs['amount'];
+  lock: AddRewardInstructionDataArgs['lock'];
 };
 
-export function getIncreaseRewardPoolInstruction<
-  TAccountAuthority extends string,
+export function getAddRewardInstruction<
+  TAccountSponsor extends string,
   TAccountMarket extends string,
+  TAccountSponsorAccount extends string,
   TAccountTokenMint extends string,
+  TAccountSponsorTokenAccount extends string,
   TAccountMarketTokenAta extends string,
   TAccountTokenProgram extends string,
+  TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: IncreaseRewardPoolInput<
-    TAccountAuthority,
+  input: AddRewardInput<
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
+    TAccountSponsorTokenAccount,
     TAccountMarketTokenAta,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >,
   config?: { programAddress?: TProgramAddress }
-): IncreaseRewardPoolInstruction<
+): AddRewardInstruction<
   TProgramAddress,
-  TAccountAuthority,
+  TAccountSponsor,
   TAccountMarket,
+  TAccountSponsorAccount,
   TAccountTokenMint,
+  TAccountSponsorTokenAccount,
   TAccountMarketTokenAta,
-  TAccountTokenProgram
+  TAccountTokenProgram,
+  TAccountSystemProgram
 > {
   // Program address.
   const programAddress =
@@ -263,11 +340,17 @@ export function getIncreaseRewardPoolInstruction<
 
   // Original accounts.
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
+    sponsor: { value: input.sponsor ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
+    sponsorAccount: { value: input.sponsorAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
-    marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: false },
+    sponsorTokenAccount: {
+      value: input.sponsorTokenAccount ?? null,
+      isWritable: true,
+    },
+    marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -277,54 +360,69 @@ export function getIncreaseRewardPoolInstruction<
   // Original args.
   const args = { ...input };
 
+  // Resolve default values.
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value =
+      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
+  }
+
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.sponsor),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.sponsorAccount),
       getAccountMeta(accounts.tokenMint),
+      getAccountMeta(accounts.sponsorTokenAccount),
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.tokenProgram),
+      getAccountMeta(accounts.systemProgram),
     ],
-    data: getIncreaseRewardPoolInstructionDataEncoder().encode(
-      args as IncreaseRewardPoolInstructionDataArgs
+    data: getAddRewardInstructionDataEncoder().encode(
+      args as AddRewardInstructionDataArgs
     ),
     programAddress,
-  } as IncreaseRewardPoolInstruction<
+  } as AddRewardInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
+    TAccountSponsorTokenAccount,
     TAccountMarketTokenAta,
-    TAccountTokenProgram
+    TAccountTokenProgram,
+    TAccountSystemProgram
   >);
 }
 
-export type ParsedIncreaseRewardPoolInstruction<
+export type ParsedAddRewardInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    authority: TAccountMetas[0];
+    sponsor: TAccountMetas[0];
     market: TAccountMetas[1];
-    tokenMint: TAccountMetas[2];
+    sponsorAccount: TAccountMetas[2];
+    tokenMint: TAccountMetas[3];
+    sponsorTokenAccount: TAccountMetas[4];
     /** Market's ATA holding reward tokens */
-    marketTokenAta: TAccountMetas[3];
-    tokenProgram: TAccountMetas[4];
+    marketTokenAta: TAccountMetas[5];
+    tokenProgram: TAccountMetas[6];
+    systemProgram: TAccountMetas[7];
   };
-  data: IncreaseRewardPoolInstructionData;
+  data: AddRewardInstructionData;
 };
 
-export function parseIncreaseRewardPoolInstruction<
+export function parseAddRewardInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedIncreaseRewardPoolInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 5) {
+): ParsedAddRewardInstruction<TProgram, TAccountMetas> {
+  if (instruction.accounts.length < 8) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -337,14 +435,15 @@ export function parseIncreaseRewardPoolInstruction<
   return {
     programAddress: instruction.programAddress,
     accounts: {
-      authority: getNextAccount(),
+      sponsor: getNextAccount(),
       market: getNextAccount(),
+      sponsorAccount: getNextAccount(),
       tokenMint: getNextAccount(),
+      sponsorTokenAccount: getNextAccount(),
       marketTokenAta: getNextAccount(),
       tokenProgram: getNextAccount(),
+      systemProgram: getNextAccount(),
     },
-    data: getIncreaseRewardPoolInstructionDataDecoder().decode(
-      instruction.data
-    ),
+    data: getAddRewardInstructionDataDecoder().decode(instruction.data),
   };
 }

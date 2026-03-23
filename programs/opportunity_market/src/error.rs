@@ -60,10 +60,6 @@ pub enum ErrorCode {
     NoFeesToClaim,
     #[msg("Invalid winning options input")]
     InvalidWinningOptionsInput,
-    #[msg("New reward amount must be greater than current")]
-    RewardAmountNotIncreased,
-    #[msg("Reward has already been withdrawn")]
-    RewardAlreadyWithdrawn,
     #[msg("Stake account is not in a stuck or failed state")]
     StakeNotStuck,
 }

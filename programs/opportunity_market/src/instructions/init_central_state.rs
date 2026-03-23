@@ -25,7 +25,6 @@ pub fn init_central_state(
     min_option_deposit: u64,
     protocol_fee_bp: u16,
     fee_recipient: Pubkey,
-    reward_withdraw_staked_limit: u32,
     minimum_initial_reveal_period: u64,
 ) -> Result<()> {
     let central_state = &mut ctx.accounts.central_state;
@@ -35,7 +34,6 @@ pub fn init_central_state(
     central_state.min_option_deposit = min_option_deposit;
     central_state.protocol_fee_bp = protocol_fee_bp;
     central_state.fee_recipient = fee_recipient;
-    central_state.reward_withdraw_staked_limit = reward_withdraw_staked_limit;
     central_state.minimum_initial_reveal_period = minimum_initial_reveal_period;
 
     Ok(())

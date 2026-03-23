@@ -15,5 +15,6 @@ export * from './feePool';
 export * from './mXEAccount';
 export * from './opportunityMarket';
 export * from './opportunityMarketOption';
+export * from './opportunityMarketSponsor';
 export * from './stakeAccount';
 export * from './tokenVault';

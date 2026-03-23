@@ -37,7 +37,6 @@ export type MarketCreatedEvent = {
   creator: Address;
   index: bigint;
   mint: Address;
-  rewardAmount: bigint;
   timeToStake: bigint;
   timeToReveal: bigint;
   earlinessCutoffSeconds: bigint;
@@ -53,7 +52,6 @@ export type MarketCreatedEventArgs = {
   creator: Address;
   index: number | bigint;
   mint: Address;
-  rewardAmount: number | bigint;
   timeToStake: number | bigint;
   timeToReveal: number | bigint;
   earlinessCutoffSeconds: number | bigint;
@@ -70,7 +68,6 @@ export function getMarketCreatedEventEncoder(): Encoder<MarketCreatedEventArgs> 
     ['creator', getAddressEncoder()],
     ['index', getU64Encoder()],
     ['mint', getAddressEncoder()],
-    ['rewardAmount', getU64Encoder()],
     ['timeToStake', getU64Encoder()],
     ['timeToReveal', getU64Encoder()],
     ['earlinessCutoffSeconds', getU64Encoder()],
@@ -88,7 +85,6 @@ export function getMarketCreatedEventDecoder(): Decoder<MarketCreatedEvent> {
     ['creator', getAddressDecoder()],
     ['index', getU64Decoder()],
     ['mint', getAddressDecoder()],
-    ['rewardAmount', getU64Decoder()],
     ['timeToStake', getU64Decoder()],
     ['timeToReveal', getU64Decoder()],
     ['earlinessCutoffSeconds', getU64Decoder()],

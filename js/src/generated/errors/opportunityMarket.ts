@@ -72,12 +72,8 @@ export const OPPORTUNITY_MARKET_ERROR__CLOSING_EARLY_NOT_ALLOWED = 0x178a; // 60
 export const OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM = 0x178b; // 6027
 /** InvalidWinningOptionsInput: Invalid winning options input */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_WINNING_OPTIONS_INPUT = 0x178c; // 6028
-/** RewardAmountNotIncreased: New reward amount must be greater than current */
-export const OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED = 0x178d; // 6029
-/** RewardAlreadyWithdrawn: Reward has already been withdrawn */
-export const OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN = 0x178e; // 6030
 /** StakeNotStuck: Stake account is not in a stuck or failed state */
-export const OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK = 0x178f; // 6031
+export const OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK = 0x178d; // 6029
 
 export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__ABORTED_COMPUTATION
@@ -103,8 +99,6 @@ export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__NOT_REVEALED
   | typeof OPPORTUNITY_MARKET_ERROR__OVERFLOW
   | typeof OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED
-  | typeof OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN
-  | typeof OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED
   | typeof OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK
   | typeof OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE
   | typeof OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED
@@ -141,8 +135,6 @@ if (process.env.NODE_ENV !== 'production') {
     [OPPORTUNITY_MARKET_ERROR__NOT_REVEALED]: `Stake not yet revealed`,
     [OPPORTUNITY_MARKET_ERROR__OVERFLOW]: `Arithmetic overflow`,
     [OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_ENDED]: `Reveal period has already ended`,
-    [OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_WITHDRAWN]: `Reward has already been withdrawn`,
-    [OPPORTUNITY_MARKET_ERROR__REWARD_AMOUNT_NOT_INCREASED]: `New reward amount must be greater than current`,
     [OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK]: `Stake account is not in a stuck or failed state`,
     [OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE]: `Staking period is not active`,
     [OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED]: `Tally already incremented for this stake account`,

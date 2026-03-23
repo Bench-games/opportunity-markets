@@ -10,6 +10,8 @@ import {
   combineCodec,
   getAddressDecoder,
   getAddressEncoder,
+  getBooleanDecoder,
+  getBooleanEncoder,
   getI64Decoder,
   getI64Encoder,
   getStructDecoder,
@@ -22,48 +24,52 @@ import {
   type FixedSizeEncoder,
 } from '@solana/kit';
 
-export type RewardWithdrawnEvent = {
+export type RewardAddedEvent = {
   market: Address;
   sponsor: Address;
-  rewardAmount: bigint;
-  refundTokenAccount: Address;
+  amount: bigint;
+  totalRewardAmount: bigint;
+  locked: boolean;
   timestamp: bigint;
 };
 
-export type RewardWithdrawnEventArgs = {
+export type RewardAddedEventArgs = {
   market: Address;
   sponsor: Address;
-  rewardAmount: number | bigint;
-  refundTokenAccount: Address;
+  amount: number | bigint;
+  totalRewardAmount: number | bigint;
+  locked: boolean;
   timestamp: number | bigint;
 };
 
-export function getRewardWithdrawnEventEncoder(): FixedSizeEncoder<RewardWithdrawnEventArgs> {
+export function getRewardAddedEventEncoder(): FixedSizeEncoder<RewardAddedEventArgs> {
   return getStructEncoder([
     ['market', getAddressEncoder()],
     ['sponsor', getAddressEncoder()],
-    ['rewardAmount', getU64Encoder()],
-    ['refundTokenAccount', getAddressEncoder()],
+    ['amount', getU64Encoder()],
+    ['totalRewardAmount', getU64Encoder()],
+    ['locked', getBooleanEncoder()],
     ['timestamp', getI64Encoder()],
   ]);
 }
 
-export function getRewardWithdrawnEventDecoder(): FixedSizeDecoder<RewardWithdrawnEvent> {
+export function getRewardAddedEventDecoder(): FixedSizeDecoder<RewardAddedEvent> {
   return getStructDecoder([
     ['market', getAddressDecoder()],
     ['sponsor', getAddressDecoder()],
-    ['rewardAmount', getU64Decoder()],
-    ['refundTokenAccount', getAddressDecoder()],
+    ['amount', getU64Decoder()],
+    ['totalRewardAmount', getU64Decoder()],
+    ['locked', getBooleanDecoder()],
     ['timestamp', getI64Decoder()],
   ]);
 }
 
-export function getRewardWithdrawnEventCodec(): FixedSizeCodec<
-  RewardWithdrawnEventArgs,
-  RewardWithdrawnEvent
+export function getRewardAddedEventCodec(): FixedSizeCodec<
+  RewardAddedEventArgs,
+  RewardAddedEvent
 > {
   return combineCodec(
-    getRewardWithdrawnEventEncoder(),
-    getRewardWithdrawnEventDecoder()
+    getRewardAddedEventEncoder(),
+    getRewardAddedEventDecoder()
   );
 }

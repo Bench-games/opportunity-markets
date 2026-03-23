@@ -21,7 +21,6 @@ pub struct MarketCreatedEvent {
     pub creator: Pubkey,
     pub index: u64,
     pub mint: Pubkey,
-    pub reward_amount: u64,
     pub time_to_stake: u64,
     pub time_to_reveal: u64,
     pub earliness_cutoff_seconds: u64,
@@ -127,18 +126,19 @@ pub struct TallyIncrementedEvent {
 }
 
 #[event]
-pub struct RewardPoolIncreasedEvent {
+pub struct RewardAddedEvent {
     pub market: Pubkey,
-    pub authority: Pubkey,
-    pub old_reward_amount: u64,
-    pub new_reward_amount: u64,
+    pub sponsor: Pubkey,
+    pub amount: u64,
+    pub total_reward_amount: u64,
+    pub locked: bool,
     pub timestamp: i64,
 }
 
 #[event]
 pub struct RewardWithdrawnEvent {
     pub market: Pubkey,
-    pub creator: Pubkey,
+    pub sponsor: Pubkey,
     pub reward_amount: u64,
     pub refund_token_account: Pubkey,
     pub timestamp: i64,

@@ -18,7 +18,7 @@ pub struct ReclaimStake<'info> {
     pub owner: UncheckedAccount<'info>,
 
     #[account(
-        constraint = market.selected_options.is_some() || market.reward_withdrawn @ ErrorCode::MarketNotResolved,
+        constraint = market.selected_options.is_some() @ ErrorCode::MarketNotResolved,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 

@@ -27,10 +27,10 @@ import {
   type InstructionWithAccounts,
   type InstructionWithData,
   type ReadonlyAccount,
-  type ReadonlySignerAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
+  type WritableSignerAccount,
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import {
@@ -51,25 +51,28 @@ export function getWithdrawRewardDiscriminatorBytes() {
 
 export type WithdrawRewardInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-  TAccountAuthority extends string | AccountMeta<string> = string,
+  TAccountSponsor extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
+  TAccountSponsorAccount extends string | AccountMeta<string> = string,
   TAccountTokenMint extends string | AccountMeta<string> = string,
   TAccountMarketTokenAta extends string | AccountMeta<string> = string,
   TAccountRefundTokenAccount extends string | AccountMeta<string> = string,
-  TAccountCentralState extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
   InstructionWithAccounts<
     [
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
+      TAccountSponsor extends string
+        ? WritableSignerAccount<TAccountSponsor> &
+            AccountSignerMeta<TAccountSponsor>
+        : TAccountSponsor,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
+      TAccountSponsorAccount extends string
+        ? WritableAccount<TAccountSponsorAccount>
+        : TAccountSponsorAccount,
       TAccountTokenMint extends string
         ? ReadonlyAccount<TAccountTokenMint>
         : TAccountTokenMint,
@@ -79,9 +82,6 @@ export type WithdrawRewardInstruction<
       TAccountRefundTokenAccount extends string
         ? WritableAccount<TAccountRefundTokenAccount>
         : TAccountRefundTokenAccount,
-      TAccountCentralState extends string
-        ? ReadonlyAccount<TAccountCentralState>
-        : TAccountCentralState,
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
@@ -119,54 +119,54 @@ export function getWithdrawRewardInstructionDataCodec(): FixedSizeCodec<
 }
 
 export type WithdrawRewardAsyncInput<
-  TAccountAuthority extends string = string,
+  TAccountSponsor extends string = string,
   TAccountMarket extends string = string,
+  TAccountSponsorAccount extends string = string,
   TAccountTokenMint extends string = string,
   TAccountMarketTokenAta extends string = string,
   TAccountRefundTokenAccount extends string = string,
-  TAccountCentralState extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
-  authority: TransactionSigner<TAccountAuthority>;
+  sponsor: TransactionSigner<TAccountSponsor>;
   market: Address<TAccountMarket>;
+  sponsorAccount?: Address<TAccountSponsorAccount>;
   tokenMint: Address<TAccountTokenMint>;
   /** Market's ATA holding reward tokens */
   marketTokenAta?: Address<TAccountMarketTokenAta>;
-  /** Creator-specified destination for refunded reward tokens */
+  /** Sponsor's destination for refunded reward tokens */
   refundTokenAccount: Address<TAccountRefundTokenAccount>;
-  centralState?: Address<TAccountCentralState>;
   tokenProgram: Address<TAccountTokenProgram>;
 };
 
 export async function getWithdrawRewardInstructionAsync<
-  TAccountAuthority extends string,
+  TAccountSponsor extends string,
   TAccountMarket extends string,
+  TAccountSponsorAccount extends string,
   TAccountTokenMint extends string,
   TAccountMarketTokenAta extends string,
   TAccountRefundTokenAccount extends string,
-  TAccountCentralState extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
   input: WithdrawRewardAsyncInput<
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
-    TAccountCentralState,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
 ): Promise<
   WithdrawRewardInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
-    TAccountCentralState,
     TAccountTokenProgram
   >
 > {
@@ -176,15 +176,15 @@ export async function getWithdrawRewardInstructionAsync<
 
   // Original accounts.
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
+    sponsor: { value: input.sponsor ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
+    sponsorAccount: { value: input.sponsorAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
     marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: true },
     refundTokenAccount: {
       value: input.refundTokenAccount ?? null,
       isWritable: true,
     },
-    centralState: { value: input.centralState ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -193,6 +193,18 @@ export async function getWithdrawRewardInstructionAsync<
   >;
 
   // Resolve default values.
+  if (!accounts.sponsorAccount.value) {
+    accounts.sponsorAccount.value = await getProgramDerivedAddress({
+      programAddress,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([115, 112, 111, 110, 115, 111, 114])
+        ),
+        getAddressEncoder().encode(expectAddress(accounts.sponsor.value)),
+        getAddressEncoder().encode(expectAddress(accounts.market.value)),
+      ],
+    });
+  }
   if (!accounts.marketTokenAta.value) {
     accounts.marketTokenAta.value = await getProgramDerivedAddress({
       programAddress:
@@ -204,92 +216,80 @@ export async function getWithdrawRewardInstructionAsync<
       ],
     });
   }
-  if (!accounts.centralState.value) {
-    accounts.centralState.value = await getProgramDerivedAddress({
-      programAddress,
-      seeds: [
-        getBytesEncoder().encode(
-          new Uint8Array([
-            99, 101, 110, 116, 114, 97, 108, 95, 115, 116, 97, 116, 101,
-          ])
-        ),
-      ],
-    });
-  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.sponsor),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.sponsorAccount),
       getAccountMeta(accounts.tokenMint),
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.refundTokenAccount),
-      getAccountMeta(accounts.centralState),
       getAccountMeta(accounts.tokenProgram),
     ],
     data: getWithdrawRewardInstructionDataEncoder().encode({}),
     programAddress,
   } as WithdrawRewardInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
-    TAccountCentralState,
     TAccountTokenProgram
   >);
 }
 
 export type WithdrawRewardInput<
-  TAccountAuthority extends string = string,
+  TAccountSponsor extends string = string,
   TAccountMarket extends string = string,
+  TAccountSponsorAccount extends string = string,
   TAccountTokenMint extends string = string,
   TAccountMarketTokenAta extends string = string,
   TAccountRefundTokenAccount extends string = string,
-  TAccountCentralState extends string = string,
   TAccountTokenProgram extends string = string,
 > = {
-  authority: TransactionSigner<TAccountAuthority>;
+  sponsor: TransactionSigner<TAccountSponsor>;
   market: Address<TAccountMarket>;
+  sponsorAccount: Address<TAccountSponsorAccount>;
   tokenMint: Address<TAccountTokenMint>;
   /** Market's ATA holding reward tokens */
   marketTokenAta: Address<TAccountMarketTokenAta>;
-  /** Creator-specified destination for refunded reward tokens */
+  /** Sponsor's destination for refunded reward tokens */
   refundTokenAccount: Address<TAccountRefundTokenAccount>;
-  centralState: Address<TAccountCentralState>;
   tokenProgram: Address<TAccountTokenProgram>;
 };
 
 export function getWithdrawRewardInstruction<
-  TAccountAuthority extends string,
+  TAccountSponsor extends string,
   TAccountMarket extends string,
+  TAccountSponsorAccount extends string,
   TAccountTokenMint extends string,
   TAccountMarketTokenAta extends string,
   TAccountRefundTokenAccount extends string,
-  TAccountCentralState extends string,
   TAccountTokenProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
   input: WithdrawRewardInput<
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
-    TAccountCentralState,
     TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
 ): WithdrawRewardInstruction<
   TProgramAddress,
-  TAccountAuthority,
+  TAccountSponsor,
   TAccountMarket,
+  TAccountSponsorAccount,
   TAccountTokenMint,
   TAccountMarketTokenAta,
   TAccountRefundTokenAccount,
-  TAccountCentralState,
   TAccountTokenProgram
 > {
   // Program address.
@@ -298,15 +298,15 @@ export function getWithdrawRewardInstruction<
 
   // Original accounts.
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
+    sponsor: { value: input.sponsor ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
+    sponsorAccount: { value: input.sponsorAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
     marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: true },
     refundTokenAccount: {
       value: input.refundTokenAccount ?? null,
       isWritable: true,
     },
-    centralState: { value: input.centralState ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -317,24 +317,24 @@ export function getWithdrawRewardInstruction<
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.sponsor),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.sponsorAccount),
       getAccountMeta(accounts.tokenMint),
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.refundTokenAccount),
-      getAccountMeta(accounts.centralState),
       getAccountMeta(accounts.tokenProgram),
     ],
     data: getWithdrawRewardInstructionDataEncoder().encode({}),
     programAddress,
   } as WithdrawRewardInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountSponsor,
     TAccountMarket,
+    TAccountSponsorAccount,
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountRefundTokenAccount,
-    TAccountCentralState,
     TAccountTokenProgram
   >);
 }
@@ -345,14 +345,14 @@ export type ParsedWithdrawRewardInstruction<
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    authority: TAccountMetas[0];
+    sponsor: TAccountMetas[0];
     market: TAccountMetas[1];
-    tokenMint: TAccountMetas[2];
+    sponsorAccount: TAccountMetas[2];
+    tokenMint: TAccountMetas[3];
     /** Market's ATA holding reward tokens */
-    marketTokenAta: TAccountMetas[3];
-    /** Creator-specified destination for refunded reward tokens */
-    refundTokenAccount: TAccountMetas[4];
-    centralState: TAccountMetas[5];
+    marketTokenAta: TAccountMetas[4];
+    /** Sponsor's destination for refunded reward tokens */
+    refundTokenAccount: TAccountMetas[5];
     tokenProgram: TAccountMetas[6];
   };
   data: WithdrawRewardInstructionData;
@@ -379,12 +379,12 @@ export function parseWithdrawRewardInstruction<
   return {
     programAddress: instruction.programAddress,
     accounts: {
-      authority: getNextAccount(),
+      sponsor: getNextAccount(),
       market: getNextAccount(),
+      sponsorAccount: getNextAccount(),
       tokenMint: getNextAccount(),
       marketTokenAta: getNextAccount(),
       refundTokenAccount: getNextAccount(),
-      centralState: getNextAccount(),
       tokenProgram: getNextAccount(),
     },
     data: getWithdrawRewardInstructionDataDecoder().decode(instruction.data),

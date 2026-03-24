@@ -92,6 +92,7 @@ pub fn increment_option_tally(ctx: Context<IncrementOptionTally>, option_id: u64
         owner: ctx.accounts.owner.key(),
         market: ctx.accounts.market.key(),
         stake_account: ctx.accounts.stake_account.key(),
+        stake_account_id: ctx.accounts.stake_account.id,
         option_id: option_id,
         user_stake: stake_amount,
         user_score: user_score,

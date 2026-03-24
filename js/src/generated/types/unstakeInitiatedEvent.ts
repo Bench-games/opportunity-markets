@@ -14,6 +14,8 @@ import {
   getI64Encoder,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   type Address,
@@ -26,6 +28,7 @@ export type UnstakeInitiatedEvent = {
   user: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   unstakeableAtTimestamp: bigint;
   timestamp: bigint;
 };
@@ -34,6 +37,7 @@ export type UnstakeInitiatedEventArgs = {
   user: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   unstakeableAtTimestamp: number | bigint;
   timestamp: number | bigint;
 };
@@ -43,6 +47,7 @@ export function getUnstakeInitiatedEventEncoder(): FixedSizeEncoder<UnstakeIniti
     ['user', getAddressEncoder()],
     ['market', getAddressEncoder()],
     ['stakeAccount', getAddressEncoder()],
+    ['stakeAccountId', getU32Encoder()],
     ['unstakeableAtTimestamp', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
@@ -53,6 +58,7 @@ export function getUnstakeInitiatedEventDecoder(): FixedSizeDecoder<UnstakeIniti
     ['user', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['stakeAccount', getAddressDecoder()],
+    ['stakeAccountId', getU32Decoder()],
     ['unstakeableAtTimestamp', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);

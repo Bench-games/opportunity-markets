@@ -14,6 +14,8 @@ import {
   getI64Encoder,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   type Address,
@@ -26,6 +28,7 @@ export type StakeReclaimedEvent = {
   owner: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   amount: bigint;
   timestamp: bigint;
 };
@@ -34,6 +37,7 @@ export type StakeReclaimedEventArgs = {
   owner: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   amount: number | bigint;
   timestamp: number | bigint;
 };
@@ -43,6 +47,7 @@ export function getStakeReclaimedEventEncoder(): FixedSizeEncoder<StakeReclaimed
     ['owner', getAddressEncoder()],
     ['market', getAddressEncoder()],
     ['stakeAccount', getAddressEncoder()],
+    ['stakeAccountId', getU32Encoder()],
     ['amount', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
@@ -53,6 +58,7 @@ export function getStakeReclaimedEventDecoder(): FixedSizeDecoder<StakeReclaimed
     ['owner', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['stakeAccount', getAddressDecoder()],
+    ['stakeAccountId', getU32Decoder()],
     ['amount', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);

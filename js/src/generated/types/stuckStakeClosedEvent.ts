@@ -27,6 +27,7 @@ import {
 export type StuckStakeClosedEvent = {
   owner: Address;
   market: Address;
+  stakeAccount: Address;
   stakeAccountId: number;
   refundedAmount: bigint;
   refundedFee: bigint;
@@ -36,6 +37,7 @@ export type StuckStakeClosedEvent = {
 export type StuckStakeClosedEventArgs = {
   owner: Address;
   market: Address;
+  stakeAccount: Address;
   stakeAccountId: number;
   refundedAmount: number | bigint;
   refundedFee: number | bigint;
@@ -46,6 +48,7 @@ export function getStuckStakeClosedEventEncoder(): FixedSizeEncoder<StuckStakeCl
   return getStructEncoder([
     ['owner', getAddressEncoder()],
     ['market', getAddressEncoder()],
+    ['stakeAccount', getAddressEncoder()],
     ['stakeAccountId', getU32Encoder()],
     ['refundedAmount', getU64Encoder()],
     ['refundedFee', getU64Encoder()],
@@ -57,6 +60,7 @@ export function getStuckStakeClosedEventDecoder(): FixedSizeDecoder<StuckStakeCl
   return getStructDecoder([
     ['owner', getAddressDecoder()],
     ['market', getAddressDecoder()],
+    ['stakeAccount', getAddressDecoder()],
     ['stakeAccountId', getU32Decoder()],
     ['refundedAmount', getU64Decoder()],
     ['refundedFee', getU64Decoder()],

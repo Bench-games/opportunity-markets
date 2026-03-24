@@ -52,6 +52,7 @@ pub fn unstake_early(
         user: ctx.accounts.signer.key(),
         market: market.key(),
         stake_account: ctx.accounts.stake_account.key(),
+        stake_account_id: ctx.accounts.stake_account.id,
         unstakeable_at_timestamp: unstakeable_at,
     });
 

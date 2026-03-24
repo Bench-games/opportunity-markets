@@ -45,6 +45,7 @@ pub struct StakedEvent {
     pub user: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub stake_encrypted_option: [u8; 32],
     pub stake_state_nonce: u128,
     pub stake_encrypted_option_disclosure: [u8; 32],
@@ -58,6 +59,7 @@ pub struct StakeRevealedEvent {
     pub user: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub stake_amount: u64,
     pub selected_option: u64,
     pub timestamp: i64,
@@ -68,6 +70,7 @@ pub struct UnstakedEvent {
     pub user: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub timestamp: i64,
 }
 
@@ -92,6 +95,7 @@ pub struct RewardClaimedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub option_id: u64,
     pub reward_amount: u64,
     pub staked_at_timestamp: u64,
@@ -106,6 +110,7 @@ pub struct StakeReclaimedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub amount: u64,
     pub timestamp: i64,
 }
@@ -115,6 +120,7 @@ pub struct TallyIncrementedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub option_id: u64,
     pub user_stake: u64,
     pub user_score: u64,
@@ -157,6 +163,7 @@ pub struct UnstakeInitiatedEvent {
     pub user: Pubkey,
     pub market: Pubkey,
     pub stake_account: Pubkey,
+    pub stake_account_id: u32,
     pub unstakeable_at_timestamp: u64,
     pub timestamp: i64,
 }
@@ -183,6 +190,7 @@ pub struct FeesClaimedEvent {
 pub struct StuckStakeClosedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
+    pub stake_account: Pubkey,
     pub stake_account_id: u32,
     pub refunded_amount: u64,
     pub refunded_fee: u64,

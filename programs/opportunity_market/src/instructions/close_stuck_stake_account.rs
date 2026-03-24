@@ -140,6 +140,7 @@ pub fn close_stuck_stake_account(
     emit_ts!(StuckStakeClosedEvent {
         owner: ctx.accounts.signer.key(),
         market: market.key(),
+        stake_account: ctx.accounts.stake_account.key(),
         stake_account_id: stake_account_id,
         refunded_amount: amount,
         refunded_fee: fee,

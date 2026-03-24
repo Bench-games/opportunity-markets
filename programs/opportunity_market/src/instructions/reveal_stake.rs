@@ -173,6 +173,7 @@ pub fn reveal_stake_callback(
         user: ctx.accounts.stake_account.owner,
         market: ctx.accounts.stake_account.market,
         stake_account: ctx.accounts.stake_account.key(),
+        stake_account_id: ctx.accounts.stake_account.id,
         stake_amount: ctx.accounts.stake_account.amount,
         selected_option: revealed_option,
     });

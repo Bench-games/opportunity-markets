@@ -18,6 +18,8 @@ import {
   getStructEncoder,
   getU128Decoder,
   getU128Encoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   getU8Decoder,
@@ -32,6 +34,7 @@ export type StakedEvent = {
   user: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   stakeEncryptedOption: Array<number>;
   stakeStateNonce: bigint;
   stakeEncryptedOptionDisclosure: Array<number>;
@@ -44,6 +47,7 @@ export type StakedEventArgs = {
   user: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   stakeEncryptedOption: Array<number>;
   stakeStateNonce: number | bigint;
   stakeEncryptedOptionDisclosure: Array<number>;
@@ -57,6 +61,7 @@ export function getStakedEventEncoder(): FixedSizeEncoder<StakedEventArgs> {
     ['user', getAddressEncoder()],
     ['market', getAddressEncoder()],
     ['stakeAccount', getAddressEncoder()],
+    ['stakeAccountId', getU32Encoder()],
     ['stakeEncryptedOption', getArrayEncoder(getU8Encoder(), { size: 32 })],
     ['stakeStateNonce', getU128Encoder()],
     [
@@ -74,6 +79,7 @@ export function getStakedEventDecoder(): FixedSizeDecoder<StakedEvent> {
     ['user', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['stakeAccount', getAddressDecoder()],
+    ['stakeAccountId', getU32Decoder()],
     ['stakeEncryptedOption', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['stakeStateNonce', getU128Decoder()],
     [

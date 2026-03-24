@@ -100,6 +100,7 @@ pub fn reclaim_stake(
         owner: ctx.accounts.stake_account.owner,
         market: market.key(),
         stake_account: ctx.accounts.stake_account.key(),
+        stake_account_id: ctx.accounts.stake_account.id,
         amount: amount,
     });
 

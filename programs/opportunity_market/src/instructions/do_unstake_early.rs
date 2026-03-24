@@ -116,6 +116,7 @@ pub fn do_unstake_early(
         user: ctx.accounts.stake_account.owner,
         market: market.key(),
         stake_account: ctx.accounts.stake_account.key(),
+        stake_account_id: ctx.accounts.stake_account.id,
     });
 
     Ok(())

@@ -155,6 +155,7 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_id: u64, _sta
         owner: ctx.accounts.owner.key(),
         market: market.key(),
         stake_account: stake_account.key(),
+        stake_account_id: stake_account.id,
         option_id: option_id,
         stake_amount: stake_account.amount,
         reward_amount: user_reward,

@@ -308,6 +308,7 @@ pub fn stake_callback(
         user: ctx.accounts.stake_account.owner,
         market: ctx.accounts.stake_account.market,
         stake_account: ctx.accounts.stake_account.key(),
+        stake_account_id: ctx.accounts.stake_account.id,
         stake_encrypted_option: stake_data_mxe.ciphertexts[0],
         stake_state_nonce: stake_data_mxe.nonce,
         stake_encrypted_option_disclosure: stake_data_shared.ciphertexts[0],

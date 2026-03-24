@@ -29,6 +29,8 @@ import {
   getStructEncoder,
   getU128Decoder,
   getU128Encoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   getU8Decoder,
@@ -81,6 +83,7 @@ export type StakeAccount = {
   stakeReclaimed: boolean;
   pendingStake: boolean;
   pendingReveal: boolean;
+  id: number;
 };
 
 export type StakeAccountArgs = {
@@ -104,6 +107,7 @@ export type StakeAccountArgs = {
   stakeReclaimed: boolean;
   pendingStake: boolean;
   pendingReveal: boolean;
+  id: number;
 };
 
 export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
@@ -133,6 +137,7 @@ export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
       ['stakeReclaimed', getBooleanEncoder()],
       ['pendingStake', getBooleanEncoder()],
       ['pendingReveal', getBooleanEncoder()],
+      ['id', getU32Encoder()],
     ]),
     (value) => ({ ...value, discriminator: STAKE_ACCOUNT_DISCRIMINATOR })
   );
@@ -164,6 +169,7 @@ export function getStakeAccountDecoder(): Decoder<StakeAccount> {
     ['stakeReclaimed', getBooleanDecoder()],
     ['pendingStake', getBooleanDecoder()],
     ['pendingReveal', getBooleanDecoder()],
+    ['id', getU32Decoder()],
   ]);
 }
 

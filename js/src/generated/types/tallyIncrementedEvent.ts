@@ -14,6 +14,8 @@ import {
   getI64Encoder,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   type Address,
@@ -26,6 +28,7 @@ export type TallyIncrementedEvent = {
   owner: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   optionId: bigint;
   userStake: bigint;
   userScore: bigint;
@@ -38,6 +41,7 @@ export type TallyIncrementedEventArgs = {
   owner: Address;
   market: Address;
   stakeAccount: Address;
+  stakeAccountId: number;
   optionId: number | bigint;
   userStake: number | bigint;
   userScore: number | bigint;
@@ -51,6 +55,7 @@ export function getTallyIncrementedEventEncoder(): FixedSizeEncoder<TallyIncreme
     ['owner', getAddressEncoder()],
     ['market', getAddressEncoder()],
     ['stakeAccount', getAddressEncoder()],
+    ['stakeAccountId', getU32Encoder()],
     ['optionId', getU64Encoder()],
     ['userStake', getU64Encoder()],
     ['userScore', getU64Encoder()],
@@ -65,6 +70,7 @@ export function getTallyIncrementedEventDecoder(): FixedSizeDecoder<TallyIncreme
     ['owner', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['stakeAccount', getAddressDecoder()],
+    ['stakeAccountId', getU32Decoder()],
     ['optionId', getU64Decoder()],
     ['userStake', getU64Decoder()],
     ['userScore', getU64Decoder()],

@@ -29,12 +29,11 @@ pub mod opportunity_market {
     pub fn init_central_state(
         ctx: Context<InitCentralState>,
         earliness_cutoff_seconds: u64,
-        min_option_deposit: u64,
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
         minimum_initial_reveal_period: u64,
     ) -> Result<()> {
-        instructions::init_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, minimum_initial_reveal_period)
+        instructions::init_central_state(ctx, earliness_cutoff_seconds, protocol_fee_bp, fee_recipient, minimum_initial_reveal_period)
     }
 
     pub fn transfer_central_state_authority(
@@ -47,12 +46,11 @@ pub mod opportunity_market {
     pub fn update_central_state(
         ctx: Context<UpdateCentralState>,
         earliness_cutoff_seconds: u64,
-        min_option_deposit: u64,
         protocol_fee_bp: u16,
         fee_recipient: Pubkey,
         minimum_initial_reveal_period: u64,
     ) -> Result<()> {
-        instructions::update_central_state(ctx, earliness_cutoff_seconds, min_option_deposit, protocol_fee_bp, fee_recipient, minimum_initial_reveal_period)
+        instructions::update_central_state(ctx, earliness_cutoff_seconds, protocol_fee_bp, fee_recipient, minimum_initial_reveal_period)
     }
 
     pub fn create_market(

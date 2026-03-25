@@ -18,13 +18,11 @@ pub struct CentralState {
     pub bump: u8,
 
     // Point at which `earliness` becomes negligible
+    // TODO: move to market level config
     pub earliness_cutoff_seconds: u64,
 
     // Allowed to update
     pub authority: Pubkey,
-
-    // Minimum deposit required when creating a market option
-    pub min_option_deposit: u64,
 
     // Protocol fee in basis points (e.g. 100 = 1%)
     pub protocol_fee_bp: u16,

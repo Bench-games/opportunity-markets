@@ -22,7 +22,6 @@ pub struct InitCentralState<'info> {
 pub fn init_central_state(
     ctx: Context<InitCentralState>,
     earliness_cutoff_seconds: u64,
-    min_option_deposit: u64,
     protocol_fee_bp: u16,
     fee_recipient: Pubkey,
     minimum_initial_reveal_period: u64,
@@ -31,7 +30,6 @@ pub fn init_central_state(
     central_state.bump = ctx.bumps.central_state;
     central_state.authority = ctx.accounts.payer.key();
     central_state.earliness_cutoff_seconds = earliness_cutoff_seconds;
-    central_state.min_option_deposit = min_option_deposit;
     central_state.protocol_fee_bp = protocol_fee_bp;
     central_state.fee_recipient = fee_recipient;
     central_state.minimum_initial_reveal_period = minimum_initial_reveal_period;

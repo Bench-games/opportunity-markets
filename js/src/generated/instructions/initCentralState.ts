@@ -78,7 +78,6 @@ export type InitCentralStateInstruction<
 export type InitCentralStateInstructionData = {
   discriminator: ReadonlyUint8Array;
   earlinessCutoffSeconds: bigint;
-  minOptionDeposit: bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
   minimumInitialRevealPeriod: bigint;
@@ -86,7 +85,6 @@ export type InitCentralStateInstructionData = {
 
 export type InitCentralStateInstructionDataArgs = {
   earlinessCutoffSeconds: number | bigint;
-  minOptionDeposit: number | bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
   minimumInitialRevealPeriod: number | bigint;
@@ -97,7 +95,6 @@ export function getInitCentralStateInstructionDataEncoder(): FixedSizeEncoder<In
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['earlinessCutoffSeconds', getU64Encoder()],
-      ['minOptionDeposit', getU64Encoder()],
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
       ['minimumInitialRevealPeriod', getU64Encoder()],
@@ -110,7 +107,6 @@ export function getInitCentralStateInstructionDataDecoder(): FixedSizeDecoder<In
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['earlinessCutoffSeconds', getU64Decoder()],
-    ['minOptionDeposit', getU64Decoder()],
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
     ['minimumInitialRevealPeriod', getU64Decoder()],
@@ -136,7 +132,6 @@ export type InitCentralStateAsyncInput<
   centralState?: Address<TAccountCentralState>;
   systemProgram?: Address<TAccountSystemProgram>;
   earlinessCutoffSeconds: InitCentralStateInstructionDataArgs['earlinessCutoffSeconds'];
-  minOptionDeposit: InitCentralStateInstructionDataArgs['minOptionDeposit'];
   protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
   minimumInitialRevealPeriod: InitCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];
@@ -226,7 +221,6 @@ export type InitCentralStateInput<
   centralState: Address<TAccountCentralState>;
   systemProgram?: Address<TAccountSystemProgram>;
   earlinessCutoffSeconds: InitCentralStateInstructionDataArgs['earlinessCutoffSeconds'];
-  minOptionDeposit: InitCentralStateInstructionDataArgs['minOptionDeposit'];
   protocolFeeBp: InitCentralStateInstructionDataArgs['protocolFeeBp'];
   feeRecipient: InitCentralStateInstructionDataArgs['feeRecipient'];
   minimumInitialRevealPeriod: InitCentralStateInstructionDataArgs['minimumInitialRevealPeriod'];

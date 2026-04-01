@@ -69,7 +69,6 @@ async function main() {
     programAddress: PROGRAM_ID,
     signer: payer,
     earlinessCutoffSeconds: EARLINESS_CUTOFF_SECONDS,
-    minOptionDeposit: MIN_OPTION_DEPOSIT,
     protocolFeeBp: 0,
     feeRecipient: payer.address,
     minimumInitialRevealPeriod: 0n,

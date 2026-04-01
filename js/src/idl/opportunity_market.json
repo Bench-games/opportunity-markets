@@ -1282,10 +1282,6 @@
           "type": "u64"
         },
         {
-          "name": "min_option_deposit",
-          "type": "u64"
-        },
-        {
           "name": "protocol_fee_bp",
           "type": "u16"
         },
@@ -2562,10 +2558,6 @@
           "type": "u64"
         },
         {
-          "name": "min_option_deposit",
-          "type": "u64"
-        },
-        {
           "name": "protocol_fee_bp",
           "type": "u16"
         },
@@ -3306,10 +3298,6 @@
           {
             "name": "authority",
             "type": "pubkey"
-          },
-          {
-            "name": "min_option_deposit",
-            "type": "u64"
           },
           {
             "name": "protocol_fee_bp",

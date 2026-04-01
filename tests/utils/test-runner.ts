@@ -191,7 +191,7 @@ export class TestRunner {
   private marketAddress: Address;
   private marketCreator: TestUser;
   private marketConfig: MarketConfig;
-  private optionCount: number;
+  private usedOptionIds: Set<number>;
   private openTimestamp: bigint | null = null;
 
   // Users: Map<address string, TestUser>
@@ -200,7 +200,7 @@ export class TestRunner {
   private constructor() {
     // Private constructor - use static initialize()
     this.users = new Map();
-    this.optionCount = 0;
+    this.usedOptionIds = new Set();
   }
 
   // ============================================================================
@@ -270,7 +270,6 @@ export class TestRunner {
     const centralStateIx = await ensureCentralState(runner.rpc, {
       signer: deployer,
       earlinessCutoffSeconds: 0n,
-      minOptionDeposit: 1n,
       protocolFeeBp: 100,
       feeRecipient: creatorAccountBase.keypair.address,
       minimumInitialRevealPeriod: 0n,
@@ -573,7 +572,11 @@ export class TestRunner {
   // ============================================================================
 
   async addOption(): Promise<{ optionId: number }> {
-    const optionId = ++this.optionCount;
+    let optionId: number;
+    do {
+      optionId = Math.floor(Math.random() * 1_000_000_000) + 1;
+    } while (this.usedOptionIds.has(optionId));
+    this.usedOptionIds.add(optionId);
 
     const addOptionIx = await addMarketOption({
       creator: this.marketCreator.solanaKeypair,

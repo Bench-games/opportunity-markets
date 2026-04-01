@@ -58,12 +58,6 @@ pub fn create_market(
     reveal_period_authority: Pubkey,
 ) -> Result<()> {
     let central_state = &ctx.accounts.central_state;
-
-    require!(
-        time_to_reveal >= central_state.minimum_initial_reveal_period,
-        ErrorCode::InvalidTimestamp
-    );
-
     let creator_key = ctx.accounts.creator.key();
     let market = &mut ctx.accounts.market;
     let mint = ctx.accounts.token_mint.key();

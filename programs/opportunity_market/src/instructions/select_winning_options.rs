@@ -26,11 +26,6 @@ pub fn select_winning_options(ctx: Context<SelectWinningOptions>, selections: Ve
     // Validate each selection
     let mut percentage_sum: u16 = 0;
     for (i, sel) in selections.iter().enumerate() {
-        // Each option index must be valid
-        require!(
-            sel.option_id >= 1 && sel.option_id <= market.total_options,
-            ErrorCode::InvalidOptionId
-        );
         // Percentage must be > 0
         require!(sel.reward_percentage > 0, ErrorCode::InvalidWinningOptionsInput);
         percentage_sum += sel.reward_percentage as u16;

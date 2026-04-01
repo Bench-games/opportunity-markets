@@ -58,7 +58,6 @@ export type CentralState = {
   bump: number;
   earlinessCutoffSeconds: bigint;
   authority: Address;
-  minOptionDeposit: bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
   minimumInitialRevealPeriod: bigint;
@@ -70,7 +69,6 @@ export type CentralStateArgs = {
   bump: number;
   earlinessCutoffSeconds: number | bigint;
   authority: Address;
-  minOptionDeposit: number | bigint;
   protocolFeeBp: number;
   feeRecipient: Address;
   minimumInitialRevealPeriod: number | bigint;
@@ -85,7 +83,6 @@ export function getCentralStateEncoder(): FixedSizeEncoder<CentralStateArgs> {
       ['bump', getU8Encoder()],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['authority', getAddressEncoder()],
-      ['minOptionDeposit', getU64Encoder()],
       ['protocolFeeBp', getU16Encoder()],
       ['feeRecipient', getAddressEncoder()],
       ['minimumInitialRevealPeriod', getU64Encoder()],
@@ -101,7 +98,6 @@ export function getCentralStateDecoder(): FixedSizeDecoder<CentralState> {
     ['bump', getU8Decoder()],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['authority', getAddressDecoder()],
-    ['minOptionDeposit', getU64Decoder()],
     ['protocolFeeBp', getU16Decoder()],
     ['feeRecipient', getAddressDecoder()],
     ['minimumInitialRevealPeriod', getU64Decoder()],

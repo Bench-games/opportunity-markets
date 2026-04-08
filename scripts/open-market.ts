@@ -14,9 +14,7 @@ import {
   type SolanaRpcApi,
   type Signature,
 } from "@solana/kit";
-import { TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
-import { createMarket } from "../js/src";
-import config from "./market.json";
+import { openMarket } from "../js/src";
 import * as fs from "fs";
 import * as os from "os";
 
@@ -26,21 +24,15 @@ if (!process.env.RPC_URL) throw new Error("RPC_URL env var is required");
 const PROGRAM_ID = address(process.env.PROGRAM_ID);
 const RPC_URL = process.env.RPC_URL;
 
-const TOKEN_MINT_ARG = process.argv[2];
-if (!TOKEN_MINT_ARG) {
-  console.error("Usage: npx tsx scripts/create-market.ts <TOKEN_MINT>");
+const MARKET_ADDRESS = process.argv[2];
+if (!MARKET_ADDRESS) {
+  console.error("Usage: npx tsx scripts/open-market.ts <MARKET_ADDRESS>");
   process.exit(1);
 }
 
 function readSecretKey(path: string): Uint8Array {
   const file = fs.readFileSync(path);
   return new Uint8Array(JSON.parse(file.toString()));
-}
-
-function readX25519Pubkey(path: string): Uint8Array {
-  const file = fs.readFileSync(path);
-  const keypair = JSON.parse(file.toString());
-  return new Uint8Array(keypair.publicKey);
 }
 
 async function sendAndConfirmTx(
@@ -71,34 +63,20 @@ async function main() {
   const payer = await createKeyPairSignerFromBytes(secretKey);
   const rpc = createSolanaRpc(RPC_URL);
 
+  const marketAddress = address(MARKET_ADDRESS);
+  const openTimestamp = BigInt(Math.floor(Date.now() / 1000) + 6);
+
   console.log(`Program: ${PROGRAM_ID}`);
   console.log(`Payer:   ${payer.address}`);
+  console.log(`Market:  ${marketAddress}`);
+  console.log(`Open at: ${openTimestamp}`);
 
-  const marketIndex = BigInt(config.marketIndex);
-  const authorizedReaderPubkey = readX25519Pubkey(config.authorizedReaderKeypairPath);
-  if (authorizedReaderPubkey.length !== 32) {
-    throw new Error(`authorizedReaderPubkey must be 32 bytes, got ${authorizedReaderPubkey.length}`);
-  }
-
-  console.log(`\nCreating market (index: ${marketIndex})...`);
-
-  const createMarketIx = await createMarket({
+  const ix = openMarket({
     creator: payer,
-    tokenMint: address(TOKEN_MINT_ARG),
-    tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    marketIndex,
-    timeToStake: BigInt(config.timeToStake),
-    timeToReveal: BigInt(config.timeToReveal),
-    marketAuthority: config.marketAuthority ? address(config.marketAuthority) : null,
-    unstakeDelaySeconds: BigInt(config.unstakeDelaySeconds),
-    authorizedReaderPubkey,
-    allowClosingEarly: config.allowClosingEarly,
-    revealPeriodAuthority: payer.address,
-    earlinessCutoffSeconds: BigInt(config.earlinessCutoffSeconds),
+    market: marketAddress,
+    openTimestamp,
     programAddress: PROGRAM_ID,
   });
-
-  const marketAddress = createMarketIx.accounts[2].address;
 
   const { value: latestBlockhash } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
 
@@ -107,13 +85,12 @@ async function main() {
       createTransactionMessage({ version: 0 }),
       (msg) => setTransactionMessageFeePayer(payer.address, msg),
       (msg) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, msg),
-      (msg) => appendTransactionMessageInstructions([createMarketIx], msg)
+      (msg) => appendTransactionMessageInstructions([ix], msg)
     )
   );
 
   const sig = await sendAndConfirmTx(rpc, signedTx);
-  console.log(`Done. Market: ${marketAddress}`);
-  console.log(`Signature: ${sig}`);
+  console.log(`Done. Signature: ${sig}`);
 }
 
 main()

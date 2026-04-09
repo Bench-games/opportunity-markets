@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::score::calculate_user_score;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, TallyIncrementedEvent};
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::{OPTION_SEED, STAKE_ACCOUNT_SEED};
 use crate::state::{OpportunityMarket, OpportunityMarketOption, StakeAccount};
 
 #[derive(Accounts)]
@@ -28,7 +28,7 @@ pub struct IncrementOptionTally<'info> {
 
     #[account(
         mut,
-        seeds = [b"option", market.key().as_ref(), &option_id.to_le_bytes()],
+        seeds = [OPTION_SEED, market.key().as_ref(), &option_id.to_le_bytes()],
         bump = option.bump,
     )]
     pub option: Account<'info, OpportunityMarketOption>,

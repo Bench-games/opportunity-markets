@@ -129,3 +129,12 @@ pub struct OpportunityMarketSponsor {
     pub reward_locked: bool,
 }
 
+#[account]
+#[derive(InitSpace)]
+pub struct TimelockedAccountChange {
+    pub bump: u8,
+    pub current_value: Pubkey,
+    pub proposed_value: Pubkey,
+    pub execute_after: i64,
+}
+

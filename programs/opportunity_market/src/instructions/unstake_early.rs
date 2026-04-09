@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, UnstakeInitiatedEvent};
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::STAKE_ACCOUNT_SEED;
 use crate::state::{OpportunityMarket, StakeAccount};
 
 #[derive(Accounts)]

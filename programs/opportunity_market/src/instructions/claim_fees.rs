@@ -5,7 +5,7 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, FeesClaimedEvent};
-use crate::instructions::init_token_vault::TOKEN_VAULT_SEED;
+use crate::constants::{CENTRAL_STATE_SEED, TOKEN_VAULT_SEED};
 use crate::state::{CentralState, TokenVault};
 
 #[derive(Accounts)]
@@ -13,7 +13,7 @@ pub struct ClaimFees<'info> {
     pub signer: Signer<'info>,
 
     #[account(
-        seeds = [b"central_state"],
+        seeds = [CENTRAL_STATE_SEED],
         bump = central_state.bump,
         constraint = signer.key() == central_state.fee_claimer @ ErrorCode::Unauthorized,
     )]

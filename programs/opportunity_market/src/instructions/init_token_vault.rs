@@ -1,9 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
+use crate::constants::TOKEN_VAULT_SEED;
 use crate::state::TokenVault;
-
-pub const TOKEN_VAULT_SEED: &[u8] = b"token_vault";
 
 #[derive(Accounts)]
 pub struct InitTokenVault<'info> {

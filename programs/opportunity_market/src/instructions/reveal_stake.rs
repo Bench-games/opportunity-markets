@@ -4,7 +4,7 @@ use arcium_client::idl::arcium::types::CallbackAccount;
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeRevealedEvent};
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::STAKE_ACCOUNT_SEED;
 use crate::state::{OpportunityMarket, StakeAccount};
 use crate::COMP_DEF_OFFSET_REVEAL_STAKE;
 use crate::{ArciumSignerAccount, ID, ID_CONST};

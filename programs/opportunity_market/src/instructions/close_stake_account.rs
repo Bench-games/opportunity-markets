@@ -5,7 +5,7 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardClaimedEvent};
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED, STAKE_ACCOUNT_SEED};
 use crate::state::{OpportunityMarket, OpportunityMarketOption, StakeAccount};
 
 #[derive(Accounts)]
@@ -30,7 +30,7 @@ pub struct CloseStakeAccount<'info> {
     pub stake_account: Account<'info, StakeAccount>,
 
     #[account(
-        seeds = [b"option", market.key().as_ref(), &option_id.to_le_bytes()],
+        seeds = [OPTION_SEED, market.key().as_ref(), &option_id.to_le_bytes()],
         bump = option.bump,
     )]
     pub option: Account<'info, OpportunityMarketOption>,
@@ -122,7 +122,7 @@ pub fn close_stake_account(ctx: Context<CloseStakeAccount>, option_id: u64, _sta
         let index_bytes = market.index.to_le_bytes();
         let bump = market.bump;
         let signer_seeds: &[&[&[u8]]] = &[&[
-            b"opportunity_market",
+            OPPORTUNITY_MARKET_SEED,
             creator_key.as_ref(),
             &index_bytes,
             &[bump],

@@ -5,8 +5,7 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StuckStakeClosedEvent};
-use crate::instructions::init_token_vault::TOKEN_VAULT_SEED;
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED, TOKEN_VAULT_SEED};
 use crate::state::{OpportunityMarket, StakeAccount, TokenVault};
 
 #[derive(Accounts)]
@@ -87,7 +86,7 @@ pub fn close_stuck_stake_account(
         let index_bytes = market.index.to_le_bytes();
         let bump = market.bump;
         let market_seeds: &[&[&[u8]]] = &[&[
-            b"opportunity_market",
+            OPPORTUNITY_MARKET_SEED,
             creator_key.as_ref(),
             &index_bytes,
             &[bump],

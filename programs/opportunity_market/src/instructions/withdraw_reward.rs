@@ -5,7 +5,7 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardWithdrawnEvent};
-use crate::instructions::add_reward::SPONSOR_SEED;
+use crate::constants::{OPPORTUNITY_MARKET_SEED, SPONSOR_SEED};
 use crate::state::{OpportunityMarket, OpportunityMarketSponsor};
 
 #[derive(Accounts)]
@@ -73,7 +73,7 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
         let index_bytes = market.index.to_le_bytes();
         let bump = market.bump;
         let signer_seeds: &[&[&[u8]]] = &[&[
-            b"opportunity_market",
+            OPPORTUNITY_MARKET_SEED,
             creator_key.as_ref(),
             &index_bytes,
             &[bump],

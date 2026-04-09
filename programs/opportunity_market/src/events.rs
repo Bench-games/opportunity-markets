@@ -207,3 +207,31 @@ pub struct StuckStakeClosedEvent {
     pub refunded_fee: u64,
     pub timestamp: i64,
 }
+
+#[event]
+pub struct AccountChangeProposedEvent {
+    pub central_state: Pubkey,
+    pub change_type: String,
+    pub current_value: Pubkey,
+    pub proposed_value: Pubkey,
+    pub execute_after: i64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct AccountChangeFinalizedEvent {
+    pub central_state: Pubkey,
+    pub change_type: String,
+    pub old_value: Pubkey,
+    pub new_value: Pubkey,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct AccountChangeCancelledEvent {
+    pub central_state: Pubkey,
+    pub change_type: String,
+    pub cancelled_by: Pubkey,
+    pub proposed_value: Pubkey,
+    pub timestamp: i64,
+}

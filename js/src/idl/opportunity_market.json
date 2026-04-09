@@ -205,6 +205,203 @@
       ]
     },
     {
+      "name": "cancel_fee_claimer_change",
+      "discriminator": [
+        74,
+        3,
+        53,
+        191,
+        222,
+        247,
+        196,
+        164
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "timelocked_change",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  109,
+                  101,
+                  108,
+                  111,
+                  99,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  104,
+                  97,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "central_state"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_update_authority_change",
+      "discriminator": [
+        193,
+        127,
+        213,
+        94,
+        136,
+        199,
+        133,
+        229
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "timelocked_change",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  109,
+                  101,
+                  108,
+                  111,
+                  99,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  104,
+                  97,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  100,
+                  97,
+                  116,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "central_state"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "claim_fees",
       "discriminator": [
         82,
@@ -1102,6 +1299,219 @@
       "args": []
     },
     {
+      "name": "finalize_new_fee_claimer",
+      "discriminator": [
+        228,
+        44,
+        55,
+        171,
+        220,
+        96,
+        92,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "update_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "proposed_fee_claimer",
+          "docs": [
+            "The proposed new fee claimer must co-sign to prevent fat-finger mistakes."
+          ],
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "timelocked_change",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  109,
+                  101,
+                  108,
+                  111,
+                  99,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  104,
+                  97,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "central_state"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "finalize_new_update_authority",
+      "discriminator": [
+        46,
+        87,
+        119,
+        22,
+        184,
+        132,
+        188,
+        216
+      ],
+      "accounts": [
+        {
+          "name": "update_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "proposed_authority",
+          "docs": [
+            "The proposed new authority must co-sign to prevent fat-finger mistakes."
+          ],
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "timelocked_change",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  109,
+                  101,
+                  108,
+                  111,
+                  99,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  104,
+                  97,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  100,
+                  97,
+                  116,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "central_state"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "increment_option_tally",
       "discriminator": [
         93,
@@ -1449,6 +1859,217 @@
         {
           "name": "market",
           "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "propose_new_fee_claimer",
+      "discriminator": [
+        252,
+        167,
+        189,
+        0,
+        102,
+        55,
+        31,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "update_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposed_fee_claimer"
+        },
+        {
+          "name": "timelocked_change",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  109,
+                  101,
+                  108,
+                  111,
+                  99,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  104,
+                  97,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  102,
+                  101,
+                  101,
+                  95,
+                  99,
+                  108,
+                  97,
+                  105,
+                  109,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "central_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "propose_new_update_authority",
+      "discriminator": [
+        190,
+        245,
+        249,
+        53,
+        37,
+        130,
+        25,
+        87
+      ],
+      "accounts": [
+        {
+          "name": "update_authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "central_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  101,
+                  110,
+                  116,
+                  114,
+                  97,
+                  108,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposed_authority"
+        },
+        {
+          "name": "timelocked_change",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  105,
+                  109,
+                  101,
+                  108,
+                  111,
+                  99,
+                  107,
+                  101,
+                  100,
+                  95,
+                  99,
+                  104,
+                  97,
+                  110,
+                  103,
+                  101
+                ]
+              },
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  112,
+                  100,
+                  97,
+                  116,
+                  101,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "central_state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
@@ -2410,57 +3031,6 @@
       "args": []
     },
     {
-      "name": "transfer_central_state_authority",
-      "discriminator": [
-        237,
-        33,
-        80,
-        239,
-        189,
-        157,
-        253,
-        90
-      ],
-      "accounts": [
-        {
-          "name": "update_authority",
-          "signer": true
-        },
-        {
-          "name": "central_state",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  101,
-                  110,
-                  116,
-                  114,
-                  97,
-                  108,
-                  95,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": [
-        {
-          "name": "new_authority",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
       "name": "unstake_early",
       "discriminator": [
         246,
@@ -2575,10 +3145,6 @@
         {
           "name": "protocol_fee_bp",
           "type": "u16"
-        },
-        {
-          "name": "fee_claimer",
-          "type": "pubkey"
         }
       ]
     },
@@ -2854,6 +3420,19 @@
       ]
     },
     {
+      "name": "TimelockedAccountChange",
+      "discriminator": [
+        212,
+        170,
+        131,
+        144,
+        16,
+        51,
+        205,
+        22
+      ]
+    },
+    {
       "name": "TokenVault",
       "discriminator": [
         121,
@@ -2868,6 +3447,45 @@
     }
   ],
   "events": [
+    {
+      "name": "AccountChangeCancelledEvent",
+      "discriminator": [
+        114,
+        140,
+        205,
+        240,
+        134,
+        237,
+        54,
+        79
+      ]
+    },
+    {
+      "name": "AccountChangeFinalizedEvent",
+      "discriminator": [
+        125,
+        145,
+        138,
+        250,
+        207,
+        92,
+        115,
+        230
+      ]
+    },
+    {
+      "name": "AccountChangeProposedEvent",
+      "discriminator": [
+        35,
+        36,
+        252,
+        186,
+        65,
+        210,
+        97,
+        148
+      ]
+    },
     {
       "name": "FeesClaimedEvent",
       "discriminator": [
@@ -3286,9 +3904,102 @@
       "code": 6033,
       "name": "EarlinessCutoffTooLarge",
       "msg": "Earliness cutoff exceeds staking period"
+    },
+    {
+      "code": 6034,
+      "name": "TimelockNotElapsed",
+      "msg": "Timelock period has not elapsed yet"
     }
   ],
   "types": [
+    {
+      "name": "AccountChangeCancelledEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "central_state",
+            "type": "pubkey"
+          },
+          {
+            "name": "change_type",
+            "type": "string"
+          },
+          {
+            "name": "cancelled_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposed_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountChangeFinalizedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "central_state",
+            "type": "pubkey"
+          },
+          {
+            "name": "change_type",
+            "type": "string"
+          },
+          {
+            "name": "old_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "new_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountChangeProposedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "central_state",
+            "type": "pubkey"
+          },
+          {
+            "name": "change_type",
+            "type": "string"
+          },
+          {
+            "name": "current_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposed_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "execute_after",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
     {
       "name": "Activation",
       "type": {
@@ -4989,6 +5700,30 @@
           },
           {
             "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TimelockedAccountChange",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "current_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "proposed_value",
+            "type": "pubkey"
+          },
+          {
+            "name": "execute_after",
             "type": "i64"
           }
         ]

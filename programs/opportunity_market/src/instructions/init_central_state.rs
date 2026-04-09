@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::MAX_PROTOCOL_FEE_BP;
+use crate::constants::{CENTRAL_STATE_SEED, MAX_PROTOCOL_FEE_BP};
 use crate::error::ErrorCode;
 use crate::state::CentralState;
 
@@ -13,7 +13,7 @@ pub struct InitCentralState<'info> {
         init,
         payer = payer,
         space = 8 + CentralState::INIT_SPACE,
-        seeds = [b"central_state"],
+        seeds = [CENTRAL_STATE_SEED],
         bump,
     )]
     pub central_state: Account<'info, CentralState>,

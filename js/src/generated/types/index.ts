@@ -6,6 +6,9 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from './accountChangeCancelledEvent';
+export * from './accountChangeFinalizedEvent';
+export * from './accountChangeProposedEvent';
 export * from './activation';
 export * from './bN254G2BLSPublicKey';
 export * from './circuitSource';

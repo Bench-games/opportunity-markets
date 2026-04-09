@@ -82,6 +82,8 @@ export const OPPORTUNITY_MARKET_ERROR__MARKET_PAUSED = 0x178f; // 6031
 export const OPPORTUNITY_MARKET_ERROR__MARKET_NOT_PAUSED = 0x1790; // 6032
 /** EarlinessCutoffTooLarge: Earliness cutoff exceeds staking period */
 export const OPPORTUNITY_MARKET_ERROR__EARLINESS_CUTOFF_TOO_LARGE = 0x1791; // 6033
+/** TimelockNotElapsed: Timelock period has not elapsed yet */
+export const OPPORTUNITY_MARKET_ERROR__TIMELOCK_NOT_ELAPSED = 0x1792; // 6034
 
 export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__ABORTED_COMPUTATION
@@ -114,6 +116,7 @@ export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK
   | typeof OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE
   | typeof OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED
+  | typeof OPPORTUNITY_MARKET_ERROR__TIMELOCK_NOT_ELAPSED
   | typeof OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
   | typeof OPPORTUNITY_MARKET_ERROR__UNSTAKE_DELAY_NOT_MET
   | typeof OPPORTUNITY_MARKET_ERROR__UNSTAKE_NOT_INITIATED
@@ -154,6 +157,7 @@ if (process.env.NODE_ENV !== 'production') {
     [OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK]: `Stake account is not in a stuck or failed state`,
     [OPPORTUNITY_MARKET_ERROR__STAKING_NOT_ACTIVE]: `Staking period is not active`,
     [OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED]: `Tally already incremented for this stake account`,
+    [OPPORTUNITY_MARKET_ERROR__TIMELOCK_NOT_ELAPSED]: `Timelock period has not elapsed yet`,
     [OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED]: `Unauthorized`,
     [OPPORTUNITY_MARKET_ERROR__UNSTAKE_DELAY_NOT_MET]: `Unstake delay period has not passed yet`,
     [OPPORTUNITY_MARKET_ERROR__UNSTAKE_NOT_INITIATED]: `Unstake has not been initiated`,

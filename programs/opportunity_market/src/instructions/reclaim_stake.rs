@@ -5,7 +5,7 @@ use anchor_spl::token_interface::{
 
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeReclaimedEvent};
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::state::{OpportunityMarket, StakeAccount};
 
 #[derive(Accounts)]
@@ -71,7 +71,7 @@ pub fn reclaim_stake(
     let index_bytes = market.index.to_le_bytes();
     let bump = market.bump;
     let signer_seeds: &[&[&[u8]]] = &[&[
-        b"opportunity_market",
+        OPPORTUNITY_MARKET_SEED,
         creator_key.as_ref(),
         &index_bytes,
         &[bump],

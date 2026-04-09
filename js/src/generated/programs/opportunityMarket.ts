@@ -16,18 +16,24 @@ import {
 import {
   type ParsedAddMarketOptionInstruction,
   type ParsedAddRewardInstruction,
+  type ParsedCancelFeeClaimerChangeInstruction,
+  type ParsedCancelUpdateAuthorityChangeInstruction,
   type ParsedClaimFeesInstruction,
   type ParsedCloseStakeAccountInstruction,
   type ParsedCloseStuckStakeAccountInstruction,
   type ParsedCreateMarketInstruction,
   type ParsedDoUnstakeEarlyInstruction,
   type ParsedEndRevealPeriodInstruction,
+  type ParsedFinalizeNewFeeClaimerInstruction,
+  type ParsedFinalizeNewUpdateAuthorityInstruction,
   type ParsedIncrementOptionTallyInstruction,
   type ParsedInitCentralStateInstruction,
   type ParsedInitStakeAccountInstruction,
   type ParsedInitTokenVaultInstruction,
   type ParsedOpenMarketInstruction,
   type ParsedPauseMarketInstruction,
+  type ParsedProposeNewFeeClaimerInstruction,
+  type ParsedProposeNewUpdateAuthorityInstruction,
   type ParsedReclaimStakeInstruction,
   type ParsedResumeMarketInstruction,
   type ParsedRevealStakeCallbackInstruction,
@@ -37,7 +43,6 @@ import {
   type ParsedStakeCallbackInstruction,
   type ParsedStakeCompDefInstruction,
   type ParsedStakeInstruction,
-  type ParsedTransferCentralStateAuthorityInstruction,
   type ParsedUnstakeEarlyInstruction,
   type ParsedUpdateCentralStateInstruction,
   type ParsedWithdrawRewardInstruction,
@@ -58,6 +63,7 @@ export enum OpportunityMarketAccount {
   OpportunityMarketOption,
   OpportunityMarketSponsor,
   StakeAccount,
+  TimelockedAccountChange,
   TokenVault,
 }
 
@@ -190,6 +196,17 @@ export function identifyOpportunityMarketAccount(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([212, 170, 131, 144, 16, 51, 205, 22])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketAccount.TimelockedAccountChange;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([121, 7, 84, 254, 151, 228, 43, 144])
       ),
       0
@@ -205,18 +222,24 @@ export function identifyOpportunityMarketAccount(
 export enum OpportunityMarketInstruction {
   AddMarketOption,
   AddReward,
+  CancelFeeClaimerChange,
+  CancelUpdateAuthorityChange,
   ClaimFees,
   CloseStakeAccount,
   CloseStuckStakeAccount,
   CreateMarket,
   DoUnstakeEarly,
   EndRevealPeriod,
+  FinalizeNewFeeClaimer,
+  FinalizeNewUpdateAuthority,
   IncrementOptionTally,
   InitCentralState,
   InitStakeAccount,
   InitTokenVault,
   OpenMarket,
   PauseMarket,
+  ProposeNewFeeClaimer,
+  ProposeNewUpdateAuthority,
   ReclaimStake,
   ResumeMarket,
   RevealStake,
@@ -226,7 +249,6 @@ export enum OpportunityMarketInstruction {
   Stake,
   StakeCallback,
   StakeCompDef,
-  TransferCentralStateAuthority,
   UnstakeEarly,
   UpdateCentralState,
   WithdrawReward,
@@ -257,6 +279,28 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.AddReward;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([74, 3, 53, 191, 222, 247, 196, 164])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.CancelFeeClaimerChange;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([193, 127, 213, 94, 136, 199, 133, 229])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.CancelUpdateAuthorityChange;
   }
   if (
     containsBytes(
@@ -328,6 +372,28 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([228, 44, 55, 171, 220, 96, 92, 210])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.FinalizeNewFeeClaimer;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([46, 87, 119, 22, 184, 132, 188, 216])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.FinalizeNewUpdateAuthority;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([93, 109, 206, 212, 231, 51, 71, 122])
       ),
       0
@@ -389,6 +455,28 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.PauseMarket;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([252, 167, 189, 0, 102, 55, 31, 59])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.ProposeNewFeeClaimer;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([190, 245, 249, 53, 37, 130, 25, 87])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.ProposeNewUpdateAuthority;
   }
   if (
     containsBytes(
@@ -493,17 +581,6 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([237, 33, 80, 239, 189, 157, 253, 90])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.TransferCentralStateAuthority;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([246, 212, 81, 180, 65, 2, 126, 125])
       ),
       0
@@ -548,6 +625,12 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.AddReward;
     } & ParsedAddRewardInstruction<TProgram>)
   | ({
+      instructionType: OpportunityMarketInstruction.CancelFeeClaimerChange;
+    } & ParsedCancelFeeClaimerChangeInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.CancelUpdateAuthorityChange;
+    } & ParsedCancelUpdateAuthorityChangeInstruction<TProgram>)
+  | ({
       instructionType: OpportunityMarketInstruction.ClaimFees;
     } & ParsedClaimFeesInstruction<TProgram>)
   | ({
@@ -566,6 +649,12 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.EndRevealPeriod;
     } & ParsedEndRevealPeriodInstruction<TProgram>)
   | ({
+      instructionType: OpportunityMarketInstruction.FinalizeNewFeeClaimer;
+    } & ParsedFinalizeNewFeeClaimerInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.FinalizeNewUpdateAuthority;
+    } & ParsedFinalizeNewUpdateAuthorityInstruction<TProgram>)
+  | ({
       instructionType: OpportunityMarketInstruction.IncrementOptionTally;
     } & ParsedIncrementOptionTallyInstruction<TProgram>)
   | ({
@@ -583,6 +672,12 @@ export type ParsedOpportunityMarketInstruction<
   | ({
       instructionType: OpportunityMarketInstruction.PauseMarket;
     } & ParsedPauseMarketInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.ProposeNewFeeClaimer;
+    } & ParsedProposeNewFeeClaimerInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.ProposeNewUpdateAuthority;
+    } & ParsedProposeNewUpdateAuthorityInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.ReclaimStake;
     } & ParsedReclaimStakeInstruction<TProgram>)
@@ -610,9 +705,6 @@ export type ParsedOpportunityMarketInstruction<
   | ({
       instructionType: OpportunityMarketInstruction.StakeCompDef;
     } & ParsedStakeCompDefInstruction<TProgram>)
-  | ({
-      instructionType: OpportunityMarketInstruction.TransferCentralStateAuthority;
-    } & ParsedTransferCentralStateAuthorityInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.UnstakeEarly;
     } & ParsedUnstakeEarlyInstruction<TProgram>)

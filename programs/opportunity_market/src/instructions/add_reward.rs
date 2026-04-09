@@ -3,11 +3,10 @@ use anchor_spl::token_interface::{
     transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked,
 };
 
+use crate::constants::SPONSOR_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardAddedEvent};
 use crate::state::{OpportunityMarket, OpportunityMarketSponsor};
-
-pub const SPONSOR_SEED: &[u8] = b"sponsor";
 
 #[derive(Accounts)]
 pub struct AddReward<'info> {

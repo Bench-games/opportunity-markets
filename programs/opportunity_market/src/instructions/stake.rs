@@ -5,14 +5,12 @@ use anchor_spl::token_interface::{
 use arcium_anchor::prelude::*;
 use arcium_client::idl::arcium::types::CallbackAccount;
 
+use crate::constants::{CENTRAL_STATE_SEED, STAKE_ACCOUNT_SEED, TOKEN_VAULT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakedEvent};
-use crate::instructions::init_token_vault::TOKEN_VAULT_SEED;
 use crate::state::{CentralState, OpportunityMarket, StakeAccount, TokenVault};
 use crate::COMP_DEF_OFFSET_STAKE;
 use crate::{ID, ID_CONST, ArciumSignerAccount};
-
-pub const STAKE_ACCOUNT_SEED: &[u8] = b"stake_account";
 
 #[queue_computation_accounts("stake", payer)]
 #[derive(Accounts)]
@@ -80,7 +78,7 @@ pub struct Stake<'info> {
     pub token_vault_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
-        seeds = [b"central_state"],
+        seeds = [CENTRAL_STATE_SEED],
         bump = central_state.bump,
     )]
     pub central_state: Box<Account<'info, CentralState>>,

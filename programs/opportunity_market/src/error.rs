@@ -70,4 +70,6 @@ pub enum ErrorCode {
     MarketNotPaused,
     #[msg("Earliness cutoff exceeds staking period")]
     EarlinessCutoffTooLarge,
+    #[msg("Timelock period has not elapsed yet")]
+    TimelockNotElapsed,
 }

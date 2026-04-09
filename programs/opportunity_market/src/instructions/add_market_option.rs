@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+use crate::constants::OPTION_SEED;
 use crate::error::ErrorCode;
 use crate::state::{OpportunityMarket, OpportunityMarketOption};
 use crate::events::{emit_ts, MarketOptionCreatedEvent};
@@ -21,7 +22,7 @@ pub struct AddMarketOption<'info> {
         init,
         payer = creator,
         space = 8 + OpportunityMarketOption::INIT_SPACE,
-        seeds = [b"option", market.key().as_ref(), &option_id.to_le_bytes()],
+        seeds = [OPTION_SEED, market.key().as_ref(), &option_id.to_le_bytes()],
         bump,
     )]
     pub option: Box<Account<'info, OpportunityMarketOption>>,

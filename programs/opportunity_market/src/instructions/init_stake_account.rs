@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::events::{emit_ts, StakeAccountInitializedEvent};
 use crate::state::{OpportunityMarket, StakeAccount};
-use crate::instructions::stake::STAKE_ACCOUNT_SEED;
+use crate::constants::STAKE_ACCOUNT_SEED;
 
 #[derive(Accounts)]
 #[instruction(state_nonce: u128, stake_account_id: u32)]

@@ -35,19 +35,47 @@ pub mod opportunity_market {
         instructions::init_central_state(ctx, protocol_fee_bp, fee_claimer)
     }
 
-    pub fn transfer_central_state_authority(
-        ctx: Context<TransferCentralStateAuthority>,
-        new_authority: Pubkey,
-    ) -> Result<()> {
-        instructions::transfer_central_state_authority(ctx, new_authority)
-    }
-
     pub fn update_central_state(
         ctx: Context<UpdateCentralState>,
         protocol_fee_bp: u16,
-        fee_claimer: Pubkey,
     ) -> Result<()> {
-        instructions::update_central_state(ctx, protocol_fee_bp, fee_claimer)
+        instructions::update_central_state(ctx, protocol_fee_bp)
+    }
+
+    pub fn propose_new_update_authority(
+        ctx: Context<ProposeNewUpdateAuthority>,
+    ) -> Result<()> {
+        instructions::propose_new_update_authority(ctx)
+    }
+
+    pub fn propose_new_fee_claimer(
+        ctx: Context<ProposeNewFeeClaimer>,
+    ) -> Result<()> {
+        instructions::propose_new_fee_claimer(ctx)
+    }
+
+    pub fn finalize_new_update_authority(
+        ctx: Context<FinalizeNewUpdateAuthority>,
+    ) -> Result<()> {
+        instructions::finalize_new_update_authority(ctx)
+    }
+
+    pub fn finalize_new_fee_claimer(
+        ctx: Context<FinalizeNewFeeClaimer>,
+    ) -> Result<()> {
+        instructions::finalize_new_fee_claimer(ctx)
+    }
+
+    pub fn cancel_update_authority_change(
+        ctx: Context<CancelUpdateAuthorityChange>,
+    ) -> Result<()> {
+        instructions::cancel_update_authority_change(ctx)
+    }
+
+    pub fn cancel_fee_claimer_change(
+        ctx: Context<CancelFeeClaimerChange>,
+    ) -> Result<()> {
+        instructions::cancel_fee_claimer_change(ctx)
     }
 
     pub fn create_market(

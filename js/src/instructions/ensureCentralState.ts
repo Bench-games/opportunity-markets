@@ -17,7 +17,7 @@ export async function ensureCentralState(
   rpc: Parameters<typeof fetchMaybeCentralState>[0],
   params: EnsureCentralStateParams,
 ): Promise<Instruction | null> {
-  const { programAddress, signer, ...args } = params;
+  const { programAddress, signer, protocolFeeBp, feeClaimer } = params;
   const config = programAddress ? { programAddress } : undefined;
 
   const [centralStateAddress] = await getCentralStateAddress(programAddress);
@@ -25,21 +25,18 @@ export async function ensureCentralState(
 
   if (existing.exists) {
     const s = existing.data;
-    if (
-      s.protocolFeeBp === args.protocolFeeBp &&
-      s.feeClaimer === args.feeClaimer
-    ) {
+    if (s.protocolFeeBp === protocolFeeBp) {
       return null;
     }
 
     return getUpdateCentralStateInstructionAsync(
-      { updateAuthority: signer, ...args },
+      { updateAuthority: signer, protocolFeeBp },
       config,
     ) as Promise<Instruction>;
   }
 
   return getInitCentralStateInstructionAsync(
-    { payer: signer, ...args },
+    { payer: signer, protocolFeeBp, feeClaimer },
     config,
   ) as Promise<Instruction>;
 }

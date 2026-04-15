@@ -1,5 +1,4 @@
-/// Maximum protocol fee: 5% = 500 basis points
-pub const MAX_PROTOCOL_FEE_BP: u16 = 500;
+pub const MAX_PROTOCOL_FEE_BP: u16 = 150;
 
 /// Fixed timelock delay: 48 hours
 pub const TIMELOCK_DELAY_SECONDS: i64 = 48 * 60 * 60;

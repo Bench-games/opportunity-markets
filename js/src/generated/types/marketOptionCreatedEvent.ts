@@ -25,7 +25,7 @@ import {
 export type MarketOptionCreatedEvent = {
   option: Address;
   market: Address;
-  creator: Address;
+  marketAuthority: Address;
   id: bigint;
   timestamp: bigint;
 };
@@ -33,7 +33,7 @@ export type MarketOptionCreatedEvent = {
 export type MarketOptionCreatedEventArgs = {
   option: Address;
   market: Address;
-  creator: Address;
+  marketAuthority: Address;
   id: number | bigint;
   timestamp: number | bigint;
 };
@@ -42,7 +42,7 @@ export function getMarketOptionCreatedEventEncoder(): FixedSizeEncoder<MarketOpt
   return getStructEncoder([
     ['option', getAddressEncoder()],
     ['market', getAddressEncoder()],
-    ['creator', getAddressEncoder()],
+    ['marketAuthority', getAddressEncoder()],
     ['id', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
@@ -52,7 +52,7 @@ export function getMarketOptionCreatedEventDecoder(): FixedSizeDecoder<MarketOpt
   return getStructDecoder([
     ['option', getAddressDecoder()],
     ['market', getAddressDecoder()],
-    ['creator', getAddressDecoder()],
+    ['marketAuthority', getAddressDecoder()],
     ['id', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);

@@ -6,11 +6,10 @@ use crate::state::OpportunityMarket;
 
 #[derive(Accounts)]
 pub struct ResumeMarket<'info> {
-    pub authority: Signer<'info>,
+    pub market_authority: Signer<'info>,
     #[account(
         mut,
-        constraint = market.creator == authority.key()
-            || market.market_authority == authority.key() @ ErrorCode::Unauthorized,
+        has_one = market_authority @ ErrorCode::Unauthorized,
     )]
     pub market: Account<'info, OpportunityMarket>,
 }

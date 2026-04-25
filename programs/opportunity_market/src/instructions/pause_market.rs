@@ -6,11 +6,10 @@ use crate::state::OpportunityMarket;
 
 #[derive(Accounts)]
 pub struct PauseMarket<'info> {
-    pub authority: Signer<'info>,
+    pub market_authority: Signer<'info>,
     #[account(
         mut,
-        constraint = market.creator == authority.key()
-            || market.market_authority == authority.key() @ ErrorCode::Unauthorized,
+        has_one = market_authority @ ErrorCode::Unauthorized,
     )]
     pub market: Account<'info, OpportunityMarket>,
 }
@@ -19,7 +18,10 @@ pub fn pause_market(ctx: Context<PauseMarket>) -> Result<()> {
     let market = &mut ctx.accounts.market;
 
     require!(market.open_timestamp.is_some(), ErrorCode::MarketNotOpen);
-    require!(market.selected_options.is_none(), ErrorCode::WinnerAlreadySelected);
+    require!(
+        market.selected_options.is_none(),
+        ErrorCode::WinnerAlreadySelected
+    );
     require!(!market.paused, ErrorCode::MarketPaused);
 
     market.paused = true;

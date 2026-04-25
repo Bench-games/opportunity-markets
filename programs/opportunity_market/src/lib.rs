@@ -83,7 +83,7 @@ pub mod opportunity_market {
         market_index: u64,
         time_to_stake: u64,
         time_to_reveal: u64,
-        market_authority: Option<Pubkey>,
+        market_authority: Pubkey,
         unstake_delay_seconds: u64,
         authorized_reader_pubkey: [u8; 32],
         allow_closing_early: bool,
@@ -104,11 +104,8 @@ pub mod opportunity_market {
         )
     }
 
-    pub fn add_market_option(
-        ctx: Context<AddMarketOption>,
-        option_id: u64,
-    ) -> Result<()> {
-        instructions::add_market_option(ctx, option_id)
+    pub fn add_market_option(ctx: Context<AddMarketOption>) -> Result<()> {
+        instructions::add_market_option(ctx)
     }
 
     pub fn open_market(ctx: Context<OpenMarket>, open_timestamp: u64) -> Result<()> {

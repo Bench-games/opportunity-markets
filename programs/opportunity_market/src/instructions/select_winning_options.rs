@@ -6,11 +6,10 @@ use crate::state::{OpportunityMarket, WinningOption};
 
 #[derive(Accounts)]
 pub struct SelectWinningOptions<'info> {
-    pub authority: Signer<'info>,
+    pub market_authority: Signer<'info>,
     #[account(
         mut,
-        constraint = market.creator == authority.key()
-            || market.market_authority == authority.key() @ ErrorCode::Unauthorized,
+        has_one = market_authority @ ErrorCode::Unauthorized,
     )]
     pub market: Account<'info, OpportunityMarket>,
 }
@@ -71,7 +70,7 @@ pub fn select_winning_options(ctx: Context<SelectWinningOptions>, selections: Ve
 
     emit_ts!(WinningOptionsSelectedEvent{
         market: market.key(),
-        authority: ctx.accounts.authority.key(),
+        market_authority: ctx.accounts.market_authority.key(),
         selected_options: selections,
     });
 

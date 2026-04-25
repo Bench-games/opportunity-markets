@@ -18,8 +18,6 @@ import {
   getBooleanEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getOptionDecoder,
-  getOptionEncoder,
   getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
@@ -31,14 +29,12 @@ import {
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type Codec,
-  type Decoder,
-  type Encoder,
+  type FixedSizeCodec,
+  type FixedSizeDecoder,
+  type FixedSizeEncoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
-  type Option,
-  type OptionOrNullable,
   type ReadonlyAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
@@ -110,7 +106,7 @@ export type CreateMarketInstructionData = {
   marketIndex: bigint;
   timeToStake: bigint;
   timeToReveal: bigint;
-  marketAuthority: Option<Address>;
+  marketAuthority: Address;
   unstakeDelaySeconds: bigint;
   authorizedReaderPubkey: Array<number>;
   allowClosingEarly: boolean;
@@ -122,7 +118,7 @@ export type CreateMarketInstructionDataArgs = {
   marketIndex: number | bigint;
   timeToStake: number | bigint;
   timeToReveal: number | bigint;
-  marketAuthority: OptionOrNullable<Address>;
+  marketAuthority: Address;
   unstakeDelaySeconds: number | bigint;
   authorizedReaderPubkey: Array<number>;
   allowClosingEarly: boolean;
@@ -130,14 +126,14 @@ export type CreateMarketInstructionDataArgs = {
   earlinessCutoffSeconds: number | bigint;
 };
 
-export function getCreateMarketInstructionDataEncoder(): Encoder<CreateMarketInstructionDataArgs> {
+export function getCreateMarketInstructionDataEncoder(): FixedSizeEncoder<CreateMarketInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['marketIndex', getU64Encoder()],
       ['timeToStake', getU64Encoder()],
       ['timeToReveal', getU64Encoder()],
-      ['marketAuthority', getOptionEncoder(getAddressEncoder())],
+      ['marketAuthority', getAddressEncoder()],
       ['unstakeDelaySeconds', getU64Encoder()],
       ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
       ['allowClosingEarly', getBooleanEncoder()],
@@ -148,13 +144,13 @@ export function getCreateMarketInstructionDataEncoder(): Encoder<CreateMarketIns
   );
 }
 
-export function getCreateMarketInstructionDataDecoder(): Decoder<CreateMarketInstructionData> {
+export function getCreateMarketInstructionDataDecoder(): FixedSizeDecoder<CreateMarketInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['marketIndex', getU64Decoder()],
     ['timeToStake', getU64Decoder()],
     ['timeToReveal', getU64Decoder()],
-    ['marketAuthority', getOptionDecoder(getAddressDecoder())],
+    ['marketAuthority', getAddressDecoder()],
     ['unstakeDelaySeconds', getU64Decoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['allowClosingEarly', getBooleanDecoder()],
@@ -163,7 +159,7 @@ export function getCreateMarketInstructionDataDecoder(): Decoder<CreateMarketIns
   ]);
 }
 
-export function getCreateMarketInstructionDataCodec(): Codec<
+export function getCreateMarketInstructionDataCodec(): FixedSizeCodec<
   CreateMarketInstructionDataArgs,
   CreateMarketInstructionData
 > {

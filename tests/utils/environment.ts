@@ -270,7 +270,7 @@ export async function createTestEnvironment(
     marketIndex,
     timeToStake: marketConfig.timeToStake,
     timeToReveal: marketConfig.timeToReveal,
-    marketAuthority: null,
+    marketAuthority: creatorAccount.keypair.address,
     unstakeDelaySeconds: marketConfig.unstakeDelaySeconds,
     authorizedReaderPubkey: creatorAccount.x25519Keypair.publicKey,
     allowClosingEarly: true,

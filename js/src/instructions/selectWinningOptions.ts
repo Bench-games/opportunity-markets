@@ -7,7 +7,7 @@ import { type BaseInstructionParams } from "./instructionParams";
 import { type WinningOptionArgs } from "../generated/types";
 
 export interface SelectWinningOptionsParams extends BaseInstructionParams {
-  authority: TransactionSigner;
+  marketAuthority: TransactionSigner;
   market: Address;
   selections: Array<WinningOptionArgs>;
 }

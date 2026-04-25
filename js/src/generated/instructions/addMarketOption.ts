@@ -10,14 +10,10 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
-  getU64Decoder,
-  getU64Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
@@ -35,12 +31,7 @@ import {
   type WritableSignerAccount,
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
-import {
-  expectAddress,
-  expectSome,
-  getAccountMetaFactory,
-  type ResolvedAccount,
-} from '../shared';
+import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const ADD_MARKET_OPTION_DISCRIMINATOR = new Uint8Array([
   76, 189, 93, 144, 50, 229, 250, 116,
@@ -54,7 +45,7 @@ export function getAddMarketOptionDiscriminatorBytes() {
 
 export type AddMarketOptionInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-  TAccountCreator extends string | AccountMeta<string> = string,
+  TAccountMarketAuthority extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TAccountOption extends string | AccountMeta<string> = string,
   TAccountSystemProgram extends string | AccountMeta<string> =
@@ -64,10 +55,10 @@ export type AddMarketOptionInstruction<
   InstructionWithData<ReadonlyUint8Array> &
   InstructionWithAccounts<
     [
-      TAccountCreator extends string
-        ? WritableSignerAccount<TAccountCreator> &
-            AccountSignerMeta<TAccountCreator>
-        : TAccountCreator,
+      TAccountMarketAuthority extends string
+        ? WritableSignerAccount<TAccountMarketAuthority> &
+            AccountSignerMeta<TAccountMarketAuthority>
+        : TAccountMarketAuthority,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
@@ -83,17 +74,13 @@ export type AddMarketOptionInstruction<
 
 export type AddMarketOptionInstructionData = {
   discriminator: ReadonlyUint8Array;
-  optionId: bigint;
 };
 
-export type AddMarketOptionInstructionDataArgs = { optionId: number | bigint };
+export type AddMarketOptionInstructionDataArgs = {};
 
 export function getAddMarketOptionInstructionDataEncoder(): FixedSizeEncoder<AddMarketOptionInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([
-      ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['optionId', getU64Encoder()],
-    ]),
+    getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
     (value) => ({ ...value, discriminator: ADD_MARKET_OPTION_DISCRIMINATOR })
   );
 }
@@ -101,7 +88,6 @@ export function getAddMarketOptionInstructionDataEncoder(): FixedSizeEncoder<Add
 export function getAddMarketOptionInstructionDataDecoder(): FixedSizeDecoder<AddMarketOptionInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['optionId', getU64Decoder()],
   ]);
 }
 
@@ -115,122 +101,27 @@ export function getAddMarketOptionInstructionDataCodec(): FixedSizeCodec<
   );
 }
 
-export type AddMarketOptionAsyncInput<
-  TAccountCreator extends string = string,
-  TAccountMarket extends string = string,
-  TAccountOption extends string = string,
-  TAccountSystemProgram extends string = string,
-> = {
-  creator: TransactionSigner<TAccountCreator>;
-  market: Address<TAccountMarket>;
-  option?: Address<TAccountOption>;
-  systemProgram?: Address<TAccountSystemProgram>;
-  optionId: AddMarketOptionInstructionDataArgs['optionId'];
-};
-
-export async function getAddMarketOptionInstructionAsync<
-  TAccountCreator extends string,
-  TAccountMarket extends string,
-  TAccountOption extends string,
-  TAccountSystemProgram extends string,
-  TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
->(
-  input: AddMarketOptionAsyncInput<
-    TAccountCreator,
-    TAccountMarket,
-    TAccountOption,
-    TAccountSystemProgram
-  >,
-  config?: { programAddress?: TProgramAddress }
-): Promise<
-  AddMarketOptionInstruction<
-    TProgramAddress,
-    TAccountCreator,
-    TAccountMarket,
-    TAccountOption,
-    TAccountSystemProgram
-  >
-> {
-  // Program address.
-  const programAddress =
-    config?.programAddress ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    creator: { value: input.creator ?? null, isWritable: true },
-    market: { value: input.market ?? null, isWritable: true },
-    option: { value: input.option ?? null, isWritable: true },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  // Original args.
-  const args = { ...input };
-
-  // Resolve default values.
-  if (!accounts.option.value) {
-    accounts.option.value = await getProgramDerivedAddress({
-      programAddress,
-      seeds: [
-        getBytesEncoder().encode(
-          new Uint8Array([111, 112, 116, 105, 111, 110])
-        ),
-        getAddressEncoder().encode(expectAddress(accounts.market.value)),
-        getU64Encoder().encode(expectSome(args.optionId)),
-      ],
-    });
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value =
-      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
-  return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.creator),
-      getAccountMeta(accounts.market),
-      getAccountMeta(accounts.option),
-      getAccountMeta(accounts.systemProgram),
-    ],
-    data: getAddMarketOptionInstructionDataEncoder().encode(
-      args as AddMarketOptionInstructionDataArgs
-    ),
-    programAddress,
-  } as AddMarketOptionInstruction<
-    TProgramAddress,
-    TAccountCreator,
-    TAccountMarket,
-    TAccountOption,
-    TAccountSystemProgram
-  >);
-}
-
 export type AddMarketOptionInput<
-  TAccountCreator extends string = string,
+  TAccountMarketAuthority extends string = string,
   TAccountMarket extends string = string,
   TAccountOption extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
-  creator: TransactionSigner<TAccountCreator>;
+  marketAuthority: TransactionSigner<TAccountMarketAuthority>;
   market: Address<TAccountMarket>;
   option: Address<TAccountOption>;
   systemProgram?: Address<TAccountSystemProgram>;
-  optionId: AddMarketOptionInstructionDataArgs['optionId'];
 };
 
 export function getAddMarketOptionInstruction<
-  TAccountCreator extends string,
+  TAccountMarketAuthority extends string,
   TAccountMarket extends string,
   TAccountOption extends string,
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
   input: AddMarketOptionInput<
-    TAccountCreator,
+    TAccountMarketAuthority,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -238,7 +129,7 @@ export function getAddMarketOptionInstruction<
   config?: { programAddress?: TProgramAddress }
 ): AddMarketOptionInstruction<
   TProgramAddress,
-  TAccountCreator,
+  TAccountMarketAuthority,
   TAccountMarket,
   TAccountOption,
   TAccountSystemProgram
@@ -249,7 +140,7 @@ export function getAddMarketOptionInstruction<
 
   // Original accounts.
   const originalAccounts = {
-    creator: { value: input.creator ?? null, isWritable: true },
+    marketAuthority: { value: input.marketAuthority ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
     option: { value: input.option ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
@@ -258,9 +149,6 @@ export function getAddMarketOptionInstruction<
     keyof typeof originalAccounts,
     ResolvedAccount
   >;
-
-  // Original args.
-  const args = { ...input };
 
   // Resolve default values.
   if (!accounts.systemProgram.value) {
@@ -271,18 +159,16 @@ export function getAddMarketOptionInstruction<
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.creator),
+      getAccountMeta(accounts.marketAuthority),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.systemProgram),
     ],
-    data: getAddMarketOptionInstructionDataEncoder().encode(
-      args as AddMarketOptionInstructionDataArgs
-    ),
+    data: getAddMarketOptionInstructionDataEncoder().encode({}),
     programAddress,
   } as AddMarketOptionInstruction<
     TProgramAddress,
-    TAccountCreator,
+    TAccountMarketAuthority,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -295,7 +181,7 @@ export type ParsedAddMarketOptionInstruction<
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    creator: TAccountMetas[0];
+    marketAuthority: TAccountMetas[0];
     market: TAccountMetas[1];
     option: TAccountMetas[2];
     systemProgram: TAccountMetas[3];
@@ -324,7 +210,7 @@ export function parseAddMarketOptionInstruction<
   return {
     programAddress: instruction.programAddress,
     accounts: {
-      creator: getNextAccount(),
+      marketAuthority: getNextAccount(),
       market: getNextAccount(),
       option: getNextAccount(),
       systemProgram: getNextAccount(),

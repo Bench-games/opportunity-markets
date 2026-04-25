@@ -14,7 +14,7 @@ import {
   type SolanaRpcApi,
   type Signature,
 } from "@solana/kit";
-import { addMarketOption } from "../js/src";
+import { addMarketOption, fetchOpportunityMarket } from "../js/src";
 import * as fs from "fs";
 import * as os from "os";
 
@@ -25,10 +25,9 @@ const PROGRAM_ID = address(process.env.PROGRAM_ID);
 const RPC_URL = process.env.RPC_URL;
 
 const MARKET_ADDRESS = process.argv[2];
-const OPTION_ID = process.argv[3];
 
-if (!MARKET_ADDRESS || !OPTION_ID) {
-  console.error("Usage: npx tsx scripts/add-option.ts <MARKET_ADDRESS> <OPTION_ID>");
+if (!MARKET_ADDRESS) {
+  console.error("Usage: npx tsx scripts/add-option.ts <MARKET_ADDRESS>");
   process.exit(1);
 }
 
@@ -66,21 +65,19 @@ async function main() {
   const rpc = createSolanaRpc(RPC_URL);
 
   const marketAddress = address(MARKET_ADDRESS);
-  const optionId = parseInt(OPTION_ID, 10);
 
-  if (isNaN(optionId)) {
-    throw new Error(`Invalid OPTION_ID: ${OPTION_ID}`);
-  }
+  const marketAccount = await fetchOpportunityMarket(rpc, marketAddress);
+  const nextOptionId = marketAccount.data.totalOptions;
 
-  console.log(`Program:   ${PROGRAM_ID}`);
-  console.log(`Payer:     ${payer.address}`);
-  console.log(`Market:    ${marketAddress}`);
-  console.log(`Option ID: ${optionId}`);
+  console.log(`Program:        ${PROGRAM_ID}`);
+  console.log(`Payer:          ${payer.address}`);
+  console.log(`Market:         ${marketAddress}`);
+  console.log(`Next option id: ${nextOptionId}`);
 
   const ix = await addMarketOption({
-    creator: payer,
+    marketAuthority: payer,
     market: marketAddress,
-    optionId,
+    nextOptionId,
     programAddress: PROGRAM_ID,
   });
 

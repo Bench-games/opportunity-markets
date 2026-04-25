@@ -13,7 +13,7 @@ export interface CreateMarketParams extends BaseInstructionParams {
   marketIndex: bigint;
   timeToStake: bigint;
   timeToReveal: bigint;
-  marketAuthority: Address | null;
+  marketAuthority: Address;
   unstakeDelaySeconds: bigint;
   authorizedReaderPubkey: ByteArray;
   allowClosingEarly: boolean;

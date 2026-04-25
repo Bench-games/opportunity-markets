@@ -44,17 +44,17 @@ export function getResumeMarketDiscriminatorBytes() {
 
 export type ResumeMarketInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-  TAccountAuthority extends string | AccountMeta<string> = string,
+  TAccountMarketAuthority extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
   InstructionWithAccounts<
     [
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
+      TAccountMarketAuthority extends string
+        ? ReadonlySignerAccount<TAccountMarketAuthority> &
+            AccountSignerMeta<TAccountMarketAuthority>
+        : TAccountMarketAuthority,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
@@ -90,28 +90,35 @@ export function getResumeMarketInstructionDataCodec(): FixedSizeCodec<
 }
 
 export type ResumeMarketInput<
-  TAccountAuthority extends string = string,
+  TAccountMarketAuthority extends string = string,
   TAccountMarket extends string = string,
 > = {
-  authority: TransactionSigner<TAccountAuthority>;
+  marketAuthority: TransactionSigner<TAccountMarketAuthority>;
   market: Address<TAccountMarket>;
 };
 
 export function getResumeMarketInstruction<
-  TAccountAuthority extends string,
+  TAccountMarketAuthority extends string,
   TAccountMarket extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: ResumeMarketInput<TAccountAuthority, TAccountMarket>,
+  input: ResumeMarketInput<TAccountMarketAuthority, TAccountMarket>,
   config?: { programAddress?: TProgramAddress }
-): ResumeMarketInstruction<TProgramAddress, TAccountAuthority, TAccountMarket> {
+): ResumeMarketInstruction<
+  TProgramAddress,
+  TAccountMarketAuthority,
+  TAccountMarket
+> {
   // Program address.
   const programAddress =
     config?.programAddress ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
 
   // Original accounts.
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
+    marketAuthority: {
+      value: input.marketAuthority ?? null,
+      isWritable: false,
+    },
     market: { value: input.market ?? null, isWritable: true },
   };
   const accounts = originalAccounts as Record<
@@ -122,14 +129,14 @@ export function getResumeMarketInstruction<
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.marketAuthority),
       getAccountMeta(accounts.market),
     ],
     data: getResumeMarketInstructionDataEncoder().encode({}),
     programAddress,
   } as ResumeMarketInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountMarketAuthority,
     TAccountMarket
   >);
 }
@@ -140,7 +147,7 @@ export type ParsedResumeMarketInstruction<
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    authority: TAccountMetas[0];
+    marketAuthority: TAccountMetas[0];
     market: TAccountMetas[1];
   };
   data: ResumeMarketInstructionData;
@@ -166,7 +173,7 @@ export function parseResumeMarketInstruction<
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: { authority: getNextAccount(), market: getNextAccount() },
+    accounts: { marketAuthority: getNextAccount(), market: getNextAccount() },
     data: getResumeMarketInstructionDataDecoder().decode(instruction.data),
   };
 }

@@ -6,7 +6,7 @@ import {
 import { type BaseInstructionParams } from "./instructionParams";
 
 export interface ResumeMarketParams extends BaseInstructionParams {
-  authority: TransactionSigner;
+  marketAuthority: TransactionSigner;
   market: Address;
 }
 

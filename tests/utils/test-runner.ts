@@ -196,7 +196,7 @@ export class TestRunner {
   private marketAddress: Address;
   private marketCreator: TestUser;
   private marketConfig: MarketConfig;
-  private usedOptionIds: Set<number>;
+  private nextOptionId: number;
   private openTimestamp: bigint | null = null;
 
   // Users: Map<address string, TestUser>
@@ -205,7 +205,7 @@ export class TestRunner {
   private constructor() {
     // Private constructor - use static initialize()
     this.users = new Map();
-    this.usedOptionIds = new Set();
+    this.nextOptionId = 0;
   }
 
   // ============================================================================
@@ -387,7 +387,7 @@ export class TestRunner {
       marketIndex,
       timeToStake: marketConfig.timeToStake,
       timeToReveal: marketConfig.timeToReveal,
-      marketAuthority: null,
+      marketAuthority: runner.marketCreator.solanaKeypair.address,
       unstakeDelaySeconds: marketConfig.unstakeDelaySeconds,
       authorizedReaderPubkey: marketConfig.authorizedReaderPubkey,
       allowClosingEarly: marketConfig.allowClosingEarly,
@@ -512,7 +512,7 @@ export class TestRunner {
 
   async selectWinningOptions(selections: Array<{ optionId: number; rewardPercentage: number }>): Promise<void> {
     const ix = selectWinningOptionsIx({
-      authority: this.marketCreator.solanaKeypair,
+      marketAuthority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
       selections,
     });
@@ -575,7 +575,7 @@ export class TestRunner {
 
   async pauseMarket(): Promise<void> {
     const ix = pauseMarketIx({
-      authority: this.marketCreator.solanaKeypair,
+      marketAuthority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
     });
 
@@ -586,7 +586,7 @@ export class TestRunner {
 
   async resumeMarket(): Promise<void> {
     const ix = resumeMarketIx({
-      authority: this.marketCreator.solanaKeypair,
+      marketAuthority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
     });
 
@@ -600,16 +600,12 @@ export class TestRunner {
   // ============================================================================
 
   async addOption(): Promise<{ optionId: number }> {
-    let optionId: number;
-    do {
-      optionId = Math.floor(Math.random() * 1_000_000_000) + 1;
-    } while (this.usedOptionIds.has(optionId));
-    this.usedOptionIds.add(optionId);
+    const optionId = this.nextOptionId++;
 
     const addOptionIx = await addMarketOption({
-      creator: this.marketCreator.solanaKeypair,
+      marketAuthority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
-      optionId,
+      nextOptionId: optionId,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [addOptionIx], {

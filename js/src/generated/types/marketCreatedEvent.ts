@@ -16,8 +16,6 @@ import {
   getBooleanEncoder,
   getI64Decoder,
   getI64Encoder,
-  getOptionDecoder,
-  getOptionEncoder,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -25,11 +23,9 @@ import {
   getU8Decoder,
   getU8Encoder,
   type Address,
-  type Codec,
-  type Decoder,
-  type Encoder,
-  type Option,
-  type OptionOrNullable,
+  type FixedSizeCodec,
+  type FixedSizeDecoder,
+  type FixedSizeEncoder,
 } from '@solana/kit';
 
 export type MarketCreatedEvent = {
@@ -40,7 +36,7 @@ export type MarketCreatedEvent = {
   timeToStake: bigint;
   timeToReveal: bigint;
   earlinessCutoffSeconds: bigint;
-  marketAuthority: Option<Address>;
+  marketAuthority: Address;
   authorizedReaderPubkey: Array<number>;
   unstakeDelaySeconds: bigint;
   allowClosingEarly: boolean;
@@ -55,14 +51,14 @@ export type MarketCreatedEventArgs = {
   timeToStake: number | bigint;
   timeToReveal: number | bigint;
   earlinessCutoffSeconds: number | bigint;
-  marketAuthority: OptionOrNullable<Address>;
+  marketAuthority: Address;
   authorizedReaderPubkey: Array<number>;
   unstakeDelaySeconds: number | bigint;
   allowClosingEarly: boolean;
   timestamp: number | bigint;
 };
 
-export function getMarketCreatedEventEncoder(): Encoder<MarketCreatedEventArgs> {
+export function getMarketCreatedEventEncoder(): FixedSizeEncoder<MarketCreatedEventArgs> {
   return getStructEncoder([
     ['market', getAddressEncoder()],
     ['creator', getAddressEncoder()],
@@ -71,7 +67,7 @@ export function getMarketCreatedEventEncoder(): Encoder<MarketCreatedEventArgs> 
     ['timeToStake', getU64Encoder()],
     ['timeToReveal', getU64Encoder()],
     ['earlinessCutoffSeconds', getU64Encoder()],
-    ['marketAuthority', getOptionEncoder(getAddressEncoder())],
+    ['marketAuthority', getAddressEncoder()],
     ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
     ['unstakeDelaySeconds', getU64Encoder()],
     ['allowClosingEarly', getBooleanEncoder()],
@@ -79,7 +75,7 @@ export function getMarketCreatedEventEncoder(): Encoder<MarketCreatedEventArgs> 
   ]);
 }
 
-export function getMarketCreatedEventDecoder(): Decoder<MarketCreatedEvent> {
+export function getMarketCreatedEventDecoder(): FixedSizeDecoder<MarketCreatedEvent> {
   return getStructDecoder([
     ['market', getAddressDecoder()],
     ['creator', getAddressDecoder()],
@@ -88,7 +84,7 @@ export function getMarketCreatedEventDecoder(): Decoder<MarketCreatedEvent> {
     ['timeToStake', getU64Decoder()],
     ['timeToReveal', getU64Decoder()],
     ['earlinessCutoffSeconds', getU64Decoder()],
-    ['marketAuthority', getOptionDecoder(getAddressDecoder())],
+    ['marketAuthority', getAddressDecoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['unstakeDelaySeconds', getU64Decoder()],
     ['allowClosingEarly', getBooleanDecoder()],
@@ -96,7 +92,7 @@ export function getMarketCreatedEventDecoder(): Decoder<MarketCreatedEvent> {
   ]);
 }
 
-export function getMarketCreatedEventCodec(): Codec<
+export function getMarketCreatedEventCodec(): FixedSizeCodec<
   MarketCreatedEventArgs,
   MarketCreatedEvent
 > {

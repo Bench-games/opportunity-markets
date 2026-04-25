@@ -30,14 +30,14 @@ import {
 
 export type WinningOptionsSelectedEvent = {
   market: Address;
-  authority: Address;
+  marketAuthority: Address;
   selectedOptions: Array<WinningOption>;
   timestamp: bigint;
 };
 
 export type WinningOptionsSelectedEventArgs = {
   market: Address;
-  authority: Address;
+  marketAuthority: Address;
   selectedOptions: Array<WinningOptionArgs>;
   timestamp: number | bigint;
 };
@@ -45,7 +45,7 @@ export type WinningOptionsSelectedEventArgs = {
 export function getWinningOptionsSelectedEventEncoder(): Encoder<WinningOptionsSelectedEventArgs> {
   return getStructEncoder([
     ['market', getAddressEncoder()],
-    ['authority', getAddressEncoder()],
+    ['marketAuthority', getAddressEncoder()],
     ['selectedOptions', getArrayEncoder(getWinningOptionEncoder())],
     ['timestamp', getI64Encoder()],
   ]);
@@ -54,7 +54,7 @@ export function getWinningOptionsSelectedEventEncoder(): Encoder<WinningOptionsS
 export function getWinningOptionsSelectedEventDecoder(): Decoder<WinningOptionsSelectedEvent> {
   return getStructDecoder([
     ['market', getAddressDecoder()],
-    ['authority', getAddressDecoder()],
+    ['marketAuthority', getAddressDecoder()],
     ['selectedOptions', getArrayDecoder(getWinningOptionDecoder())],
     ['timestamp', getI64Decoder()],
   ]);

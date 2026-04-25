@@ -52,17 +52,17 @@ export function getSelectWinningOptionsDiscriminatorBytes() {
 
 export type SelectWinningOptionsInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-  TAccountAuthority extends string | AccountMeta<string> = string,
+  TAccountMarketAuthority extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
   InstructionWithAccounts<
     [
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
+      TAccountMarketAuthority extends string
+        ? ReadonlySignerAccount<TAccountMarketAuthority> &
+            AccountSignerMeta<TAccountMarketAuthority>
+        : TAccountMarketAuthority,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
@@ -110,24 +110,24 @@ export function getSelectWinningOptionsInstructionDataCodec(): Codec<
 }
 
 export type SelectWinningOptionsInput<
-  TAccountAuthority extends string = string,
+  TAccountMarketAuthority extends string = string,
   TAccountMarket extends string = string,
 > = {
-  authority: TransactionSigner<TAccountAuthority>;
+  marketAuthority: TransactionSigner<TAccountMarketAuthority>;
   market: Address<TAccountMarket>;
   selections: SelectWinningOptionsInstructionDataArgs['selections'];
 };
 
 export function getSelectWinningOptionsInstruction<
-  TAccountAuthority extends string,
+  TAccountMarketAuthority extends string,
   TAccountMarket extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: SelectWinningOptionsInput<TAccountAuthority, TAccountMarket>,
+  input: SelectWinningOptionsInput<TAccountMarketAuthority, TAccountMarket>,
   config?: { programAddress?: TProgramAddress }
 ): SelectWinningOptionsInstruction<
   TProgramAddress,
-  TAccountAuthority,
+  TAccountMarketAuthority,
   TAccountMarket
 > {
   // Program address.
@@ -136,7 +136,10 @@ export function getSelectWinningOptionsInstruction<
 
   // Original accounts.
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
+    marketAuthority: {
+      value: input.marketAuthority ?? null,
+      isWritable: false,
+    },
     market: { value: input.market ?? null, isWritable: true },
   };
   const accounts = originalAccounts as Record<
@@ -150,7 +153,7 @@ export function getSelectWinningOptionsInstruction<
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
     accounts: [
-      getAccountMeta(accounts.authority),
+      getAccountMeta(accounts.marketAuthority),
       getAccountMeta(accounts.market),
     ],
     data: getSelectWinningOptionsInstructionDataEncoder().encode(
@@ -159,7 +162,7 @@ export function getSelectWinningOptionsInstruction<
     programAddress,
   } as SelectWinningOptionsInstruction<
     TProgramAddress,
-    TAccountAuthority,
+    TAccountMarketAuthority,
     TAccountMarket
   >);
 }
@@ -170,7 +173,7 @@ export type ParsedSelectWinningOptionsInstruction<
 > = {
   programAddress: Address<TProgram>;
   accounts: {
-    authority: TAccountMetas[0];
+    marketAuthority: TAccountMetas[0];
     market: TAccountMetas[1];
   };
   data: SelectWinningOptionsInstructionData;
@@ -196,7 +199,7 @@ export function parseSelectWinningOptionsInstruction<
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: { authority: getNextAccount(), market: getNextAccount() },
+    accounts: { marketAuthority: getNextAccount(), market: getNextAccount() },
     data: getSelectWinningOptionsInstructionDataDecoder().decode(
       instruction.data
     ),

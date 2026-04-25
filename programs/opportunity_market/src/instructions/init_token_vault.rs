@@ -29,7 +29,6 @@ pub fn init_token_vault(
     let vault = &mut ctx.accounts.token_vault;
     vault.bump = ctx.bumps.token_vault;
     vault.mint = ctx.accounts.token_mint.key();
-    vault.collected_fees = 0;
 
     Ok(())
 }

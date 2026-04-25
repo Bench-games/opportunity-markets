@@ -67,13 +67,11 @@ pub fn add_reward(ctx: Context<AddReward>, amount: u64, lock: bool) -> Result<()
 
     let sponsor_account = &mut ctx.accounts.sponsor_account;
 
-    // Initialize if newly created (reward_deposited == 0 and sponsor is default)
+    // Initialize if newly created (sponsor is default)
     if sponsor_account.sponsor == Pubkey::default() {
         sponsor_account.bump = ctx.bumps.sponsor_account;
         sponsor_account.sponsor = ctx.accounts.sponsor.key();
         sponsor_account.market = ctx.accounts.market.key();
-        sponsor_account.reward_deposited = 0;
-        sponsor_account.reward_locked = false;
     }
 
     // Lock logic: once locked, stays locked

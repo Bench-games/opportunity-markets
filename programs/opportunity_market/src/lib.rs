@@ -9,6 +9,7 @@ pub mod events;
 pub mod instructions;
 pub mod score;
 pub mod state;
+pub mod utils;
 
 pub use error::ErrorCode;
 pub use instructions::*;
@@ -151,12 +152,16 @@ pub mod opportunity_market {
         instructions::finalize_reveal_stake(ctx, option_id, stake_account_id)
     }
 
-    pub fn close_stake_account<'info>(
-        ctx: Context<'info, CloseStakeAccount<'info>>,
+    pub fn claim_rewards<'info>(
+        ctx: Context<'info, ClaimRewards<'info>>,
         option_id: u64,
         stake_account_id: u32,
     ) -> Result<()> {
-        instructions::close_stake_account(ctx, option_id, stake_account_id)
+        instructions::claim_rewards(ctx, option_id, stake_account_id)
+    }
+
+    pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>) -> Result<()> {
+        instructions::close_stake_account(ctx)
     }
 
     pub fn close_stuck_stake_account(

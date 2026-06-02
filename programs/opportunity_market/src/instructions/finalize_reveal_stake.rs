@@ -61,10 +61,10 @@ pub fn finalize_reveal_stake(
 
     let stake_amount = ctx.accounts.stake_account.amount;
 
-    ctx.accounts.option.total_staked = ctx
+    ctx.accounts.option.unclaimed_stake = ctx
         .accounts
         .option
-        .total_staked
+        .unclaimed_stake
         .checked_add(stake_amount)
         .ok_or(ErrorCode::Overflow)?;
 
@@ -110,7 +110,7 @@ pub fn finalize_reveal_stake(
     }
 
     // Winning option means stake fees get refunded, so deduct from market account.
-    // Actual refund transfer happens in `close_stake_account` together with reward.
+    // Actual refund transfer happens in `claim_rewards` together with reward.
     if option.reward_bp > 0 {
         let fees = ctx.accounts.stake_account.collected_fees;
         market.deduct_stake_fees(&fees)?;
@@ -126,7 +126,7 @@ pub fn finalize_reveal_stake(
         user_score: user_score,
 
         total_score: ctx.accounts.option.total_score,
-        total_stake: ctx.accounts.option.total_staked,
+        total_stake: ctx.accounts.option.unclaimed_stake,
     });
 
     Ok(())

@@ -18,9 +18,11 @@ import {
   type ParsedAddRewardInstruction,
   type ParsedClaimCreatorFeesInstruction,
   type ParsedClaimFeesInstruction,
+  type ParsedClaimRewardsInstruction,
   type ParsedCloseOptionAccountInstruction,
   type ParsedCloseStakeAccountInstruction,
   type ParsedCloseStuckStakeAccountInstruction,
+  type ParsedCloseUnrevealedStakeAccountInstruction,
   type ParsedCreateMarketInstruction,
   type ParsedEndRevealPeriodInstruction,
   type ParsedFinalizeRevealStakeInstruction,
@@ -147,9 +149,11 @@ export enum OpportunityMarketInstruction {
   AddReward,
   ClaimCreatorFees,
   ClaimFees,
+  ClaimRewards,
   CloseOptionAccount,
   CloseStakeAccount,
   CloseStuckStakeAccount,
+  CloseUnrevealedStakeAccount,
   CreateMarket,
   EndRevealPeriod,
   FinalizeRevealStake,
@@ -224,6 +228,17 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([4, 144, 132, 71, 116, 23, 151, 80])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.ClaimRewards;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([46, 121, 107, 240, 123, 190, 229, 1])
       ),
       0
@@ -252,6 +267,17 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.CloseStuckStakeAccount;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([171, 229, 236, 216, 122, 118, 188, 103])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.CloseUnrevealedStakeAccount;
   }
   if (
     containsBytes(
@@ -494,6 +520,9 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.ClaimFees;
     } & ParsedClaimFeesInstruction<TProgram>)
   | ({
+      instructionType: OpportunityMarketInstruction.ClaimRewards;
+    } & ParsedClaimRewardsInstruction<TProgram>)
+  | ({
       instructionType: OpportunityMarketInstruction.CloseOptionAccount;
     } & ParsedCloseOptionAccountInstruction<TProgram>)
   | ({
@@ -502,6 +531,9 @@ export type ParsedOpportunityMarketInstruction<
   | ({
       instructionType: OpportunityMarketInstruction.CloseStuckStakeAccount;
     } & ParsedCloseStuckStakeAccountInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.CloseUnrevealedStakeAccount;
+    } & ParsedCloseUnrevealedStakeAccountInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.CreateMarket;
     } & ParsedCreateMarketInstruction<TProgram>)

@@ -39,17 +39,17 @@ import {
   type ResolvedAccount,
 } from '../shared';
 
-export const CLOSE_STAKE_ACCOUNT_DISCRIMINATOR = new Uint8Array([
-  246, 236, 59, 167, 115, 135, 122, 12,
+export const CLAIM_REWARDS_DISCRIMINATOR = new Uint8Array([
+  4, 144, 132, 71, 116, 23, 151, 80,
 ]);
 
-export function getCloseStakeAccountDiscriminatorBytes() {
+export function getClaimRewardsDiscriminatorBytes() {
   return fixEncoderSize(getBytesEncoder(), 8).encode(
-    CLOSE_STAKE_ACCOUNT_DISCRIMINATOR
+    CLAIM_REWARDS_DISCRIMINATOR
   );
 }
 
-export type CloseStakeAccountInstruction<
+export type ClaimRewardsInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountOwner extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
@@ -59,8 +59,6 @@ export type CloseStakeAccountInstruction<
   TAccountMarketTokenAta extends string | AccountMeta<string> = string,
   TAccountOwnerTokenAccount extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> = string,
-  TAccountSystemProgram extends string | AccountMeta<string> =
-    '11111111111111111111111111111111',
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
@@ -91,43 +89,38 @@ export type CloseStakeAccountInstruction<
       TAccountTokenProgram extends string
         ? ReadonlyAccount<TAccountTokenProgram>
         : TAccountTokenProgram,
-      TAccountSystemProgram extends string
-        ? ReadonlyAccount<TAccountSystemProgram>
-        : TAccountSystemProgram,
       ...TRemainingAccounts,
     ]
   >;
 
-export type CloseStakeAccountInstructionData = {
-  discriminator: ReadonlyUint8Array;
-};
+export type ClaimRewardsInstructionData = { discriminator: ReadonlyUint8Array };
 
-export type CloseStakeAccountInstructionDataArgs = {};
+export type ClaimRewardsInstructionDataArgs = {};
 
-export function getCloseStakeAccountInstructionDataEncoder(): FixedSizeEncoder<CloseStakeAccountInstructionDataArgs> {
+export function getClaimRewardsInstructionDataEncoder(): FixedSizeEncoder<ClaimRewardsInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
-    (value) => ({ ...value, discriminator: CLOSE_STAKE_ACCOUNT_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: CLAIM_REWARDS_DISCRIMINATOR })
   );
 }
 
-export function getCloseStakeAccountInstructionDataDecoder(): FixedSizeDecoder<CloseStakeAccountInstructionData> {
+export function getClaimRewardsInstructionDataDecoder(): FixedSizeDecoder<ClaimRewardsInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
   ]);
 }
 
-export function getCloseStakeAccountInstructionDataCodec(): FixedSizeCodec<
-  CloseStakeAccountInstructionDataArgs,
-  CloseStakeAccountInstructionData
+export function getClaimRewardsInstructionDataCodec(): FixedSizeCodec<
+  ClaimRewardsInstructionDataArgs,
+  ClaimRewardsInstructionData
 > {
   return combineCodec(
-    getCloseStakeAccountInstructionDataEncoder(),
-    getCloseStakeAccountInstructionDataDecoder()
+    getClaimRewardsInstructionDataEncoder(),
+    getClaimRewardsInstructionDataDecoder()
   );
 }
 
-export type CloseStakeAccountAsyncInput<
+export type ClaimRewardsAsyncInput<
   TAccountOwner extends string = string,
   TAccountMarket extends string = string,
   TAccountStakeAccount extends string = string,
@@ -136,7 +129,6 @@ export type CloseStakeAccountAsyncInput<
   TAccountMarketTokenAta extends string = string,
   TAccountOwnerTokenAccount extends string = string,
   TAccountTokenProgram extends string = string,
-  TAccountSystemProgram extends string = string,
 > = {
   owner: TransactionSigner<TAccountOwner>;
   market: Address<TAccountMarket>;
@@ -146,10 +138,9 @@ export type CloseStakeAccountAsyncInput<
   marketTokenAta?: Address<TAccountMarketTokenAta>;
   ownerTokenAccount: Address<TAccountOwnerTokenAccount>;
   tokenProgram: Address<TAccountTokenProgram>;
-  systemProgram?: Address<TAccountSystemProgram>;
 };
 
-export async function getCloseStakeAccountInstructionAsync<
+export async function getClaimRewardsInstructionAsync<
   TAccountOwner extends string,
   TAccountMarket extends string,
   TAccountStakeAccount extends string,
@@ -158,10 +149,9 @@ export async function getCloseStakeAccountInstructionAsync<
   TAccountMarketTokenAta extends string,
   TAccountOwnerTokenAccount extends string,
   TAccountTokenProgram extends string,
-  TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: CloseStakeAccountAsyncInput<
+  input: ClaimRewardsAsyncInput<
     TAccountOwner,
     TAccountMarket,
     TAccountStakeAccount,
@@ -169,12 +159,11 @@ export async function getCloseStakeAccountInstructionAsync<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountOwnerTokenAccount,
-    TAccountTokenProgram,
-    TAccountSystemProgram
+    TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
 ): Promise<
-  CloseStakeAccountInstruction<
+  ClaimRewardsInstruction<
     TProgramAddress,
     TAccountOwner,
     TAccountMarket,
@@ -183,8 +172,7 @@ export async function getCloseStakeAccountInstructionAsync<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountOwnerTokenAccount,
-    TAccountTokenProgram,
-    TAccountSystemProgram
+    TAccountTokenProgram
   >
 > {
   // Program address.
@@ -204,7 +192,6 @@ export async function getCloseStakeAccountInstructionAsync<
       isWritable: true,
     },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -223,10 +210,6 @@ export async function getCloseStakeAccountInstructionAsync<
       ],
     });
   }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value =
-      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
-  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
@@ -239,11 +222,10 @@ export async function getCloseStakeAccountInstructionAsync<
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.ownerTokenAccount),
       getAccountMeta(accounts.tokenProgram),
-      getAccountMeta(accounts.systemProgram),
     ],
-    data: getCloseStakeAccountInstructionDataEncoder().encode({}),
+    data: getClaimRewardsInstructionDataEncoder().encode({}),
     programAddress,
-  } as CloseStakeAccountInstruction<
+  } as ClaimRewardsInstruction<
     TProgramAddress,
     TAccountOwner,
     TAccountMarket,
@@ -252,12 +234,11 @@ export async function getCloseStakeAccountInstructionAsync<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountOwnerTokenAccount,
-    TAccountTokenProgram,
-    TAccountSystemProgram
+    TAccountTokenProgram
   >);
 }
 
-export type CloseStakeAccountInput<
+export type ClaimRewardsInput<
   TAccountOwner extends string = string,
   TAccountMarket extends string = string,
   TAccountStakeAccount extends string = string,
@@ -266,7 +247,6 @@ export type CloseStakeAccountInput<
   TAccountMarketTokenAta extends string = string,
   TAccountOwnerTokenAccount extends string = string,
   TAccountTokenProgram extends string = string,
-  TAccountSystemProgram extends string = string,
 > = {
   owner: TransactionSigner<TAccountOwner>;
   market: Address<TAccountMarket>;
@@ -276,10 +256,9 @@ export type CloseStakeAccountInput<
   marketTokenAta: Address<TAccountMarketTokenAta>;
   ownerTokenAccount: Address<TAccountOwnerTokenAccount>;
   tokenProgram: Address<TAccountTokenProgram>;
-  systemProgram?: Address<TAccountSystemProgram>;
 };
 
-export function getCloseStakeAccountInstruction<
+export function getClaimRewardsInstruction<
   TAccountOwner extends string,
   TAccountMarket extends string,
   TAccountStakeAccount extends string,
@@ -288,10 +267,9 @@ export function getCloseStakeAccountInstruction<
   TAccountMarketTokenAta extends string,
   TAccountOwnerTokenAccount extends string,
   TAccountTokenProgram extends string,
-  TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: CloseStakeAccountInput<
+  input: ClaimRewardsInput<
     TAccountOwner,
     TAccountMarket,
     TAccountStakeAccount,
@@ -299,11 +277,10 @@ export function getCloseStakeAccountInstruction<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountOwnerTokenAccount,
-    TAccountTokenProgram,
-    TAccountSystemProgram
+    TAccountTokenProgram
   >,
   config?: { programAddress?: TProgramAddress }
-): CloseStakeAccountInstruction<
+): ClaimRewardsInstruction<
   TProgramAddress,
   TAccountOwner,
   TAccountMarket,
@@ -312,8 +289,7 @@ export function getCloseStakeAccountInstruction<
   TAccountTokenMint,
   TAccountMarketTokenAta,
   TAccountOwnerTokenAccount,
-  TAccountTokenProgram,
-  TAccountSystemProgram
+  TAccountTokenProgram
 > {
   // Program address.
   const programAddress =
@@ -332,18 +308,11 @@ export function getCloseStakeAccountInstruction<
       isWritable: true,
     },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
     ResolvedAccount
   >;
-
-  // Resolve default values.
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value =
-      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
-  }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
   return Object.freeze({
@@ -356,11 +325,10 @@ export function getCloseStakeAccountInstruction<
       getAccountMeta(accounts.marketTokenAta),
       getAccountMeta(accounts.ownerTokenAccount),
       getAccountMeta(accounts.tokenProgram),
-      getAccountMeta(accounts.systemProgram),
     ],
-    data: getCloseStakeAccountInstructionDataEncoder().encode({}),
+    data: getClaimRewardsInstructionDataEncoder().encode({}),
     programAddress,
-  } as CloseStakeAccountInstruction<
+  } as ClaimRewardsInstruction<
     TProgramAddress,
     TAccountOwner,
     TAccountMarket,
@@ -369,12 +337,11 @@ export function getCloseStakeAccountInstruction<
     TAccountTokenMint,
     TAccountMarketTokenAta,
     TAccountOwnerTokenAccount,
-    TAccountTokenProgram,
-    TAccountSystemProgram
+    TAccountTokenProgram
   >);
 }
 
-export type ParsedCloseStakeAccountInstruction<
+export type ParsedClaimRewardsInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
@@ -388,20 +355,19 @@ export type ParsedCloseStakeAccountInstruction<
     marketTokenAta: TAccountMetas[5];
     ownerTokenAccount: TAccountMetas[6];
     tokenProgram: TAccountMetas[7];
-    systemProgram: TAccountMetas[8];
   };
-  data: CloseStakeAccountInstructionData;
+  data: ClaimRewardsInstructionData;
 };
 
-export function parseCloseStakeAccountInstruction<
+export function parseClaimRewardsInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedCloseStakeAccountInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 9) {
+): ParsedClaimRewardsInstruction<TProgram, TAccountMetas> {
+  if (instruction.accounts.length < 8) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -422,8 +388,7 @@ export function parseCloseStakeAccountInstruction<
       marketTokenAta: getNextAccount(),
       ownerTokenAccount: getNextAccount(),
       tokenProgram: getNextAccount(),
-      systemProgram: getNextAccount(),
     },
-    data: getCloseStakeAccountInstructionDataDecoder().decode(instruction.data),
+    data: getClaimRewardsInstructionDataDecoder().decode(instruction.data),
   };
 }

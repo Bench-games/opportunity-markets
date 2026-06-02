@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-opportunity_market = "B3NCHsGBkdZrPYPJY2rjg4UwmyRotMmFWhxa5hMHwLeg"
+opportunity_market = "bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G"
 
 [provider]
 cluster = "http://127.0.0.1:8899"

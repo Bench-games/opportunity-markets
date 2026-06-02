@@ -44,7 +44,7 @@ import {
 } from '../instructions';
 
 export const OPPORTUNITY_MARKET_PROGRAM_ADDRESS =
-  'B3NCHsGBkdZrPYPJY2rjg4UwmyRotMmFWhxa5hMHwLeg' as Address<'B3NCHsGBkdZrPYPJY2rjg4UwmyRotMmFWhxa5hMHwLeg'>;
+  'bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G' as Address<'bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G'>;
 
 export enum OpportunityMarketAccount {
   AllowedMint,
@@ -479,7 +479,7 @@ export function identifyOpportunityMarketInstruction(
 }
 
 export type ParsedOpportunityMarketInstruction<
-  TProgram extends string = 'B3NCHsGBkdZrPYPJY2rjg4UwmyRotMmFWhxa5hMHwLeg',
+  TProgram extends string = 'bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G',
 > =
   | ({
       instructionType: OpportunityMarketInstruction.AddMarketOption;

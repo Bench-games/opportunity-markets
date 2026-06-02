@@ -27,16 +27,17 @@ pub struct ClaimRewards<'info> {
         bump = stake_account.bump,
         constraint = !stake_account.rewards_claimed @ ErrorCode::RewardAlreadyClaimed,
         constraint = stake_account.revealed_option.is_some() @ ErrorCode::InvalidOptionId,
+        constraint = stake_account.score.is_some() @ ErrorCode::NotRevealed,
     )]
     pub stake_account: Box<Account<'info, StakeAccount>>,
 
-    /// CHECK: May be a closed account for non-winning options. PDA is validated by seeds.
     #[account(
         mut,
         seeds = [OPTION_SEED, market.key().as_ref(), &stake_account.revealed_option.unwrap().to_le_bytes()],
         bump,
+        constraint = option.reward_bp > 0 @ ErrorCode::NoRewardToClaim,
     )]
-    pub option: UncheckedAccount<'info>,
+    pub option: Box<Account<'info, OpportunityMarketOption>>,
 
     #[account(address = market.mint)]
     pub token_mint: Box<InterfaceAccount<'info, Mint>>,
@@ -61,43 +62,31 @@ pub struct ClaimRewards<'info> {
 }
 
 pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
-    let option_closed =
-        ctx.accounts.option.owner == &System::id() && ctx.accounts.option.data_is_empty();
-    let mut option_acc: Option<Account<'info, OpportunityMarketOption>> = if !option_closed {
-        Some(Account::<OpportunityMarketOption>::try_from(
-            ctx.accounts.option.as_ref(),
-        )?)
-    } else {
-        None
-    };
-
     let payout = compute_reward_payout(
         &ctx.accounts.stake_account,
         &ctx.accounts.market,
-        option_acc.as_ref(),
+        &ctx.accounts.option,
     )?;
 
-    require!(payout > 0, ErrorCode::NoRewardToClaim);
-
-    transfer_from_market(
-        &ctx.accounts.market,
-        &ctx.accounts.token_mint,
-        &ctx.accounts.market_token_ata,
-        &ctx.accounts.owner_token_account,
-        &ctx.accounts.token_program,
-        payout,
-    )?;
+    if payout > 0 {
+        transfer_from_market(
+            &ctx.accounts.market,
+            &ctx.accounts.token_mint,
+            &ctx.accounts.market_token_ata,
+            &ctx.accounts.owner_token_account,
+            &ctx.accounts.token_program,
+            payout,
+        )?;
+    }
 
     ctx.accounts.stake_account.rewards_claimed = true;
 
-    if let Some(ref mut opt) = option_acc {
-        if ctx.accounts.stake_account.score.is_some() {
-            opt.unclaimed_stake = opt
-                .unclaimed_stake
-                .checked_sub(ctx.accounts.stake_account.amount)
-                .ok_or(ErrorCode::Overflow)?;
-        }
-    }
+    ctx.accounts.option.unclaimed_stake = ctx
+        .accounts
+        .option
+        .unclaimed_stake
+        .checked_sub(ctx.accounts.stake_account.amount)
+        .ok_or(ErrorCode::Overflow)?;
 
     emit_ts!(RewardsClaimedEvent {
         owner: ctx.accounts.owner.key(),
@@ -115,13 +104,8 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
 fn compute_reward_payout(
     stake_account: &Account<StakeAccount>,
     market: &Account<OpportunityMarket>,
-    option: Option<&Account<OpportunityMarketOption>>,
+    option: &Account<OpportunityMarketOption>,
 ) -> Result<u64> {
-    let option = match option {
-        None => return Ok(0),
-        Some(o) => o,
-    };
-
     if option.reward_bp == 0 {
         return Ok(0);
     }

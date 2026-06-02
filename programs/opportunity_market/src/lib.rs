@@ -156,11 +156,8 @@ pub mod opportunity_market {
         instructions::claim_rewards(ctx)
     }
 
-    pub fn close_stake_account<'info>(
-        ctx: Context<'info, CloseStakeAccount<'info>>,
-        option_id: u64,
-    ) -> Result<()> {
-        instructions::close_stake_account(ctx, option_id)
+    pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>) -> Result<()> {
+        instructions::close_stake_account(ctx)
     }
 
     pub fn close_unrevealed_stake_account<'info>(

@@ -4,8 +4,8 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeAccountClosedEvent};
-use crate::utils::{check_close_market_state, refund_stake_fees, CloseMarketState};
 use crate::state::{OpportunityMarket, StakeAccount};
+use crate::utils::{check_close_market_state, refund_stake_fees, CloseMarketState};
 
 #[derive(Accounts)]
 pub struct CloseUnrevealedStakeAccount<'info> {

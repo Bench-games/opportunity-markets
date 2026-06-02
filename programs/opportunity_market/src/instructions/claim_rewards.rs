@@ -8,7 +8,6 @@ use crate::state::{OpportunityMarket, OpportunityMarketOption, StakeAccount};
 use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
-#[instruction(option_id: u64, stake_account_id: u32)]
 pub struct ClaimRewards<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
@@ -24,17 +23,17 @@ pub struct ClaimRewards<'info> {
 
     #[account(
         mut,
-        seeds = [STAKE_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &stake_account_id.to_le_bytes()],
+        seeds = [STAKE_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &stake_account.id.to_le_bytes()],
         bump = stake_account.bump,
         constraint = !stake_account.rewards_claimed @ ErrorCode::RewardAlreadyClaimed,
-        constraint = stake_account.revealed_option == Some(option_id) @ ErrorCode::InvalidOptionId,
+        constraint = stake_account.revealed_option.is_some() @ ErrorCode::InvalidOptionId,
     )]
     pub stake_account: Box<Account<'info, StakeAccount>>,
 
     /// CHECK: May be a closed account for non-winning options. PDA is validated by seeds.
     #[account(
         mut,
-        seeds = [OPTION_SEED, market.key().as_ref(), &option_id.to_le_bytes()],
+        seeds = [OPTION_SEED, market.key().as_ref(), &stake_account.revealed_option.unwrap().to_le_bytes()],
         bump,
     )]
     pub option: UncheckedAccount<'info>,
@@ -61,11 +60,7 @@ pub struct ClaimRewards<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-pub fn claim_rewards<'info>(
-    ctx: Context<'info, ClaimRewards<'info>>,
-    option_id: u64,
-    _stake_account_id: u32,
-) -> Result<()> {
+pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
     let option_closed =
         ctx.accounts.option.owner == &System::id() && ctx.accounts.option.data_is_empty();
     let mut option_acc: Option<Account<'info, OpportunityMarketOption>> = if !option_closed {
@@ -82,16 +77,16 @@ pub fn claim_rewards<'info>(
         option_acc.as_ref(),
     )?;
 
-    if payout > 0 {
-        transfer_from_market(
-            &ctx.accounts.market,
-            &ctx.accounts.token_mint,
-            &ctx.accounts.market_token_ata,
-            &ctx.accounts.owner_token_account,
-            &ctx.accounts.token_program,
-            payout,
-        )?;
-    }
+    require!(payout > 0, ErrorCode::NoRewardToClaim);
+
+    transfer_from_market(
+        &ctx.accounts.market,
+        &ctx.accounts.token_mint,
+        &ctx.accounts.market_token_ata,
+        &ctx.accounts.owner_token_account,
+        &ctx.accounts.token_program,
+        payout,
+    )?;
 
     ctx.accounts.stake_account.rewards_claimed = true;
 
@@ -109,7 +104,7 @@ pub fn claim_rewards<'info>(
         market: ctx.accounts.market.key(),
         stake_account: ctx.accounts.stake_account.key(),
         stake_account_id: ctx.accounts.stake_account.id,
-        option_id: option_id,
+        option_id: ctx.accounts.stake_account.revealed_option.unwrap(),
         reward_amount: payout,
         score: ctx.accounts.stake_account.score.unwrap_or(0),
     });

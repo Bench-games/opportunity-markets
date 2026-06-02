@@ -4,7 +4,59 @@ use anchor_spl::token_interface::{
 };
 
 use crate::constants::OPPORTUNITY_MARKET_SEED;
-use crate::state::OpportunityMarket;
+use crate::error::ErrorCode;
+use crate::state::{OpportunityMarket, StakeAccount};
+
+#[derive(PartialEq)]
+pub enum CloseMarketState {
+    Resolved,
+    Expired,
+}
+
+pub fn check_close_market_state(market: &Account<OpportunityMarket>) -> Result<CloseMarketState> {
+    let clock = Clock::get()?;
+    let current_time = clock.unix_timestamp as u64;
+
+    let stake_end = market
+        .stake_end_timestamp
+        .ok_or(ErrorCode::MarketNotOpen)?;
+    let select_deadline = stake_end
+        .checked_add(market.market_resolution_deadline_seconds)
+        .ok_or(ErrorCode::Overflow)?;
+
+    let resolved = market.resolved_at_timestamp.is_some();
+    if resolved {
+        require!(market.reveal_ended, ErrorCode::MarketNotResolved);
+        return Ok(CloseMarketState::Resolved);
+    }
+    if current_time >= select_deadline {
+        return Ok(CloseMarketState::Expired);
+    }
+
+    Err(ErrorCode::MarketNotResolved.into())
+}
+
+pub fn refund_stake_fees<'info>(
+    market: &mut Account<'info, OpportunityMarket>,
+    stake_account: &StakeAccount,
+    token_mint: &InterfaceAccount<'info, Mint>,
+    market_token_ata: &InterfaceAccount<'info, TokenAccount>,
+    owner_token_account: &InterfaceAccount<'info, TokenAccount>,
+    token_program: &Interface<'info, TokenInterface>,
+) -> Result<u64> {
+    let fee_refund = market.deduct_stake_fees(&stake_account.collected_fees)?;
+    if fee_refund > 0 {
+        transfer_from_market(
+            market,
+            token_mint,
+            market_token_ata,
+            owner_token_account,
+            token_program,
+            fee_refund,
+        )?;
+    }
+    Ok(fee_refund)
+}
 
 pub fn transfer_from_market<'info>(
     market: &Account<'info, OpportunityMarket>,

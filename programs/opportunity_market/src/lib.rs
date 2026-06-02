@@ -152,16 +152,21 @@ pub mod opportunity_market {
         instructions::finalize_reveal_stake(ctx, option_id, stake_account_id)
     }
 
-    pub fn claim_rewards<'info>(
-        ctx: Context<'info, ClaimRewards<'info>>,
-        option_id: u64,
-        stake_account_id: u32,
-    ) -> Result<()> {
-        instructions::claim_rewards(ctx, option_id, stake_account_id)
+    pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
+        instructions::claim_rewards(ctx)
     }
 
-    pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>) -> Result<()> {
-        instructions::close_stake_account(ctx)
+    pub fn close_stake_account<'info>(
+        ctx: Context<'info, CloseStakeAccount<'info>>,
+        option_id: u64,
+    ) -> Result<()> {
+        instructions::close_stake_account(ctx, option_id)
+    }
+
+    pub fn close_unrevealed_stake_account<'info>(
+        ctx: Context<'info, CloseUnrevealedStakeAccount<'info>>,
+    ) -> Result<()> {
+        instructions::close_unrevealed_stake_account(ctx)
     }
 
     pub fn close_stuck_stake_account(

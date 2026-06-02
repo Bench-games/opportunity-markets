@@ -1,11 +1,11 @@
 {
   "name": "bench",
-  "platformFeeBp": 0,
+  "platformFeeBp": 10,
   "rewardPoolFeeBp": 0,
-  "creatorFeeBp": 0,
+  "creatorFeeBp": 10,
   "feeClaimAuthority": "GoaHvr9RwFqDHH7aqC8qWKTVgPkKApq5RhKzJvTVNKm5",
   "revealAuthority": "GoaHvr9RwFqDHH7aqC8qWKTVgPkKApq5RhKzJvTVNKm5",
-  "minTimeToStakeSeconds": 3600,
+  "minTimeToStakeSeconds": 86400,
   "revealPeriodSeconds": 2592000,
   "marketResolutionDeadlineSeconds": 604800
 }

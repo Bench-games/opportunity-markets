@@ -16,9 +16,6 @@ import {
   type Instruction,
 } from "@solana/kit";
 import { TOKEN_PROGRAM_ADDRESS, findAssociatedTokenPda, getCreateAssociatedTokenIdempotentInstructionAsync } from "@solana-program/token";
-import { getMXEPublicKey } from "@arcium-hq/client";
-import { AnchorProvider, Wallet } from "@anchor-lang/core";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import {
   stake,
   initStakeAccount,
@@ -34,9 +31,14 @@ import * as os from "os";
 
 if (!process.env.PROGRAM_ID) throw new Error("PROGRAM_ID env var is required");
 if (!process.env.RPC_URL) throw new Error("RPC_URL env var is required");
+if (!process.env.MXE_PUBLIC_KEY) throw new Error("MXE_PUBLIC_KEY env var is required");
 
 const PROGRAM_ID = address(process.env.PROGRAM_ID);
 const RPC_URL = process.env.RPC_URL;
+const MXE_PUBLIC_KEY = new Uint8Array(Buffer.from(process.env.MXE_PUBLIC_KEY, "hex"));
+if (MXE_PUBLIC_KEY.length !== 32) {
+  throw new Error(`MXE_PUBLIC_KEY must be a 32-byte hex string, got ${MXE_PUBLIC_KEY.length} bytes`);
+}
 
 const MARKET_ADDRESS = process.argv[2];
 const AMOUNT = process.argv[3];
@@ -124,15 +126,7 @@ async function main() {
     console.log("Generated ephemeral X25519 keypair");
   }
 
-  // Get MXE public key
-  const wallet = new Wallet(Keypair.fromSecretKey(secretKey));
-  const connection = new Connection(RPC_URL, "confirmed");
-  const provider = new AnchorProvider(connection, wallet, { commitment: "confirmed" });
-  const programIdLegacy = new PublicKey(PROGRAM_ID);
-  const mxePublicKey = await getMXEPublicKey(provider, programIdLegacy);
-  if (!mxePublicKey) {
-    throw new Error("MXE public key not found on-chain");
-  }
+  const mxePublicKey = MXE_PUBLIC_KEY;
 
   // Derive token accounts
   const [signerTokenAccount] = await findAssociatedTokenPda({

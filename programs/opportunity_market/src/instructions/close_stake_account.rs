@@ -29,6 +29,7 @@ pub struct CloseStakeAccount<'info> {
     )]
     pub stake_account: Box<Account<'info, StakeAccount>>,
 
+    /// CHECK: option is validated by seeds and in the instruction
     #[account(
         mut,
         seeds = [OPTION_SEED, market.key().as_ref(), &stake_account.revealed_option.unwrap().to_le_bytes()],

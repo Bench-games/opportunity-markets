@@ -17,9 +17,7 @@ pub fn check_close_market_state(market: &Account<OpportunityMarket>) -> Result<C
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp as u64;
 
-    let stake_end = market
-        .stake_end_timestamp
-        .ok_or(ErrorCode::MarketNotOpen)?;
+    let stake_end = market.stake_end_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
     let select_deadline = stake_end
         .checked_add(market.market_resolution_deadline_seconds)
         .ok_or(ErrorCode::Overflow)?;

@@ -1,179 +1,60 @@
-// Adapted from:
-// https://github.com/quiknode-labs/arcium-election/blob/main/tests/arcium-solana-kit/helpers.ts
+import { type Address, type Rpc, type Signature, type SolanaRpcApi } from "@solana/kit";
 
-import { type Address, getAddressEncoder, type Rpc, type SolanaRpcApi} from "@solana/kit";
-import { ARCIUM_PROGRAM_ID } from "./constants";
-import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from "../generated";
-
-
-/**
- * Event discriminator for FinalizeComputationEvent from Arcium IDL.
- * Computed as first 8 bytes of SHA256("event:FinalizeComputationEvent")
- */
-const FINALIZE_COMPUTATION_EVENT_DISCRIMINATOR = new Uint8Array([27, 75, 117, 221, 191, 213, 253, 249]);
-
-/**
- * Serializes a bigint to a little-endian byte array of specified length.
- */
-function serializeLE(val: bigint, lengthInBytes: number): Uint8Array {
-  const result = new Uint8Array(lengthInBytes);
-  let tempVal = val;
-  for (let i = 0; i < lengthInBytes; i++) {
-    result[i] = Number(tempVal & BigInt(255));
-    tempVal >>= BigInt(8);
-  }
-  return result;
-}
-
-function bytesEqual(a: ArrayLike<number>, b: ArrayLike<number>): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
+const TIMEOUT_SLOTS = 180;
+const DEFAULT_POLL_INTERVAL = 1000;
+const DEFAULT_SIGNATURE_LIMIT = 100;
 
 export interface AwaitComputationOptions {
-  commitment?: "processed" | "confirmed" | "finalized";
-  mxeProgramId?: Address;
-  transactionCountLimit?: number;
+  commitment?: "confirmed" | "finalized";
   pollInterval?: number;
-  maxAttempts?: number;
-}
-
-export interface ComputationResult {
-  signature: string;
-  error?: string;
+  transactionCountLimit?: number;
 }
 
 /**
- * Waits for multiple computations to be finalized on the Arcium network.
- * Returns a map of computationOffset -> ComputationResult for all found computations.
- * If a computation's callback transaction failed, the error field will be populated.
- */
-export const awaitBatchComputationFinalization = async (
-  rpc: Rpc<SolanaRpcApi>,
-  computationOffsets: bigint[],
-  options?: AwaitComputationOptions
-): Promise<Map<bigint, ComputationResult>> => {
-  if (computationOffsets.length === 0) {
-    return new Map();
-  }
-
-  const mxeProgramId = options?.mxeProgramId ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
-  const commitment = options?.commitment ?? "confirmed";
-  const mxeProgramIdBytes = getAddressEncoder().encode(mxeProgramId);
-
-  const transactionCountLimit = options?.transactionCountLimit ?? 100;
-  const pollInterval = options?.pollInterval ?? 1000;
-  const maxAttempts = options?.maxAttempts ?? 120;
-
-  // Pre-compute offset bytes for all offsets
-  const offsetBytesMap = new Map<bigint, Uint8Array>();
-  for (const offset of computationOffsets) {
-    offsetBytesMap.set(offset, serializeLE(offset, 8));
-  }
-
-  // Track which offsets we've found
-  const foundResults = new Map<bigint, ComputationResult>();
-  const remainingOffsets = new Set(computationOffsets);
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const signatures = await rpc.getSignaturesForAddress(
-        ARCIUM_PROGRAM_ID,
-        { limit: transactionCountLimit }
-      ).send();
-
-      for (const sigInfo of signatures) {
-        const tx = await rpc.getTransaction(sigInfo.signature, {
-          commitment,
-          encoding: "json",
-          maxSupportedTransactionVersion: 0,
-        }).send();
-
-        if (!tx) continue;
-
-        const logs = tx.meta?.logMessages || [];
-
-        for (const log of logs) {
-          if (log.includes('Program data:')) {
-            const base64Data = log.split('Program data: ')[1];
-            if (!base64Data) continue;
-
-            try {
-              const eventData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-
-              if (eventData.length >= 48 &&
-                  bytesEqual(eventData.subarray(0, 8), FINALIZE_COMPUTATION_EVENT_DISCRIMINATOR)) {
-
-                const eventOffsetBytes = eventData.subarray(8, 16);
-                const eventMxeProgramId = eventData.subarray(16, 48);
-
-                if (!bytesEqual(eventMxeProgramId, mxeProgramIdBytes)) continue;
-
-                // Check against all remaining offsets
-                for (const offset of remainingOffsets) {
-                  const expectedBytes = offsetBytesMap.get(offset)!;
-                  if (bytesEqual(eventOffsetBytes, expectedBytes)) {
-                    // Check if transaction failed (callback error)
-                    const txError = tx.meta?.err;
-                    let errorMessage: string | undefined;
-
-                    if (txError) {
-                      // Extract error message from logs if available
-                      const errorLog = logs.find(l => l.includes('Error') || l.includes('failed'));
-                      errorMessage = errorLog || JSON.stringify(txError);
-                    }
-
-                    foundResults.set(offset, {
-                      signature: sigInfo.signature,
-                      error: errorMessage,
-                    });
-                    remainingOffsets.delete(offset);
-                    break;
-                  }
-                }
-              }
-            } catch {
-              continue;
-            }
-          }
-        }
-
-        // Early exit if all found
-        if (remainingOffsets.size === 0) {
-          return foundResults;
-        }
-      }
-
-      // Check if done
-      if (remainingOffsets.size === 0) {
-        return foundResults;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
-    } catch (error) {
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
-    }
-  }
-
-  const missingOffsets = Array.from(remainingOffsets).join(', ');
-  throw new Error(
-    `Computation finalization timed out after ${maxAttempts} attempts. Missing offsets: ${missingOffsets}`
-  );
-};
-
-/**
- * Waits for a single computation to be finalized on the Arcium network.
- * Returns a ComputationResult with the signature and an optional error if the callback failed.
+ * Waits for a single Arcium computation to be finalized.
  */
 export const awaitComputationFinalization = async (
   rpc: Rpc<SolanaRpcApi>,
-  computationOffset: bigint,
+  computationAccount: Address,
+  invocationSignature: Signature,
   options?: AwaitComputationOptions
-): Promise<ComputationResult> => {
-  const results = await awaitBatchComputationFinalization(rpc, [computationOffset], options);
-  return results.get(computationOffset)!;
+): Promise<Signature> => {
+  const commitment = options?.commitment ?? "confirmed";
+  const pollInterval = options?.pollInterval ?? DEFAULT_POLL_INTERVAL;
+  const limit = options?.transactionCountLimit ?? DEFAULT_SIGNATURE_LIMIT;
+
+  const invocationTx = await rpc.getTransaction(invocationSignature, {
+    commitment,
+    encoding: "json",
+    maxSupportedTransactionVersion: 0,
+  }).send();
+
+  if (!invocationTx) {
+    throw new Error(`Invocation transaction ${invocationSignature} not found`);
+  }
+
+  const deadlineSlot = invocationTx.slot + BigInt(TIMEOUT_SLOTS);
+
+  for (;;) {
+    const signatures = await rpc.getSignaturesForAddress(computationAccount, {
+      limit,
+      commitment,
+    }).send();
+
+    for (const sigInfo of signatures) {
+      if (sigInfo.signature === invocationSignature) continue;
+      if (sigInfo.err === null) {
+        return sigInfo.signature;
+      }
+    }
+
+    const currentSlot = await rpc.getSlot({ commitment }).send();
+    if (currentSlot > deadlineSlot) {
+      throw new Error(
+        `Computation ${computationAccount} not finalized within ${TIMEOUT_SLOTS} slots of invocation ${invocationSignature}`
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
+  }
 };

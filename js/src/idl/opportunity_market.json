@@ -3304,11 +3304,16 @@
     },
     {
       "code": 6032,
+      "name": "NoFinalizedWinningOption",
+      "msg": "No winning option has a finalized stake"
+    },
+    {
+      "code": 6033,
       "name": "NoRewardToClaim",
       "msg": "No reward to claim"
     },
     {
-      "code": 6033,
+      "code": 6034,
       "name": "RewardAlreadyClaimed",
       "msg": "Reward already claimed"
     }
@@ -4245,6 +4250,10 @@
             "type": "u16"
           },
           {
+            "name": "winning_option_active_bp",
+            "type": "u16"
+          },
+          {
             "name": "reward_amount",
             "type": "u64"
           },
@@ -4347,9 +4356,17 @@
           },
           {
             "name": "reward_bp",
-            "type": {
-              "option": "u16"
-            }
+            "docs": [
+              "Non-zero iff this option is a winner; share of pool in basis points (0–10_000)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "included_in_active_bp",
+            "docs": [
+              "Set on first finalize for a winning option; gates adding `reward_bp` to `winning_option_active_bp`."
+            ],
+            "type": "bool"
           }
         ]
       }

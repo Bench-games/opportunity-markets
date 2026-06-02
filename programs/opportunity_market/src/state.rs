@@ -58,6 +58,10 @@ pub struct OpportunityMarket {
     pub resolved_at_timestamp: Option<u64>,
     pub winning_option_allocation: u16,
 
+    // Sum of reward_bp for winning options with at least one finalize_reveal_stake.
+    // Used as the payout divisor instead of 10_000 so unclaimed winner slices redistribute.
+    pub winning_option_active_bp: u16,
+
     // Reward to be shared with stakers (in SPL token base units)
     pub reward_amount: u64,
 
@@ -237,7 +241,11 @@ pub struct OpportunityMarketOption {
     pub total_staked: u64,
     pub total_score: u128,
 
-    pub reward_bp: Option<u16>,
+    /// Non-zero iff this option is a winner; share of pool in basis points (0–10_000).
+    pub reward_bp: u16,
+
+    /// Set on first finalize for a winning option; gates adding `reward_bp` to `winning_option_active_bp`.
+    pub included_in_active_bp: bool,
 }
 
 #[account]

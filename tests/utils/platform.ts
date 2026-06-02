@@ -14,6 +14,7 @@ import {
   sendAndConfirmTransactionFactory,
   unwrapOption,
   type Rpc,
+  type Signature,
   type SolanaRpcApi,
 } from "@solana/kit";
 import {
@@ -45,8 +46,8 @@ import {
   addReward as addRewardIx,
   withdrawReward as withdrawRewardIx,
   endRevealPeriod as endRevealPeriodIx,
-  awaitComputationFinalization,
-  type ComputationResult,
+  awaitStakeFinalization,
+  awaitRevealStakeFinalization,
   getStakeAccountAddress as getStakeAccountAddressPda,
   fetchStakeAccount,
   getOpportunityMarketOptionAddress,
@@ -511,12 +512,6 @@ export class Platform {
     user.stakeAccounts.push(info);
   }
 
-  private assertComputationSucceeded(result: ComputationResult, operation: string): void {
-    if (result.error) {
-      throw new Error(`${operation} computation callback failed: ${result.error}`);
-    }
-  }
-
   // ============================================================================
   // Market Operations
   // ============================================================================
@@ -716,8 +711,21 @@ export class Platform {
 
     const results: { stakeAccountId: number; originalIndex: number }[] = [];
 
+    // Queue all stake txs while the on-chain staking window is open, then await MPC
+    // callbacks in parallel. Sequential await-per-stake can exceed short timeToStake values.
     await Promise.all(
       Array.from(purchasesByUser.entries()).map(async ([_userId, userPurchases]) => {
+        type PendingStake = {
+          user: ReturnType<Platform["getUser"]>;
+          purchase: StakePurchase;
+          originalIndex: number;
+          stakeAccountId: number;
+          stakeAccountAddress: Awaited<ReturnType<typeof getStakeAccountAddressPda>>[0];
+          computationOffset: bigint;
+          invocationSignature: Signature;
+        };
+        const pending: PendingStake[] = [];
+
         for (const { purchase: p, originalIndex } of userPurchases) {
           const user = this.getUser(p.userId);
 
@@ -725,9 +733,12 @@ export class Platform {
           const stakeAccountId = this.getNextStakeAccountId(user);
           const stakeAccountNonce = deserializeLE(randomBytes(16));
 
-          const [stakeAccountAddress] = await getStakeAccountAddressPda(p.userId, this.marketAddress, stakeAccountId);
+          const [stakeAccountAddress] = await getStakeAccountAddressPda(
+            p.userId,
+            this.marketAddress,
+            stakeAccountId,
+          );
 
-          // 1. init_stake_account
           const initIx = await initStakeAccount({
             payer: user.solanaKeypair,
             owner: user.solanaKeypair.address,
@@ -735,7 +746,6 @@ export class Platform {
             stakeAccountId,
           });
 
-          // 2. stake
           const inputNonce = randomBytes(16);
           const optionCiphertext = cipher.encrypt([BigInt(p.optionId)], inputNonce);
           const computationOffset = randomComputationOffset();
@@ -757,36 +767,58 @@ export class Platform {
               userPubkey: user.x25519Keypair.publicKey,
               stateNonce: stakeAccountNonce,
             },
-            this.getArciumConfig(computationOffset)
+            this.getArciumConfig(computationOffset),
           );
 
-          await sendTransaction(
+          const { signature: invocationSignature } = await sendTransaction(
             this.rpc,
             this.sendAndConfirm,
             user.solanaKeypair,
             [initIx, stakeInstruction],
-            { label: "Stake on option" }
+            { label: "Stake on option" },
           );
 
-          const result = await awaitComputationFinalization(this.rpc, computationOffset);
-          this.assertComputationSucceeded(result, "stakeOnOption");
-
-          // Fetch the stake account to get the encrypted state
-          const stakeAccountData = await fetchStakeAccount(this.rpc, stakeAccountAddress);
-
-          this.addStakeAccount(user, {
-            id: stakeAccountId,
-            amount: p.amount,
-            optionId: p.optionId,
-            encryptedOption: stakeAccountData.data.encryptedOption,
-            stateNonce: stakeAccountData.data.stateNonce,
-            encryptedOptionDisclosure: stakeAccountData.data.encryptedOptionDisclosure,
-            stateNonceDisclosure: stakeAccountData.data.stateNonceDisclosure,
+          pending.push({
+            user,
+            purchase: p,
+            originalIndex,
+            stakeAccountId,
+            stakeAccountAddress,
+            computationOffset,
+            invocationSignature,
           });
-
-          results.push({ stakeAccountId, originalIndex });
         }
-      })
+
+        await Promise.all(
+          pending.map(async (entry) => {
+            await awaitStakeFinalization(
+              this.rpc,
+              entry.invocationSignature,
+              this.getArciumConfig(entry.computationOffset),
+            );
+
+            const stakeAccountData = await fetchStakeAccount(
+              this.rpc,
+              entry.stakeAccountAddress,
+            );
+
+            this.addStakeAccount(entry.user, {
+              id: entry.stakeAccountId,
+              amount: entry.purchase.amount,
+              optionId: entry.purchase.optionId,
+              encryptedOption: stakeAccountData.data.encryptedOption,
+              stateNonce: stakeAccountData.data.stateNonce,
+              encryptedOptionDisclosure: stakeAccountData.data.encryptedOptionDisclosure,
+              stateNonceDisclosure: stakeAccountData.data.stateNonceDisclosure,
+            });
+
+            results.push({
+              stakeAccountId: entry.stakeAccountId,
+              originalIndex: entry.originalIndex,
+            });
+          }),
+        );
+      }),
     );
 
     results.sort((a, b) => a.originalIndex - b.originalIndex);
@@ -817,12 +849,15 @@ export class Platform {
         this.getArciumConfig(computationOffset)
       );
 
-      await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
+      const { signature } = await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
         label: `Reveal stake`,
       });
 
-      const result = await awaitComputationFinalization(this.rpc, computationOffset);
-      this.assertComputationSucceeded(result, "revealStake");
+      await awaitRevealStakeFinalization(
+        this.rpc,
+        signature,
+        this.getArciumConfig(computationOffset),
+      );
     }
   }
 

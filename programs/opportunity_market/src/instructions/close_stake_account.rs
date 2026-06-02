@@ -193,7 +193,7 @@ fn compute_winning_payout(
         Some(o) => o,
     };
 
-    if option.reward_bp.is_none() {
+    if option.reward_bp == 0 {
         return Ok(0);
     }
 
@@ -201,15 +201,22 @@ fn compute_winning_payout(
         return Ok(0);
     }
 
+    let active_bp = market.winning_option_active_bp;
+    require!(active_bp > 0, ErrorCode::NoFinalizedWinningOption);
+
     let user_score = stake_account.score.ok_or(ErrorCode::NotRevealed)?;
     let total_score = option.total_score;
 
     let reward = (user_score as u128)
         .checked_mul(market.reward_amount as u128)
         .ok_or(ErrorCode::Overflow)?
-        .checked_mul(option.reward_bp.unwrap_or(0) as u128)
+        .checked_mul(option.reward_bp as u128)
         .ok_or(ErrorCode::Overflow)?
-        .checked_div(total_score.checked_mul(10_000).ok_or(ErrorCode::Overflow)?)
+        .checked_div(
+            total_score
+                .checked_mul(active_bp as u128)
+                .ok_or(ErrorCode::Overflow)?,
+        )
         .ok_or(ErrorCode::Overflow)? as u64;
 
     let fees = stake_account.collected_fees;

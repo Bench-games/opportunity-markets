@@ -41,7 +41,7 @@ function loadObserverKeypair(): X25519Keypair {
   return generateX25519Keypair();
 }
 
-describe("OpportunityMarket", () => {
+describe("Opportunity markets", () => {
   // Anchor setup
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.OpportunityMarket as Program<OpportunityMarket>;
@@ -132,8 +132,7 @@ describe("OpportunityMarket", () => {
     expect(isSome(resolvedMarket.data.resolvedAtTimestamp)).to.be.true;
     expect(resolvedMarket.data.winningOptionAllocation).to.equal(10_000);
     const winningOption = await platform.fetchOptionData(winningOptionIndex);
-    expect(isSome(winningOption.data.rewardBp)).to.be.true;
-    expect(unwrapOption(winningOption.data.rewardBp)).to.equal(10_000);
+    expect(winningOption.data.rewardBp).to.equal(10_000);
 
     // Reveal stakes for winners
     const winners = platform.participants.filter(
@@ -408,8 +407,7 @@ describe("OpportunityMarket", () => {
     ];
     for (const { optionId, rewardBp } of expectedWinners) {
       const opt = await platform.fetchOptionData(optionId);
-      expect(isSome(opt.data.rewardBp)).to.be.true;
-      expect(unwrapOption(opt.data.rewardBp)).to.equal(rewardBp);
+      expect(opt.data.rewardBp).to.equal(rewardBp);
     }
 
     // Reveal all stake accounts
@@ -426,6 +424,8 @@ describe("OpportunityMarket", () => {
       platform.finalizeRevealStake(user1, optB, u1StakeIds[1]),
       platform.finalizeRevealStake(user2, optE, u2StakeIds[0]),
     ]);
+
+    expect((await platform.fetchMarket()).data.winningOptionActiveBp).to.equal(10_000);
 
     // Reclaim staked tokens for all accounts
     await platform.unstakeBatch([
@@ -741,8 +741,7 @@ describe("OpportunityMarket", () => {
     expect(isSome(market.data.resolvedAtTimestamp)).to.be.true;
     expect(market.data.winningOptionAllocation).to.equal(10_000);
     const optionAAccount = await platform.fetchOptionData(optionA);
-    expect(isSome(optionAAccount.data.rewardBp)).to.be.true;
-    expect(unwrapOption(optionAAccount.data.rewardBp)).to.equal(10_000);
+    expect(optionAAccount.data.rewardBp).to.equal(10_000);
   });
 
   it("allows adding more reward during staking", async () => {
@@ -1089,27 +1088,6 @@ describe("OpportunityMarket", () => {
       "Market collected_platform_fees should not have changed");
   });
 
-  it("pausing blocks staking, resuming allows it again", async () => {
-    const observer = loadObserverKeypair();
-
-    const platform = await Platform.initialize(provider, programId, {
-      rpcUrl: RPC_URL,
-      wsUrl: WS_URL,
-      numParticipants: 1,
-      airdropLamports: 2_000_000_000n,
-      initialTokenAmount: 2_000_000_000n,
-      marketConfig: {
-        rewardAmount: 1_000_000_000n,
-        timeToStake: 10n,
-        authorizedReaderPubkey: observer.publicKey,
-      },
-    });
-
-    await platform.openMarket();
-    const { optionId } = await platform.addOption();
-    const user = platform.participants[0];
-  });
-
   it("collects fee components correctly", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const stakeAmount = 100_000_000n;
@@ -1392,9 +1370,14 @@ describe("OpportunityMarket", () => {
 
     const stakeEnd = Number(await platform.openMarket());
     const { optionId } = await platform.addOption();
+    const user = platform.participants[0];
 
+    // At least one stake on the winning option must be revealed before reveal period can be ended.
+    const stakeAccountId = await platform.stakeOnOption(user, 1_000_000_000n, optionId);
     await sleepUntilOnChainTimestamp(stakeEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
     await platform.selectSingleWinningOption(optionId);
+    await platform.revealStake(user, stakeAccountId);
+    await platform.finalizeRevealStake(user, optionId, stakeAccountId);
 
     await platform.endRevealPeriod();
     expect((await platform.fetchMarket()).data.revealEnded).to.be.true;
@@ -1419,9 +1402,14 @@ describe("OpportunityMarket", () => {
 
     const stakeEnd = Number(await platform.openMarket());
     const { optionId } = await platform.addOption();
+    const user = platform.participants[0];
 
+    // At least one stake on the winning option must be revealed before reveal period can be ended.
+    const stakeAccountId = await platform.stakeOnOption(user, 1_000_000_000n, optionId);
     await sleepUntilOnChainTimestamp(stakeEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
     await platform.selectSingleWinningOption(optionId);
+    await platform.revealStake(user, stakeAccountId);
+    await platform.finalizeRevealStake(user, optionId, stakeAccountId);
 
     const nonAuthority = platform.getUserSigner(platform.participants[0]);
     await shouldThrowCustomError(

@@ -66,6 +66,8 @@ pub enum ErrorCode {
     CreatorMismatch,
     #[msg("Reveal period not over")]
     RevealPeriodNotOver,
+    #[msg("No winning option has a finalized stake")]
+    NoFinalizedWinningOption,
     #[msg("No reward to claim")]
     NoRewardToClaim,
     #[msg("Reward already claimed")]

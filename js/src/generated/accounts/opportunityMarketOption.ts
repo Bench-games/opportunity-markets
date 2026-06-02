@@ -17,10 +17,10 @@ import {
   fixEncoderSize,
   getAddressDecoder,
   getAddressEncoder,
+  getBooleanDecoder,
+  getBooleanEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getOptionDecoder,
-  getOptionEncoder,
   getStructDecoder,
   getStructEncoder,
   getU128Decoder,
@@ -34,16 +34,14 @@ import {
   transformEncoder,
   type Account,
   type Address,
-  type Codec,
-  type Decoder,
   type EncodedAccount,
-  type Encoder,
   type FetchAccountConfig,
   type FetchAccountsConfig,
+  type FixedSizeCodec,
+  type FixedSizeDecoder,
+  type FixedSizeEncoder,
   type MaybeAccount,
   type MaybeEncodedAccount,
-  type Option,
-  type OptionOrNullable,
   type ReadonlyUint8Array,
 } from '@solana/kit';
 
@@ -65,7 +63,10 @@ export type OpportunityMarketOption = {
   createdAt: bigint;
   totalStaked: bigint;
   totalScore: bigint;
-  rewardBp: Option<number>;
+  /** Non-zero iff this option is a winner; share of pool in basis points (0–10_000). */
+  rewardBp: number;
+  /** Set on first finalize for a winning option; gates adding `reward_bp` to `winning_option_active_bp`. */
+  includedInActiveBp: boolean;
 };
 
 export type OpportunityMarketOptionArgs = {
@@ -75,10 +76,13 @@ export type OpportunityMarketOptionArgs = {
   createdAt: number | bigint;
   totalStaked: number | bigint;
   totalScore: number | bigint;
-  rewardBp: OptionOrNullable<number>;
+  /** Non-zero iff this option is a winner; share of pool in basis points (0–10_000). */
+  rewardBp: number;
+  /** Set on first finalize for a winning option; gates adding `reward_bp` to `winning_option_active_bp`. */
+  includedInActiveBp: boolean;
 };
 
-export function getOpportunityMarketOptionEncoder(): Encoder<OpportunityMarketOptionArgs> {
+export function getOpportunityMarketOptionEncoder(): FixedSizeEncoder<OpportunityMarketOptionArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
@@ -88,7 +92,8 @@ export function getOpportunityMarketOptionEncoder(): Encoder<OpportunityMarketOp
       ['createdAt', getU64Encoder()],
       ['totalStaked', getU64Encoder()],
       ['totalScore', getU128Encoder()],
-      ['rewardBp', getOptionEncoder(getU16Encoder())],
+      ['rewardBp', getU16Encoder()],
+      ['includedInActiveBp', getBooleanEncoder()],
     ]),
     (value) => ({
       ...value,
@@ -97,7 +102,7 @@ export function getOpportunityMarketOptionEncoder(): Encoder<OpportunityMarketOp
   );
 }
 
-export function getOpportunityMarketOptionDecoder(): Decoder<OpportunityMarketOption> {
+export function getOpportunityMarketOptionDecoder(): FixedSizeDecoder<OpportunityMarketOption> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['bump', getU8Decoder()],
@@ -106,11 +111,12 @@ export function getOpportunityMarketOptionDecoder(): Decoder<OpportunityMarketOp
     ['createdAt', getU64Decoder()],
     ['totalStaked', getU64Decoder()],
     ['totalScore', getU128Decoder()],
-    ['rewardBp', getOptionDecoder(getU16Decoder())],
+    ['rewardBp', getU16Decoder()],
+    ['includedInActiveBp', getBooleanDecoder()],
   ]);
 }
 
-export function getOpportunityMarketOptionCodec(): Codec<
+export function getOpportunityMarketOptionCodec(): FixedSizeCodec<
   OpportunityMarketOptionArgs,
   OpportunityMarketOption
 > {

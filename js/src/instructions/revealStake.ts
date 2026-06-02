@@ -1,9 +1,13 @@
-import { type TransactionSigner, type Address } from "@solana/kit";
+import { type TransactionSigner, type Address, type Rpc, type Signature, type SolanaRpcApi } from "@solana/kit";
 import {
   getRevealStakeInstructionAsync,
   type RevealStakeInstruction,
 } from "../generated";
 import { type ArciumConfig, getComputeAccounts } from "../arcium/computeAccounts";
+import {
+  awaitComputationFinalization,
+  type AwaitComputationOptions,
+} from "../arcium/awaitFinalizeComputation";
 import { type BaseInstructionParams } from "./instructionParams";
 
 export interface RevealStakeParams extends BaseInstructionParams {
@@ -29,4 +33,14 @@ export async function revealStake(
     },
     programAddress ? { programAddress } : undefined
   );
+}
+
+export async function awaitRevealStakeFinalization(
+  rpc: Rpc<SolanaRpcApi>,
+  txSignature: Signature,
+  config: ArciumConfig,
+  options?: AwaitComputationOptions,
+): Promise<Signature> {
+  const { computationAccount } = getComputeAccounts("reveal_stake", config);
+  return awaitComputationFinalization(rpc, computationAccount, txSignature, options);
 }

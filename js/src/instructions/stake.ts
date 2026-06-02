@@ -1,9 +1,13 @@
-import { type TransactionSigner, type Address } from "@solana/kit";
+import { type TransactionSigner, type Address, type Rpc, type Signature, type SolanaRpcApi } from "@solana/kit";
 import {
   getStakeInstructionAsync,
   type StakeInstruction,
 } from "../generated";
 import { type ArciumConfig, getComputeAccounts } from "../arcium/computeAccounts";
+import {
+  awaitComputationFinalization,
+  type AwaitComputationOptions,
+} from "../arcium/awaitFinalizeComputation";
 import { type ByteArray, toNumberArray } from "../utils";
 import { type BaseInstructionParams } from "./instructionParams";
 
@@ -70,4 +74,14 @@ export async function stake(
     },
     programAddress ? { programAddress } : undefined,
   );
+}
+
+export async function awaitStakeFinalization(
+  rpc: Rpc<SolanaRpcApi>,
+  txSignature: Signature,
+  config: ArciumConfig,
+  options?: AwaitComputationOptions,
+): Promise<Signature> {
+  const { computationAccount } = getComputeAccounts("stake", config);
+  return awaitComputationFinalization(rpc, computationAccount, txSignature, options);
 }

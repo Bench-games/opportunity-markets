@@ -1,33 +1,21 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
-import { address, some, unwrapOption, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory } from "@solana/kit";
+import { address, some, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory } from "@solana/kit";
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
 import { OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION } from "../js/src";
 import { OpportunityMarket } from "../target/types/opportunity_market";
 import { Platform } from "./utils/platform";
 import { initializeAllCompDefs } from "./utils/comp-defs";
-import { sleepUntilOnChainTimestamp } from "./utils/sleep";
 import { generateX25519Keypair } from "../js/src/x25519/keypair";
 import { shouldThrowCustomError } from "./utils/errors";
 import * as fs from "fs";
 import * as os from "os";
 
-const ONCHAIN_TIMESTAMP_BUFFER_SECONDS = 6;
 const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 const WS_URL = RPC_URL.replace("http", "ws").replace(":8899", ":8900");
 
-async function waitForMinRevealPeriod(platform: Platform): Promise<void> {
-  const resolvedAt = Number(
-    unwrapOption((await platform.fetchMarket()).data.resolvedAtTimestamp),
-  );
-  const minReveal = Number((await platform.fetchMarket()).data.minRevealPeriodSeconds);
-  await sleepUntilOnChainTimestamp(
-    resolvedAt + minReveal + ONCHAIN_TIMESTAMP_BUFFER_SECONDS,
-  );
-}
-
-describe("winning_option_active_bp", () => {
+describe("Redistributes rewards in unstaked options", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.OpportunityMarket as Program<OpportunityMarket>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
@@ -141,7 +129,6 @@ describe("winning_option_active_bp", () => {
     expect((await platform.fetchOptionData(optC)).data.includedInActiveBp).to.be.false;
 
     await platform.unstake(user, saA);
-    await waitForMinRevealPeriod(platform);
     await platform.endRevealPeriod();
 
     const rpc = platform.getRpc();
@@ -154,7 +141,6 @@ describe("winning_option_active_bp", () => {
   });
 
   it("blocks end_reveal_period when no winning option is finalized", async () => {
-    const minRevealPeriodSeconds = 5n;
     const observer = generateX25519Keypair();
 
     const platform = await Platform.initialize(provider, programId, {
@@ -163,7 +149,6 @@ describe("winning_option_active_bp", () => {
       numParticipants: 1,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
-      minRevealPeriodSeconds,
       marketConfig: {
         rewardAmount: 1_000_000n,
         timeToStake: 5n,
@@ -192,7 +177,6 @@ describe("winning_option_active_bp", () => {
 
     expect((await platform.fetchMarket()).data.winningOptionActiveBp).to.equal(0);
 
-    await waitForMinRevealPeriod(platform);
     await shouldThrowCustomError(
       () => platform.endRevealPeriod(),
       OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION,

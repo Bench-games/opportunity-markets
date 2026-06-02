@@ -41,7 +41,7 @@ function loadObserverKeypair(): X25519Keypair {
   return generateX25519Keypair();
 }
 
-describe("OpportunityMarket", () => {
+describe("Opportunity markets", () => {
   // Anchor setup
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.OpportunityMarket as Program<OpportunityMarket>;
@@ -1370,9 +1370,14 @@ describe("OpportunityMarket", () => {
 
     const stakeEnd = Number(await platform.openMarket());
     const { optionId } = await platform.addOption();
+    const user = platform.participants[0];
 
+    // At least one stake on the winning option must be revealed before reveal period can be ended.
+    const stakeAccountId = await platform.stakeOnOption(user, 1_000_000_000n, optionId);
     await sleepUntilOnChainTimestamp(stakeEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
     await platform.selectSingleWinningOption(optionId);
+    await platform.revealStake(user, stakeAccountId);
+    await platform.finalizeRevealStake(user, optionId, stakeAccountId);
 
     await platform.endRevealPeriod();
     expect((await platform.fetchMarket()).data.revealEnded).to.be.true;
@@ -1397,9 +1402,14 @@ describe("OpportunityMarket", () => {
 
     const stakeEnd = Number(await platform.openMarket());
     const { optionId } = await platform.addOption();
+    const user = platform.participants[0];
 
+    // At least one stake on the winning option must be revealed before reveal period can be ended.
+    const stakeAccountId = await platform.stakeOnOption(user, 1_000_000_000n, optionId);
     await sleepUntilOnChainTimestamp(stakeEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
     await platform.selectSingleWinningOption(optionId);
+    await platform.revealStake(user, stakeAccountId);
+    await platform.finalizeRevealStake(user, optionId, stakeAccountId);
 
     const nonAuthority = platform.getUserSigner(platform.participants[0]);
     await shouldThrowCustomError(

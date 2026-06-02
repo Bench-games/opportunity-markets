@@ -14,6 +14,7 @@ import {
   sendAndConfirmTransactionFactory,
   unwrapOption,
   type Rpc,
+  type Signature,
   type SolanaRpcApi,
 } from "@solana/kit";
 import {
@@ -45,8 +46,8 @@ import {
   addReward as addRewardIx,
   withdrawReward as withdrawRewardIx,
   endRevealPeriod as endRevealPeriodIx,
-  awaitComputationFinalization,
-  type ComputationResult,
+  awaitStakeFinalization,
+  awaitRevealStakeFinalization,
   getStakeAccountAddress as getStakeAccountAddressPda,
   fetchStakeAccount,
   getOpportunityMarketOptionAddress,
@@ -511,12 +512,6 @@ export class Platform {
     user.stakeAccounts.push(info);
   }
 
-  private assertComputationSucceeded(result: ComputationResult, operation: string): void {
-    if (result.error) {
-      throw new Error(`${operation} computation callback failed: ${result.error}`);
-    }
-  }
-
   // ============================================================================
   // Market Operations
   // ============================================================================
@@ -727,6 +722,7 @@ export class Platform {
           stakeAccountId: number;
           stakeAccountAddress: Awaited<ReturnType<typeof getStakeAccountAddressPda>>[0];
           computationOffset: bigint;
+          invocationSignature: Signature;
         };
         const pending: PendingStake[] = [];
 
@@ -774,7 +770,7 @@ export class Platform {
             this.getArciumConfig(computationOffset),
           );
 
-          await sendTransaction(
+          const { signature: invocationSignature } = await sendTransaction(
             this.rpc,
             this.sendAndConfirm,
             user.solanaKeypair,
@@ -789,16 +785,17 @@ export class Platform {
             stakeAccountId,
             stakeAccountAddress,
             computationOffset,
+            invocationSignature,
           });
         }
 
         await Promise.all(
           pending.map(async (entry) => {
-            const result = await awaitComputationFinalization(
+            await awaitStakeFinalization(
               this.rpc,
-              entry.computationOffset,
+              entry.invocationSignature,
+              this.getArciumConfig(entry.computationOffset),
             );
-            this.assertComputationSucceeded(result, "stakeOnOption");
 
             const stakeAccountData = await fetchStakeAccount(
               this.rpc,
@@ -852,12 +849,15 @@ export class Platform {
         this.getArciumConfig(computationOffset)
       );
 
-      await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
+      const { signature } = await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
         label: `Reveal stake`,
       });
 
-      const result = await awaitComputationFinalization(this.rpc, computationOffset);
-      this.assertComputationSucceeded(result, "revealStake");
+      await awaitRevealStakeFinalization(
+        this.rpc,
+        signature,
+        this.getArciumConfig(computationOffset),
+      );
     }
   }
 

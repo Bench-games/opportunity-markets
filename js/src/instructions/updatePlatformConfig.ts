@@ -1,4 +1,4 @@
-import { type TransactionSigner, type Instruction } from "@solana/kit";
+import { type TransactionSigner, type Address, type Instruction } from "@solana/kit";
 import {
   fetchMaybePlatformConfig,
   getUpdatePlatformConfigInstruction,
@@ -12,9 +12,9 @@ export interface UpdatePlatformConfigParams extends BaseInstructionParams {
   platformFeeBp: number;
   rewardPoolFeeBp: number;
   creatorFeeBp: number;
+  revealAuthority: Address;
   minTimeToStakeSeconds: bigint;
-  minRevealPeriodSeconds: bigint;
-  maxRevealPeriodSeconds: bigint;
+  revealPeriodSeconds: bigint;
   marketResolutionDeadlineSeconds: bigint;
 }
 
@@ -29,9 +29,9 @@ export async function updatePlatformConfig(
     platformFeeBp,
     rewardPoolFeeBp,
     creatorFeeBp,
+    revealAuthority,
     minTimeToStakeSeconds,
-    minRevealPeriodSeconds,
-    maxRevealPeriodSeconds,
+    revealPeriodSeconds,
     marketResolutionDeadlineSeconds,
   } = params;
 
@@ -54,9 +54,9 @@ export async function updatePlatformConfig(
       platformFeeBp,
       rewardPoolFeeBp,
       creatorFeeBp,
+      revealAuthority,
       minTimeToStakeSeconds,
-      minRevealPeriodSeconds,
-      maxRevealPeriodSeconds,
+      revealPeriodSeconds,
       marketResolutionDeadlineSeconds,
     },
     programAddress ? { programAddress } : undefined,

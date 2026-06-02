@@ -5,8 +5,6 @@ export * from "./stake";
 export * from "./revealStake";
 export * from "./addMarketOption";
 export * from "./openMarket";
-export * from "./pauseStaking";
-export * from "./resumeStaking";
 export * from "./setWinningOption";
 export * from "./resolveMarket";
 export * from "./endRevealPeriod";

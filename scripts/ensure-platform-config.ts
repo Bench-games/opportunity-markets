@@ -66,9 +66,11 @@ async function main() {
   const feeClaimAuthority = config.feeClaimAuthority ? address(config.feeClaimAuthority) : payer.address;
 
   const minTimeToStakeSeconds = BigInt(config.minTimeToStakeSeconds);
-  const minRevealPeriodSeconds = BigInt(config.minRevealPeriodSeconds);
-  const maxRevealPeriodSeconds = BigInt(config.maxRevealPeriodSeconds);
+  const revealPeriodSeconds = BigInt(config.revealPeriodSeconds);
   const marketResolutionDeadlineSeconds = BigInt(config.marketResolutionDeadlineSeconds);
+  const revealAuthority = config.revealAuthority
+    ? address(config.revealAuthority)
+    : payer.address;
 
   const [platformConfigAddress] = await getPlatformConfigAddress(
     payer.address,
@@ -88,8 +90,8 @@ async function main() {
   console.log(`Creator fee:                ${config.creatorFeeBp} bp`);
   console.log(`Fee claim authority:        ${feeClaimAuthority}`);
   console.log(`Min time to stake (s):      ${minTimeToStakeSeconds}`);
-  console.log(`Min reveal period (s):      ${minRevealPeriodSeconds}`);
-  console.log(`Max reveal period (s):      ${maxRevealPeriodSeconds}`);
+  console.log(`Reveal period (s):          ${revealPeriodSeconds}`);
+  console.log(`Reveal authority:           ${revealAuthority}`);
   console.log(`Resolution deadline (s):    ${marketResolutionDeadlineSeconds}`);
 
   const ix = existing.exists
@@ -101,8 +103,8 @@ async function main() {
         rewardPoolFeeBp: config.rewardPoolFeeBp,
         creatorFeeBp: config.creatorFeeBp,
         minTimeToStakeSeconds,
-        minRevealPeriodSeconds,
-        maxRevealPeriodSeconds,
+        revealAuthority,
+        revealPeriodSeconds,
         marketResolutionDeadlineSeconds,
       })
     : await createPlatformConfig(rpc, {
@@ -113,9 +115,9 @@ async function main() {
         rewardPoolFeeBp: config.rewardPoolFeeBp,
         creatorFeeBp: config.creatorFeeBp,
         feeClaimAuthority,
+        revealAuthority,
         minTimeToStakeSeconds,
-        minRevealPeriodSeconds,
-        maxRevealPeriodSeconds,
+        revealPeriodSeconds,
         marketResolutionDeadlineSeconds,
       });
 

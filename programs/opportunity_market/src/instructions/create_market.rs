@@ -56,7 +56,6 @@ pub fn create_market(
     market_authority: Pubkey,
     allow_unstaking_early: bool,
     authorized_reader_pubkey: [u8; 32],
-    reveal_period_authority: Pubkey,
     earliness_cutoff_seconds: u64,
     earliness_multiplier: u16,
     min_stake_amount: u64,
@@ -74,8 +73,7 @@ pub fn create_market(
         .accounts
         .platform_config
         .market_resolution_deadline_seconds;
-    let min_reveal_period_seconds = ctx.accounts.platform_config.min_reveal_period_seconds;
-    let max_reveal_period_seconds = ctx.accounts.platform_config.max_reveal_period_seconds;
+    let reveal_period_seconds = ctx.accounts.platform_config.reveal_period_seconds;
     let market = &mut ctx.accounts.market;
     let mint = ctx.accounts.token_mint.key();
     market.bump = ctx.bumps.market;
@@ -84,7 +82,6 @@ pub fn create_market(
     market.platform = platform_key;
     market.mint = mint;
     market.market_authority = market_authority;
-    market.reveal_period_authority = reveal_period_authority;
     market.earliness_cutoff_seconds = earliness_cutoff_seconds;
     market.earliness_multiplier = earliness_multiplier;
     market.allow_unstaking_early = allow_unstaking_early;
@@ -92,8 +89,7 @@ pub fn create_market(
     market.fee_rates = ctx.accounts.platform_config.fee_rates;
     market.creator_fee_claimer = creator_fee_claimer;
     market.market_resolution_deadline_seconds = market_resolution_deadline_seconds;
-    market.min_reveal_period_seconds = min_reveal_period_seconds;
-    market.max_reveal_period_seconds = max_reveal_period_seconds;
+    market.reveal_period_seconds = reveal_period_seconds;
     market.min_stake_amount = min_stake_amount;
 
     emit_ts!(MarketCreatedEvent {
@@ -111,8 +107,7 @@ pub fn create_market(
         fee_rates: ctx.accounts.platform_config.fee_rates,
         creator_fee_claimer: creator_fee_claimer,
         market_resolution_deadline_seconds: market_resolution_deadline_seconds,
-        min_reveal_period_seconds: min_reveal_period_seconds,
-        max_reveal_period_seconds: max_reveal_period_seconds,
+        reveal_period_seconds: reveal_period_seconds,
     });
 
     Ok(())

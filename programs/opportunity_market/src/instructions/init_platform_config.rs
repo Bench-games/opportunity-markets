@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::{
-    MAX_MAX_REVEAL_PERIOD_SECONDS, MAX_PLATFORM_NAME_LEN, MIN_MAX_REVEAL_PERIOD_SECONDS,
-    MIN_PLATFORM_NAME_LEN, PLATFORM_CONFIG_SEED,
+    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MIN_PLATFORM_NAME_LEN,
+    MIN_REVEAL_PERIOD_SECONDS, PLATFORM_CONFIG_SEED,
 };
 #[cfg(feature = "production-settings")]
 use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
@@ -34,9 +34,9 @@ pub fn init_platform_config(
     reward_pool_fee_bp: u16,
     creator_fee_bp: u16,
     fee_claim_authority: Pubkey,
+    reveal_authority: Pubkey,
     min_time_to_stake_seconds: u64,
-    min_reveal_period_seconds: u64,
-    max_reveal_period_seconds: u64,
+    reveal_period_seconds: u64,
     market_resolution_deadline_seconds: u64,
 ) -> Result<()> {
     require!(
@@ -55,9 +55,7 @@ pub fn init_platform_config(
         ErrorCode::InvalidParameters
     );
     require!(
-        (MIN_MAX_REVEAL_PERIOD_SECONDS..=MAX_MAX_REVEAL_PERIOD_SECONDS)
-            .contains(&max_reveal_period_seconds)
-            && max_reveal_period_seconds > min_reveal_period_seconds,
+        (MIN_REVEAL_PERIOD_SECONDS..=MAX_REVEAL_PERIOD_SECONDS).contains(&reveal_period_seconds),
         ErrorCode::InvalidParameters
     );
 
@@ -67,9 +65,9 @@ pub fn init_platform_config(
     platform_config.update_authority = ctx.accounts.payer.key();
     platform_config.fee_rates = FeeRates::new(platform_fee_bp, reward_pool_fee_bp, creator_fee_bp)?;
     platform_config.fee_claim_authority = fee_claim_authority;
+    platform_config.reveal_authority = reveal_authority;
     platform_config.min_time_to_stake_seconds = min_time_to_stake_seconds;
-    platform_config.min_reveal_period_seconds = min_reveal_period_seconds;
-    platform_config.max_reveal_period_seconds = max_reveal_period_seconds;
+    platform_config.reveal_period_seconds = reveal_period_seconds;
     platform_config.market_resolution_deadline_seconds = market_resolution_deadline_seconds;
 
     Ok(())

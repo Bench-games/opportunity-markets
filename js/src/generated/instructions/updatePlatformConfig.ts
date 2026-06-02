@@ -10,6 +10,8 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
+  getAddressDecoder,
+  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getStructDecoder,
@@ -71,9 +73,9 @@ export type UpdatePlatformConfigInstructionData = {
   platformFeeBp: number;
   rewardPoolFeeBp: number;
   creatorFeeBp: number;
+  revealAuthority: Address;
   minTimeToStakeSeconds: bigint;
-  minRevealPeriodSeconds: bigint;
-  maxRevealPeriodSeconds: bigint;
+  revealPeriodSeconds: bigint;
   marketResolutionDeadlineSeconds: bigint;
 };
 
@@ -81,9 +83,9 @@ export type UpdatePlatformConfigInstructionDataArgs = {
   platformFeeBp: number;
   rewardPoolFeeBp: number;
   creatorFeeBp: number;
+  revealAuthority: Address;
   minTimeToStakeSeconds: number | bigint;
-  minRevealPeriodSeconds: number | bigint;
-  maxRevealPeriodSeconds: number | bigint;
+  revealPeriodSeconds: number | bigint;
   marketResolutionDeadlineSeconds: number | bigint;
 };
 
@@ -94,9 +96,9 @@ export function getUpdatePlatformConfigInstructionDataEncoder(): FixedSizeEncode
       ['platformFeeBp', getU16Encoder()],
       ['rewardPoolFeeBp', getU16Encoder()],
       ['creatorFeeBp', getU16Encoder()],
+      ['revealAuthority', getAddressEncoder()],
       ['minTimeToStakeSeconds', getU64Encoder()],
-      ['minRevealPeriodSeconds', getU64Encoder()],
-      ['maxRevealPeriodSeconds', getU64Encoder()],
+      ['revealPeriodSeconds', getU64Encoder()],
       ['marketResolutionDeadlineSeconds', getU64Encoder()],
     ]),
     (value) => ({
@@ -112,9 +114,9 @@ export function getUpdatePlatformConfigInstructionDataDecoder(): FixedSizeDecode
     ['platformFeeBp', getU16Decoder()],
     ['rewardPoolFeeBp', getU16Decoder()],
     ['creatorFeeBp', getU16Decoder()],
+    ['revealAuthority', getAddressDecoder()],
     ['minTimeToStakeSeconds', getU64Decoder()],
-    ['minRevealPeriodSeconds', getU64Decoder()],
-    ['maxRevealPeriodSeconds', getU64Decoder()],
+    ['revealPeriodSeconds', getU64Decoder()],
     ['marketResolutionDeadlineSeconds', getU64Decoder()],
   ]);
 }
@@ -138,9 +140,9 @@ export type UpdatePlatformConfigInput<
   platformFeeBp: UpdatePlatformConfigInstructionDataArgs['platformFeeBp'];
   rewardPoolFeeBp: UpdatePlatformConfigInstructionDataArgs['rewardPoolFeeBp'];
   creatorFeeBp: UpdatePlatformConfigInstructionDataArgs['creatorFeeBp'];
+  revealAuthority: UpdatePlatformConfigInstructionDataArgs['revealAuthority'];
   minTimeToStakeSeconds: UpdatePlatformConfigInstructionDataArgs['minTimeToStakeSeconds'];
-  minRevealPeriodSeconds: UpdatePlatformConfigInstructionDataArgs['minRevealPeriodSeconds'];
-  maxRevealPeriodSeconds: UpdatePlatformConfigInstructionDataArgs['maxRevealPeriodSeconds'];
+  revealPeriodSeconds: UpdatePlatformConfigInstructionDataArgs['revealPeriodSeconds'];
   marketResolutionDeadlineSeconds: UpdatePlatformConfigInstructionDataArgs['marketResolutionDeadlineSeconds'];
 };
 

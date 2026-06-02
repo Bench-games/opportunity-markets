@@ -17,7 +17,7 @@ pub use state::*;
 pub const COMP_DEF_OFFSET_STAKE: u32 = comp_def_offset("stake");
 pub const COMP_DEF_OFFSET_REVEAL_STAKE: u32 = comp_def_offset("reveal_stake");
 
-declare_id!("5qE385RZgBicx5QF3TGgjfe9jnHGZB64g6yggmyLw9f5");
+declare_id!("B3NCHsGBkdZrPYPJY2rjg4UwmyRotMmFWhxa5hMHwLeg");
 
 #[arcium_program]
 pub mod opportunity_market {
@@ -34,9 +34,9 @@ pub mod opportunity_market {
         reward_pool_fee_bp: u16,
         creator_fee_bp: u16,
         fee_claim_authority: Pubkey,
+        reveal_authority: Pubkey,
         min_time_to_stake_seconds: u64,
-        min_reveal_period_seconds: u64,
-        max_reveal_period_seconds: u64,
+        reveal_period_seconds: u64,
         market_resolution_deadline_seconds: u64,
     ) -> Result<()> {
         instructions::init_platform_config(
@@ -46,9 +46,9 @@ pub mod opportunity_market {
             reward_pool_fee_bp,
             creator_fee_bp,
             fee_claim_authority,
+            reveal_authority,
             min_time_to_stake_seconds,
-            min_reveal_period_seconds,
-            max_reveal_period_seconds,
+            reveal_period_seconds,
             market_resolution_deadline_seconds,
         )
     }
@@ -58,9 +58,9 @@ pub mod opportunity_market {
         platform_fee_bp: u16,
         reward_pool_fee_bp: u16,
         creator_fee_bp: u16,
+        reveal_authority: Pubkey,
         min_time_to_stake_seconds: u64,
-        min_reveal_period_seconds: u64,
-        max_reveal_period_seconds: u64,
+        reveal_period_seconds: u64,
         market_resolution_deadline_seconds: u64,
     ) -> Result<()> {
         instructions::update_platform_config(
@@ -68,9 +68,9 @@ pub mod opportunity_market {
             platform_fee_bp,
             reward_pool_fee_bp,
             creator_fee_bp,
+            reveal_authority,
             min_time_to_stake_seconds,
-            min_reveal_period_seconds,
-            max_reveal_period_seconds,
+            reveal_period_seconds,
             market_resolution_deadline_seconds,
         )
     }
@@ -93,7 +93,6 @@ pub mod opportunity_market {
         market_authority: Pubkey,
         allow_unstaking_early: bool,
         authorized_reader_pubkey: [u8; 32],
-        reveal_period_authority: Pubkey,
         earliness_cutoff_seconds: u64,
         earliness_multiplier: u16,
         min_stake_amount: u64,
@@ -105,7 +104,6 @@ pub mod opportunity_market {
             market_authority,
             allow_unstaking_early,
             authorized_reader_pubkey,
-            reveal_period_authority,
             earliness_cutoff_seconds,
             earliness_multiplier,
             min_stake_amount,
@@ -119,14 +117,6 @@ pub mod opportunity_market {
 
     pub fn open_market(ctx: Context<OpenMarket>, time_to_stake: u64) -> Result<()> {
         instructions::open_market(ctx, time_to_stake)
-    }
-
-    pub fn pause_staking(ctx: Context<PauseStaking>) -> Result<()> {
-        instructions::pause_staking(ctx)
-    }
-
-    pub fn resume_staking(ctx: Context<ResumeStaking>) -> Result<()> {
-        instructions::resume_staking(ctx)
     }
 
     pub fn set_winning_option(

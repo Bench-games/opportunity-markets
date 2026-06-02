@@ -54,10 +54,6 @@ pub enum ErrorCode {
     NoFeesToClaim,
     #[msg("Stake account is not in a stuck or failed state")]
     StakeNotStuck,
-    #[msg("Market staking is currently paused")]
-    MarketPaused,
-    #[msg("Market is not paused")]
-    MarketNotPaused,
     #[msg("Stake amount is below the market minimum")]
     StakeBelowMinimum,
     #[msg("Deadline for selecting winning options has passed")]

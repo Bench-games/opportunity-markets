@@ -117,7 +117,6 @@ export type CreateMarketInstructionData = {
   marketAuthority: Address;
   allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Array<number>;
-  revealPeriodAuthority: Address;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
   minStakeAmount: bigint;
@@ -129,7 +128,6 @@ export type CreateMarketInstructionDataArgs = {
   marketAuthority: Address;
   allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Array<number>;
-  revealPeriodAuthority: Address;
   earlinessCutoffSeconds: number | bigint;
   earlinessMultiplier: number;
   minStakeAmount: number | bigint;
@@ -144,7 +142,6 @@ export function getCreateMarketInstructionDataEncoder(): FixedSizeEncoder<Create
       ['marketAuthority', getAddressEncoder()],
       ['allowUnstakingEarly', getBooleanEncoder()],
       ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
-      ['revealPeriodAuthority', getAddressEncoder()],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['earlinessMultiplier', getU16Encoder()],
       ['minStakeAmount', getU64Encoder()],
@@ -161,7 +158,6 @@ export function getCreateMarketInstructionDataDecoder(): FixedSizeDecoder<Create
     ['marketAuthority', getAddressDecoder()],
     ['allowUnstakingEarly', getBooleanDecoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
-    ['revealPeriodAuthority', getAddressDecoder()],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['earlinessMultiplier', getU16Decoder()],
     ['minStakeAmount', getU64Decoder()],
@@ -204,7 +200,6 @@ export type CreateMarketAsyncInput<
   marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
   allowUnstakingEarly: CreateMarketInstructionDataArgs['allowUnstakingEarly'];
   authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
-  revealPeriodAuthority: CreateMarketInstructionDataArgs['revealPeriodAuthority'];
   earlinessCutoffSeconds: CreateMarketInstructionDataArgs['earlinessCutoffSeconds'];
   earlinessMultiplier: CreateMarketInstructionDataArgs['earlinessMultiplier'];
   minStakeAmount: CreateMarketInstructionDataArgs['minStakeAmount'];
@@ -387,7 +382,6 @@ export type CreateMarketInput<
   marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
   allowUnstakingEarly: CreateMarketInstructionDataArgs['allowUnstakingEarly'];
   authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
-  revealPeriodAuthority: CreateMarketInstructionDataArgs['revealPeriodAuthority'];
   earlinessCutoffSeconds: CreateMarketInstructionDataArgs['earlinessCutoffSeconds'];
   earlinessMultiplier: CreateMarketInstructionDataArgs['earlinessMultiplier'];
   minStakeAmount: CreateMarketInstructionDataArgs['minStakeAmount'];

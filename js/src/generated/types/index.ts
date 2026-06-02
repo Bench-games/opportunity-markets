@@ -47,8 +47,6 @@ export * from './stakedEvent';
 export * from './stakeOutput';
 export * from './stakeOutputStruct0';
 export * from './stakeRevealedEvent';
-export * from './stakingPausedEvent';
-export * from './stakingResumedEvent';
 export * from './stuckStakeClosedEvent';
 export * from './timestamp';
 export * from './unstakedEvent';

@@ -4,8 +4,8 @@
   "rewardPoolFeeBp": 0,
   "creatorFeeBp": 0,
   "feeClaimAuthority": "GoaHvr9RwFqDHH7aqC8qWKTVgPkKApq5RhKzJvTVNKm5",
+  "revealAuthority": "GoaHvr9RwFqDHH7aqC8qWKTVgPkKApq5RhKzJvTVNKm5",
   "minTimeToStakeSeconds": 3600,
-  "minRevealPeriodSeconds": 86400,
-  "maxRevealPeriodSeconds": 2592000,
+  "revealPeriodSeconds": 2592000,
   "marketResolutionDeadlineSeconds": 604800
 }

@@ -51,8 +51,7 @@ export type MarketCreatedEvent = {
   feeRates: FeeRates;
   creatorFeeClaimer: Address;
   marketResolutionDeadlineSeconds: bigint;
-  minRevealPeriodSeconds: bigint;
-  maxRevealPeriodSeconds: bigint;
+  revealPeriodSeconds: bigint;
   timestamp: bigint;
 };
 
@@ -71,8 +70,7 @@ export type MarketCreatedEventArgs = {
   feeRates: FeeRatesArgs;
   creatorFeeClaimer: Address;
   marketResolutionDeadlineSeconds: number | bigint;
-  minRevealPeriodSeconds: number | bigint;
-  maxRevealPeriodSeconds: number | bigint;
+  revealPeriodSeconds: number | bigint;
   timestamp: number | bigint;
 };
 
@@ -92,8 +90,7 @@ export function getMarketCreatedEventEncoder(): FixedSizeEncoder<MarketCreatedEv
     ['feeRates', getFeeRatesEncoder()],
     ['creatorFeeClaimer', getAddressEncoder()],
     ['marketResolutionDeadlineSeconds', getU64Encoder()],
-    ['minRevealPeriodSeconds', getU64Encoder()],
-    ['maxRevealPeriodSeconds', getU64Encoder()],
+    ['revealPeriodSeconds', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
 }
@@ -114,8 +111,7 @@ export function getMarketCreatedEventDecoder(): FixedSizeDecoder<MarketCreatedEv
     ['feeRates', getFeeRatesDecoder()],
     ['creatorFeeClaimer', getAddressDecoder()],
     ['marketResolutionDeadlineSeconds', getU64Decoder()],
-    ['minRevealPeriodSeconds', getU64Decoder()],
-    ['maxRevealPeriodSeconds', getU64Decoder()],
+    ['revealPeriodSeconds', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);
 }

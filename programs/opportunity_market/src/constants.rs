@@ -14,8 +14,8 @@ pub const MIN_MARKET_RESOLUTION_DEADLINE_SECONDS: u64 = 7 * 24 * 60 * 60;
 pub const MIN_TIME_TO_STAKE_FLOOR_SECONDS: u64 = 24 * 60 * 60;
 
 /// Bounds for the deadline after which end_reveal_period becomes permissionless.
-pub const MIN_MAX_REVEAL_PERIOD_SECONDS: u64 = 7 * 24 * 60 * 60;
-pub const MAX_MAX_REVEAL_PERIOD_SECONDS: u64 = 60 * 24 * 60 * 60;
+pub const MIN_REVEAL_PERIOD_SECONDS: u64 = 24 * 60 * 60; // 1 day
+pub const MAX_REVEAL_PERIOD_SECONDS: u64 = 60 * 24 * 60 * 60; // 60 days
 
 // 2* PRECISION
 pub const MAX_EARLINESS_MULTIPLIER: u16 = 20_000;

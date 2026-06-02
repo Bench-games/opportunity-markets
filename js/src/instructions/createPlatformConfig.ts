@@ -13,9 +13,9 @@ export interface CreatePlatformConfigParams extends BaseInstructionParams {
   rewardPoolFeeBp: number;
   creatorFeeBp: number;
   feeClaimAuthority: Address;
+  revealAuthority: Address;
   minTimeToStakeSeconds: bigint;
-  minRevealPeriodSeconds: bigint;
-  maxRevealPeriodSeconds: bigint;
+  revealPeriodSeconds: bigint;
   marketResolutionDeadlineSeconds: bigint;
 }
 
@@ -31,9 +31,9 @@ export async function createPlatformConfig(
     rewardPoolFeeBp,
     creatorFeeBp,
     feeClaimAuthority,
+    revealAuthority,
     minTimeToStakeSeconds,
-    minRevealPeriodSeconds,
-    maxRevealPeriodSeconds,
+    revealPeriodSeconds,
     marketResolutionDeadlineSeconds,
   } = params;
 
@@ -57,9 +57,9 @@ export async function createPlatformConfig(
       rewardPoolFeeBp,
       creatorFeeBp,
       feeClaimAuthority,
+      revealAuthority,
       minTimeToStakeSeconds,
-      minRevealPeriodSeconds,
-      maxRevealPeriodSeconds,
+      revealPeriodSeconds,
       marketResolutionDeadlineSeconds,
     },
     programAddress ? { programAddress } : undefined,

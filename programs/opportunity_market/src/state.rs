@@ -26,10 +26,11 @@ pub struct PlatformConfig {
 
     pub min_time_to_stake_seconds: u64,
 
-    // Reveal period can be closed within this time-window by market authority.
-    // After max time has passed, end_reveal_period becomes permissionless.
-    pub min_reveal_period_seconds: u64,
-    pub max_reveal_period_seconds: u64,
+    // Can end the reveal period at any time after market resolution.
+    pub reveal_authority: Pubkey,
+
+    // After this duration from resolution, end_reveal_period becomes permissionless.
+    pub reveal_period_seconds: u64,
 }
 
 /// Whitelisted token per platform
@@ -66,8 +67,6 @@ pub struct OpportunityMarket {
 
     pub market_authority: Pubkey,
 
-    pub reveal_period_authority: Pubkey,
-
     // SPL token mint for this market (vote tokens and rewards)
     pub mint: Pubkey,
 
@@ -81,8 +80,6 @@ pub struct OpportunityMarket {
 
     // Public key for voluntary disclosure of encrypted stake data
     pub authorized_reader_pubkey: [u8; 32],
-
-    pub staking_paused: bool,
 
     pub fee_rates: FeeRates,
 
@@ -98,9 +95,8 @@ pub struct OpportunityMarket {
     // Snapshot from platform at create time.
     pub market_resolution_deadline_seconds: u64,
 
-    pub min_reveal_period_seconds: u64,
-
-    pub max_reveal_period_seconds: u64,
+    // Snapshot from platform at create time.
+    pub reveal_period_seconds: u64,
 
     pub reveal_ended: bool,
 

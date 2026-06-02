@@ -24,6 +24,7 @@ import {
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
+  type ReadonlyAccount,
   type ReadonlySignerAccount,
   type ReadonlyUint8Array,
   type TransactionSigner,
@@ -46,6 +47,7 @@ export type EndRevealPeriodInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountSigner extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
+  TAccountPlatformConfig extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
   InstructionWithData<ReadonlyUint8Array> &
@@ -58,6 +60,9 @@ export type EndRevealPeriodInstruction<
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
+      TAccountPlatformConfig extends string
+        ? ReadonlyAccount<TAccountPlatformConfig>
+        : TAccountPlatformConfig,
       ...TRemainingAccounts,
     ]
   >;
@@ -94,19 +99,31 @@ export function getEndRevealPeriodInstructionDataCodec(): FixedSizeCodec<
 export type EndRevealPeriodInput<
   TAccountSigner extends string = string,
   TAccountMarket extends string = string,
+  TAccountPlatformConfig extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
   market: Address<TAccountMarket>;
+  platformConfig: Address<TAccountPlatformConfig>;
 };
 
 export function getEndRevealPeriodInstruction<
   TAccountSigner extends string,
   TAccountMarket extends string,
+  TAccountPlatformConfig extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: EndRevealPeriodInput<TAccountSigner, TAccountMarket>,
+  input: EndRevealPeriodInput<
+    TAccountSigner,
+    TAccountMarket,
+    TAccountPlatformConfig
+  >,
   config?: { programAddress?: TProgramAddress }
-): EndRevealPeriodInstruction<TProgramAddress, TAccountSigner, TAccountMarket> {
+): EndRevealPeriodInstruction<
+  TProgramAddress,
+  TAccountSigner,
+  TAccountMarket,
+  TAccountPlatformConfig
+> {
   // Program address.
   const programAddress =
     config?.programAddress ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
@@ -115,6 +132,7 @@ export function getEndRevealPeriodInstruction<
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: false },
     market: { value: input.market ?? null, isWritable: true },
+    platformConfig: { value: input.platformConfig ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
     keyof typeof originalAccounts,
@@ -126,13 +144,15 @@ export function getEndRevealPeriodInstruction<
     accounts: [
       getAccountMeta(accounts.signer),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.platformConfig),
     ],
     data: getEndRevealPeriodInstructionDataEncoder().encode({}),
     programAddress,
   } as EndRevealPeriodInstruction<
     TProgramAddress,
     TAccountSigner,
-    TAccountMarket
+    TAccountMarket,
+    TAccountPlatformConfig
   >);
 }
 
@@ -144,6 +164,7 @@ export type ParsedEndRevealPeriodInstruction<
   accounts: {
     signer: TAccountMetas[0];
     market: TAccountMetas[1];
+    platformConfig: TAccountMetas[2];
   };
   data: EndRevealPeriodInstructionData;
 };
@@ -156,7 +177,7 @@ export function parseEndRevealPeriodInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedEndRevealPeriodInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 2) {
+  if (instruction.accounts.length < 3) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -168,7 +189,11 @@ export function parseEndRevealPeriodInstruction<
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: { signer: getNextAccount(), market: getNextAccount() },
+    accounts: {
+      signer: getNextAccount(),
+      market: getNextAccount(),
+      platformConfig: getNextAccount(),
+    },
     data: getEndRevealPeriodInstructionDataDecoder().decode(instruction.data),
   };
 }

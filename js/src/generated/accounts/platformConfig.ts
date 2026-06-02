@@ -70,8 +70,8 @@ export type PlatformConfig = {
   feeRates: FeeRates;
   marketResolutionDeadlineSeconds: bigint;
   minTimeToStakeSeconds: bigint;
-  minRevealPeriodSeconds: bigint;
-  maxRevealPeriodSeconds: bigint;
+  revealAuthority: Address;
+  revealPeriodSeconds: bigint;
 };
 
 export type PlatformConfigArgs = {
@@ -82,8 +82,8 @@ export type PlatformConfigArgs = {
   feeRates: FeeRatesArgs;
   marketResolutionDeadlineSeconds: number | bigint;
   minTimeToStakeSeconds: number | bigint;
-  minRevealPeriodSeconds: number | bigint;
-  maxRevealPeriodSeconds: number | bigint;
+  revealAuthority: Address;
+  revealPeriodSeconds: number | bigint;
 };
 
 export function getPlatformConfigEncoder(): Encoder<PlatformConfigArgs> {
@@ -97,8 +97,8 @@ export function getPlatformConfigEncoder(): Encoder<PlatformConfigArgs> {
       ['feeRates', getFeeRatesEncoder()],
       ['marketResolutionDeadlineSeconds', getU64Encoder()],
       ['minTimeToStakeSeconds', getU64Encoder()],
-      ['minRevealPeriodSeconds', getU64Encoder()],
-      ['maxRevealPeriodSeconds', getU64Encoder()],
+      ['revealAuthority', getAddressEncoder()],
+      ['revealPeriodSeconds', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: PLATFORM_CONFIG_DISCRIMINATOR })
   );
@@ -114,8 +114,8 @@ export function getPlatformConfigDecoder(): Decoder<PlatformConfig> {
     ['feeRates', getFeeRatesDecoder()],
     ['marketResolutionDeadlineSeconds', getU64Decoder()],
     ['minTimeToStakeSeconds', getU64Decoder()],
-    ['minRevealPeriodSeconds', getU64Decoder()],
-    ['maxRevealPeriodSeconds', getU64Decoder()],
+    ['revealAuthority', getAddressDecoder()],
+    ['revealPeriodSeconds', getU64Decoder()],
   ]);
 }
 

@@ -31,8 +31,7 @@ pub struct MarketCreatedEvent {
     pub fee_rates: FeeRates,
     pub creator_fee_claimer: Pubkey,
     pub market_resolution_deadline_seconds: u64,
-    pub min_reveal_period_seconds: u64,
-    pub max_reveal_period_seconds: u64,
+    pub reveal_period_seconds: u64,
     pub timestamp: i64,
 }
 
@@ -187,18 +186,6 @@ pub struct AllowedMintInitializedEvent {
     pub allowed_mint: Pubkey,
     pub platform: Pubkey,
     pub mint: Pubkey,
-    pub timestamp: i64,
-}
-
-#[event]
-pub struct StakingPausedEvent {
-    pub market: Pubkey,
-    pub timestamp: i64,
-}
-
-#[event]
-pub struct StakingResumedEvent {
-    pub market: Pubkey,
     pub timestamp: i64,
 }
 

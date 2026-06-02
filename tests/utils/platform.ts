@@ -12,6 +12,7 @@ import {
   createSolanaRpcSubscriptions,
   lamports,
   sendAndConfirmTransactionFactory,
+  isNone,
   unwrapOption,
   type Rpc,
   type Signature,
@@ -38,7 +39,9 @@ import {
   resolveMarket as resolveMarketIx,
   revealStake,
   finalizeRevealStake,
+  claimRewards,
   closeStakeAccount,
+  closeUnrevealedStakeAccount,
   closeOptionAccount,
   closeStuckStakeAccount as closeStuckStakeAccountIx,
   unstake as unstakeIx,
@@ -891,18 +894,84 @@ export class Platform {
     await this.finalizeRevealStakeBatch([{ userId, optionId, stakeAccountId }]);
   }
 
-  async closeStakeAccountBatch(closes: CloseRequest[]): Promise<void> {
+  private async getStakeSettlementAccounts(
+    userId: Address,
+    optionId: number,
+    stakeAccountId: number
+  ): Promise<{
+    user: TestUser;
+    stakeAccount: Awaited<ReturnType<typeof getStakeAccountAddressPda>>[0];
+    option: Awaited<ReturnType<typeof getOpportunityMarketOptionAddress>>[0];
+  }> {
+    const user = this.getUser(userId);
+    const [stakeAccount] = await getStakeAccountAddressPda(
+      userId,
+      this.marketAddress,
+      stakeAccountId
+    );
+    const [option] = await getOpportunityMarketOptionAddress(this.marketAddress, optionId);
+    return { user, stakeAccount, option };
+  }
+
+  private stakeNeedsRewardClaim(
+    stake: Awaited<ReturnType<typeof fetchStakeAccount>>,
+    option: Awaited<ReturnType<typeof fetchOpportunityMarketOption>>
+  ): boolean {
+    return (
+      option.data.rewardBp > 0 &&
+      !isNone(stake.data.score) &&
+      !stake.data.rewardsClaimed
+    );
+  }
+
+  async claimRewardsBatch(claims: CloseRequest[]): Promise<void> {
     const instructions = await Promise.all(
-      closes.map(async (close) => {
-        const user = this.getUser(close.userId);
-        const ix = await closeStakeAccount({
+      claims.map(async (claim) => {
+        const { user, stakeAccount, option } = await this.getStakeSettlementAccounts(
+          claim.userId,
+          claim.optionId,
+          claim.stakeAccountId
+        );
+        const ix = await claimRewards({
           owner: user.solanaKeypair,
           market: this.marketAddress,
+          stakeAccount,
+          option,
           tokenMint: this.mint.address,
           ownerTokenAccount: user.tokenAccount,
           tokenProgram: TOKEN_PROGRAM_ADDRESS,
-          optionId: close.optionId,
-          stakeAccountId: close.stakeAccountId,
+        });
+        return { user, ix };
+      })
+    );
+
+    for (const data of instructions) {
+      await sendTransaction(this.rpc, this.sendAndConfirm, data.user.solanaKeypair, [data.ix], {
+        label: `Claim rewards`,
+      });
+    }
+  }
+
+  async claimRewards(userId: Address, optionId: number, stakeAccountId: number): Promise<void> {
+    await this.claimRewardsBatch([{ userId, optionId, stakeAccountId }]);
+  }
+
+  async closeRevealedStakeAccountBatch(closes: CloseRequest[]): Promise<void> {
+    const instructions = await Promise.all(
+      closes.map(async (close) => {
+        const { user, stakeAccount, option } = await this.getStakeSettlementAccounts(
+          close.userId,
+          close.optionId,
+          close.stakeAccountId
+        );
+        const ix = await closeStakeAccount({
+          owner: user.solanaKeypair,
+          market: this.marketAddress,
+          stakeAccount,
+          option,
+          tokenMint: this.mint.address,
+          ownerTokenAccount: user.tokenAccount,
+          tokenProgram: TOKEN_PROGRAM_ADDRESS,
         });
         return { user, ix };
       })
@@ -912,6 +981,76 @@ export class Platform {
       await sendTransaction(this.rpc, this.sendAndConfirm, data.user.solanaKeypair, [data.ix], {
         label: `Close stake account`,
       });
+    }
+  }
+
+  async closeUnrevealedStakeAccountBatch(closes: Array<{ userId: Address; stakeAccountId: number }>): Promise<void> {
+    const instructions = await Promise.all(
+      closes.map(async (close) => {
+        const user = this.getUser(close.userId);
+        const [stakeAccount] = await getStakeAccountAddressPda(
+          close.userId,
+          this.marketAddress,
+          close.stakeAccountId
+        );
+        const ix = await closeUnrevealedStakeAccount({
+          owner: user.solanaKeypair,
+          market: this.marketAddress,
+          stakeAccount,
+          tokenMint: this.mint.address,
+          ownerTokenAccount: user.tokenAccount,
+          tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        });
+        return { user, ix };
+      })
+    );
+
+    for (const data of instructions) {
+      await sendTransaction(this.rpc, this.sendAndConfirm, data.user.solanaKeypair, [data.ix], {
+        label: `Close unrevealed stake account`,
+      });
+    }
+  }
+
+  async closeUnrevealedStakeAccount(userId: Address, stakeAccountId: number): Promise<void> {
+    await this.closeUnrevealedStakeAccountBatch([{ userId, stakeAccountId }]);
+  }
+
+  /**
+   * Claims rewards for winning finalized stakes when needed, then closes the account.
+   * Routes never-revealed stakes to `close_unrevealed_stake_account`.
+   */
+  async closeStakeAccountBatch(closes: CloseRequest[]): Promise<void> {
+    const claims: CloseRequest[] = [];
+    const revealedCloses: CloseRequest[] = [];
+    const unrevealedCloses: Array<{ userId: Address; stakeAccountId: number }> = [];
+
+    for (const close of closes) {
+      const stake = await this.fetchStakeAccountData(close.userId, close.stakeAccountId);
+      if (isNone(stake.data.revealedOption)) {
+        unrevealedCloses.push({
+          userId: close.userId,
+          stakeAccountId: close.stakeAccountId,
+        });
+        continue;
+      }
+
+      const optionId = close.optionId;
+      const option = await this.fetchOptionData(optionId);
+      if (this.stakeNeedsRewardClaim(stake, option)) {
+        claims.push(close);
+      }
+      revealedCloses.push(close);
+    }
+
+    if (claims.length > 0) {
+      await this.claimRewardsBatch(claims);
+    }
+    if (unrevealedCloses.length > 0) {
+      await this.closeUnrevealedStakeAccountBatch(unrevealedCloses);
+    }
+    if (revealedCloses.length > 0) {
+      await this.closeRevealedStakeAccountBatch(revealedCloses);
     }
   }
 

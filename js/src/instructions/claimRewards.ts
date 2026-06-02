@@ -1,11 +1,11 @@
 import { type TransactionSigner, type Address } from "@solana/kit";
 import {
-  getCloseStakeAccountInstructionAsync,
-  type CloseStakeAccountInstruction,
+  getClaimRewardsInstructionAsync,
+  type ClaimRewardsInstruction,
 } from "../generated";
 import { type BaseInstructionParams } from "./instructionParams";
 
-export interface CloseStakeAccountParams extends BaseInstructionParams {
+export interface ClaimRewardsParams extends BaseInstructionParams {
   owner: TransactionSigner;
   market: Address;
   stakeAccount: Address;
@@ -15,11 +15,11 @@ export interface CloseStakeAccountParams extends BaseInstructionParams {
   tokenProgram: Address;
 }
 
-export async function closeStakeAccount(
-  input: CloseStakeAccountParams
-): Promise<CloseStakeAccountInstruction<string>> {
+export async function claimRewards(
+  input: ClaimRewardsParams
+): Promise<ClaimRewardsInstruction<string>> {
   const { programAddress, ...params } = input;
-  return getCloseStakeAccountInstructionAsync(
+  return getClaimRewardsInstructionAsync(
     params,
     programAddress ? { programAddress } : undefined
   );

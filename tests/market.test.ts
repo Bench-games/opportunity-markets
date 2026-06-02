@@ -248,7 +248,7 @@ describe("Opportunity markets", () => {
       OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
     );
 
-    // Close stake accounts for winners (transfers reward only)
+    // Settle stake accounts (claim rewards, then close)
     await platform.closeStakeAccountBatch(
       winners.map((userId, i) => ({
         userId,
@@ -1154,9 +1154,10 @@ describe("Opportunity markets", () => {
     const feeAuthAfter = (await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))).data.amount;
     expect(feeAuthAfter - feeAuthBefore).to.equal(expectedPlatformFee);
 
-    // Check that winner gets the reward + pool and creator fee refund
+    // Winner claims reward + fee refund, then closes the stake account.
     const userBalanceBeforeClose = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
-    await platform.closeStakeAccount(user, optionId, stakeAccountId);
+    await platform.claimRewards(user, optionId, stakeAccountId);
+    await platform.closeRevealedStakeAccountBatch([{ userId: user, optionId, stakeAccountId }]);
     const userBalanceAfterClose = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
     const expectedReward = marketFundingAmount + expectedRewardPoolFee + expectedCreatorFee;
     const userGain = userBalanceAfterClose - userBalanceBeforeClose;
@@ -1225,8 +1226,8 @@ describe("Opportunity markets", () => {
     // Stake reclaim returns the net staked amount.
     await platform.unstake(user, stakeAccountId);
 
-    // Closing on the expired path refunds reward_pool_fee + creator_fee.
-    await platform.closeStakeAccount(user, optionId, stakeAccountId);
+    // Expired path: never revealed → close_unrevealed refunds reward_pool_fee + creator_fee.
+    await platform.closeUnrevealedStakeAccount(user, stakeAccountId);
 
     const userBalanceAfter = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
     // Net loss equals the platform fee only — reward pool and creator fees were refunded.

@@ -54,7 +54,6 @@ pub fn create_market(
     ctx: Context<CreateMarket>,
     market_index: u64,
     market_authority: Pubkey,
-    allow_unstaking_early: bool,
     authorized_reader_pubkey: [u8; 32],
     earliness_cutoff_seconds: u64,
     earliness_multiplier: u16,
@@ -84,7 +83,6 @@ pub fn create_market(
     market.market_authority = market_authority;
     market.earliness_cutoff_seconds = earliness_cutoff_seconds;
     market.earliness_multiplier = earliness_multiplier;
-    market.allow_unstaking_early = allow_unstaking_early;
     market.authorized_reader_pubkey = authorized_reader_pubkey;
     market.fee_rates = ctx.accounts.platform_config.fee_rates;
     market.creator_fee_claimer = creator_fee_claimer;
@@ -100,7 +98,6 @@ pub fn create_market(
         mint: mint,
         market_authority: market_authority,
         authorized_reader_pubkey: authorized_reader_pubkey,
-        allow_unstaking_early: allow_unstaking_early,
         earliness_cutoff_seconds: earliness_cutoff_seconds,
         earliness_multiplier: earliness_multiplier,
         min_stake_amount: min_stake_amount,

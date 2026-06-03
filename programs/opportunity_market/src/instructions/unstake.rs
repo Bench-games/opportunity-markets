@@ -65,7 +65,6 @@ pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     let current_timestamp = Clock::get()?.unix_timestamp as u64;
 
     if current_timestamp < stake_end {
-        require!(market.allow_unstaking_early, ErrorCode::TimeWindowMismatch);
         require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
         ctx.accounts.stake_account.unstaked_at_timestamp = Some(current_timestamp);
     } else {

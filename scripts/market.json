@@ -2,7 +2,6 @@
   "marketIndex": 2,
   "platformName": "bench",
   "tokenMint": "6eP7puC9f9YkvrNW9FyzbgboxchSmzboULXDjN6dfNCj",
-  "allowUnstakingEarly": false,
   "authorizedReaderKeypairPath": "./scripts/example-x25519-keypair.json",
   "marketAuthority": null,
   "marketFeeClaimer": null,

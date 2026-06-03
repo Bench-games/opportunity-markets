@@ -96,7 +96,6 @@ interface TestUser {
 interface MarketConfig {
   rewardAmount: bigint;
   timeToStake: bigint;
-  allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Uint8Array;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
@@ -172,7 +171,6 @@ const DEFAULT_CONFIG: Required<Omit<PlatformConfigArgs, "name">> = {
     rewardAmount: 1_000_000_000n,
     // Short by design so tests can wait through the stake window quickly.
     timeToStake: 10n,
-    allowUnstakingEarly: false,
     earlinessCutoffSeconds: 0n,
     earlinessMultiplier: 10_000,
     minStakeAmount: 0n,
@@ -434,7 +432,6 @@ export class Platform {
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
       marketIndex,
       marketAuthority: runner.marketCreator.solanaKeypair.address,
-      allowUnstakingEarly: marketConfig.allowUnstakingEarly,
       authorizedReaderPubkey: marketConfig.authorizedReaderPubkey,
       earlinessCutoffSeconds: marketConfig.earlinessCutoffSeconds,
       earlinessMultiplier: marketConfig.earlinessMultiplier,
@@ -1315,10 +1312,6 @@ export class Platform {
 
   getRewardAmount(): bigint {
     return this.marketConfig.rewardAmount;
-  }
-
-  getAllowUnstakingEarly(): boolean {
-    return this.marketConfig.allowUnstakingEarly;
   }
 
   async getMarketAta(): Promise<Address> {

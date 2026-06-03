@@ -1525,10 +1525,6 @@
           "type": "pubkey"
         },
         {
-          "name": "allow_unstaking_early",
-          "type": "bool"
-        },
-        {
           "name": "authorized_reader_pubkey",
           "type": {
             "array": [
@@ -4363,10 +4359,6 @@
             }
           },
           {
-            "name": "allow_unstaking_early",
-            "type": "bool"
-          },
-          {
             "name": "min_stake_amount",
             "type": "u64"
           },
@@ -4646,10 +4638,6 @@
           {
             "name": "earliness_multiplier",
             "type": "u16"
-          },
-          {
-            "name": "allow_unstaking_early",
-            "type": "bool"
           },
           {
             "name": "authorized_reader_pubkey",

@@ -14,8 +14,6 @@ import {
   getAddressEncoder,
   getArrayDecoder,
   getArrayEncoder,
-  getBooleanDecoder,
-  getBooleanEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
@@ -115,7 +113,6 @@ export type CreateMarketInstructionData = {
   discriminator: ReadonlyUint8Array;
   marketIndex: bigint;
   marketAuthority: Address;
-  allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Array<number>;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
@@ -126,7 +123,6 @@ export type CreateMarketInstructionData = {
 export type CreateMarketInstructionDataArgs = {
   marketIndex: number | bigint;
   marketAuthority: Address;
-  allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Array<number>;
   earlinessCutoffSeconds: number | bigint;
   earlinessMultiplier: number;
@@ -140,7 +136,6 @@ export function getCreateMarketInstructionDataEncoder(): FixedSizeEncoder<Create
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['marketIndex', getU64Encoder()],
       ['marketAuthority', getAddressEncoder()],
-      ['allowUnstakingEarly', getBooleanEncoder()],
       ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['earlinessMultiplier', getU16Encoder()],
@@ -156,7 +151,6 @@ export function getCreateMarketInstructionDataDecoder(): FixedSizeDecoder<Create
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['marketIndex', getU64Decoder()],
     ['marketAuthority', getAddressDecoder()],
-    ['allowUnstakingEarly', getBooleanDecoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['earlinessMultiplier', getU16Decoder()],
@@ -198,7 +192,6 @@ export type CreateMarketAsyncInput<
   systemProgram?: Address<TAccountSystemProgram>;
   marketIndex: CreateMarketInstructionDataArgs['marketIndex'];
   marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
-  allowUnstakingEarly: CreateMarketInstructionDataArgs['allowUnstakingEarly'];
   authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
   earlinessCutoffSeconds: CreateMarketInstructionDataArgs['earlinessCutoffSeconds'];
   earlinessMultiplier: CreateMarketInstructionDataArgs['earlinessMultiplier'];
@@ -380,7 +373,6 @@ export type CreateMarketInput<
   systemProgram?: Address<TAccountSystemProgram>;
   marketIndex: CreateMarketInstructionDataArgs['marketIndex'];
   marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
-  allowUnstakingEarly: CreateMarketInstructionDataArgs['allowUnstakingEarly'];
   authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
   earlinessCutoffSeconds: CreateMarketInstructionDataArgs['earlinessCutoffSeconds'];
   earlinessMultiplier: CreateMarketInstructionDataArgs['earlinessMultiplier'];

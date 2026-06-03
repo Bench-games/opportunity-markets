@@ -4,7 +4,7 @@ use crate::constants::{
     MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MIN_PLATFORM_NAME_LEN,
     MIN_REVEAL_PERIOD_SECONDS, PLATFORM_CONFIG_SEED,
 };
-#[cfg(feature = "production-settings")]
+#[cfg(not(feature = "disable-prod-guardrails"))]
 use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
 use crate::error::ErrorCode;
 use crate::state::{FeeRates, PlatformConfig};
@@ -44,12 +44,12 @@ pub fn init_platform_config(
         ErrorCode::InvalidParameters
     );
 
-    #[cfg(feature = "production-settings")]
+    #[cfg(not(feature = "disable-prod-guardrails"))]
     require!(
         market_resolution_deadline_seconds >= MIN_MARKET_RESOLUTION_DEADLINE_SECONDS,
         ErrorCode::InvalidParameters
     );
-    #[cfg(feature = "production-settings")]
+    #[cfg(not(feature = "disable-prod-guardrails"))]
     require!(
         min_time_to_stake_seconds >= MIN_TIME_TO_STAKE_FLOOR_SECONDS,
         ErrorCode::InvalidParameters

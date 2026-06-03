@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
-#[cfg(feature = "production-settings")]
-use crate::constants::MIN_MARKET_RESOLUTION_DEADLINE_SECONDS;
+#[cfg(not(feature = "disable-prod-guardrails"))]
+use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
 use crate::constants::{MAX_REVEAL_PERIOD_SECONDS, MIN_REVEAL_PERIOD_SECONDS};
 use crate::error::ErrorCode;
 use crate::state::{FeeRates, PlatformConfig};
@@ -27,9 +27,14 @@ pub fn update_platform_config(
     reveal_period_seconds: u64,
     market_resolution_deadline_seconds: u64,
 ) -> Result<()> {
-    #[cfg(feature = "production-settings")]
+    #[cfg(not(feature = "disable-prod-guardrails"))]
     require!(
         market_resolution_deadline_seconds >= MIN_MARKET_RESOLUTION_DEADLINE_SECONDS,
+        ErrorCode::InvalidParameters
+    );
+    #[cfg(not(feature = "disable-prod-guardrails"))]
+    require!(
+        min_time_to_stake_seconds >= MIN_TIME_TO_STAKE_FLOOR_SECONDS,
         ErrorCode::InvalidParameters
     );
     require!(

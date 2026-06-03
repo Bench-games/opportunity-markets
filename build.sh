@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+DISABLE_PROD_GUARDRAILS=false
+if [ "${1:-}" = "--disable-prod-guardrails" ]; then
+  DISABLE_PROD_GUARDRAILS=true
+fi
+
 KEYPAIR_NAME="bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G"
 KEYPAIR_PATH="../${KEYPAIR_NAME}.json"
 
@@ -15,6 +20,13 @@ fi
 mkdir -p target/deploy
 cp "$KEYPAIR_PATH" target/deploy/opportunity_market-keypair.json
 
-# Build (let arcium sync keys from the deploy keypair, then compile)
-echo "Building..."
-arcium build
+if [ "$DISABLE_PROD_GUARDRAILS" = true ]; then
+  # Local-test build path: keep Arcium key sync/circuit build, compile program with relaxed feature.
+  echo "Building for local tests with disable-prod-guardrails..."
+  arcium build --skip-program
+  anchor build -- --features disable-prod-guardrails
+else
+  # Default build path for deploys/devnet/mainnet (production guardrails active).
+  echo "Building..."
+  arcium build
+fi

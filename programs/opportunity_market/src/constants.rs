@@ -7,10 +7,10 @@ pub const MAX_TOTAL_FEE_BP: u16 = 10_000;
 pub const MIN_PLATFORM_NAME_LEN: usize = 3;
 pub const MAX_PLATFORM_NAME_LEN: usize = 20;
 
-#[cfg(feature = "production-settings")]
+#[cfg(not(feature = "disable-prod-guardrails"))]
 pub const MIN_MARKET_RESOLUTION_DEADLINE_SECONDS: u64 = 7 * 24 * 60 * 60;
 
-#[cfg(feature = "production-settings")]
+#[cfg(not(feature = "disable-prod-guardrails"))]
 pub const MIN_TIME_TO_STAKE_FLOOR_SECONDS: u64 = 24 * 60 * 60;
 
 /// Bounds for the deadline after which end_reveal_period becomes permissionless.

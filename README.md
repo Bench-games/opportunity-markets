@@ -18,8 +18,8 @@ Program address on Solana Devnet: `bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G`
 
 Arcium v0.10.3 cli required.
 
-Before testing, make sure you build without the feature `production-settings`.
-In `programs/opportunity_market/Cargo.toml` make sure it's not in the defaults array.
+For local tests, `./test.sh` enables feature `disable-prod-guardrails` automatically.
+Keep it out of `default = []` in `programs/opportunity_market/Cargo.toml`.
 
 ### Formatting & linting
 
@@ -95,7 +95,7 @@ arcium build
 
 ## Deployment
 
-1. Enable the `production-settings` feature by adding to the  defaults in `programs/opportunity_market/Cargo.toml`
+1. Ensure `disable-prod-guardrails` is **not** enabled (mainnet/devnet deploys should keep production guardrails active)
 2. Update the program `declare_id!` macro to use your program keypair's pubkey
 3. Run `./build.sh`
 

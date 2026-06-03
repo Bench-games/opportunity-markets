@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # Copy the deterministic keypair and build
-./build.sh
+./build.sh --disable-prod-guardrails
 
 # Unit tests (host-native, fast — run before spinning up the validator)
 echo "Running unit tests..."
-cargo test -p opportunity_market --lib
+cargo test -p opportunity_market --lib --features disable-prod-guardrails
 
 # Integration tests
 echo "Running integration tests..."

@@ -1800,7 +1800,7 @@
               },
               {
                 "kind": "arg",
-                "path": "name"
+                "path": "params.name"
               }
             ]
           }
@@ -1812,40 +1812,12 @@
       ],
       "args": [
         {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "platform_fee_bp",
-          "type": "u16"
-        },
-        {
-          "name": "reward_pool_fee_bp",
-          "type": "u16"
-        },
-        {
-          "name": "creator_fee_bp",
-          "type": "u16"
-        },
-        {
-          "name": "fee_claim_authority",
-          "type": "pubkey"
-        },
-        {
-          "name": "reveal_authority",
-          "type": "pubkey"
-        },
-        {
-          "name": "min_time_to_stake_seconds",
-          "type": "u64"
-        },
-        {
-          "name": "reveal_period_seconds",
-          "type": "u64"
-        },
-        {
-          "name": "market_resolution_deadline_seconds",
-          "type": "u64"
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "InitPlatformParameters"
+            }
+          }
         }
       ]
     },
@@ -2935,32 +2907,12 @@
       ],
       "args": [
         {
-          "name": "platform_fee_bp",
-          "type": "u16"
-        },
-        {
-          "name": "reward_pool_fee_bp",
-          "type": "u16"
-        },
-        {
-          "name": "creator_fee_bp",
-          "type": "u16"
-        },
-        {
-          "name": "reveal_authority",
-          "type": "pubkey"
-        },
-        {
-          "name": "min_time_to_stake_seconds",
-          "type": "u64"
-        },
-        {
-          "name": "reveal_period_seconds",
-          "type": "u64"
-        },
-        {
-          "name": "market_resolution_deadline_seconds",
-          "type": "u64"
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "UpdatePlatformParameters"
+            }
+          }
         }
       ]
     },
@@ -4214,6 +4166,50 @@
           {
             "name": "timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitPlatformParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "platform_fee_bp",
+            "type": "u16"
+          },
+          {
+            "name": "reward_pool_fee_bp",
+            "type": "u16"
+          },
+          {
+            "name": "creator_fee_bp",
+            "type": "u16"
+          },
+          {
+            "name": "fee_claim_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "reveal_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "min_time_to_stake_seconds",
+            "type": "u64"
+          },
+          {
+            "name": "reveal_period_seconds",
+            "type": "u64"
+          },
+          {
+            "name": "market_resolution_deadline_seconds",
+            "type": "u64"
           }
         ]
       }
@@ -5712,6 +5708,56 @@
           {
             "name": "timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdatePlatformParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "platform_fee_bp",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "reward_pool_fee_bp",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "creator_fee_bp",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "reveal_authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "min_time_to_stake_seconds",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "reveal_period_seconds",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "market_resolution_deadline_seconds",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }

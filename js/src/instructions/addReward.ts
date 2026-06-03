@@ -12,7 +12,6 @@ export interface AddRewardParams extends BaseInstructionParams {
   sponsorTokenAccount: Address;
   tokenProgram: Address;
   amount: bigint;
-  lock: boolean;
 }
 
 export async function addReward(

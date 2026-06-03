@@ -781,53 +781,6 @@ describe("Opportunity markets", () => {
     expect(market.data.rewardAmount).to.equal(initialReward + additionalReward);
   });
 
-  it("allows unlocked sponsor to withdraw reward before winners selected", async () => {
-    const marketFundingAmount = 1_000_000_000n;
-
-    const observer = loadObserverKeypair();
-
-    const platform = await Platform.initialize(provider, programId, {
-      rpcUrl: RPC_URL,
-      wsUrl: WS_URL,
-      numParticipants: 1,
-      airdropLamports: 2_000_000_000n,
-      initialTokenAmount: 2_000_000_000n,
-      marketConfig: {
-        rewardAmount: 0n,
-        timeToStake: 10n,
-        authorizedReaderPubkey: observer.publicKey,
-      },
-    });
-
-    // Add reward unlocked (lock=false)
-    await platform.addReward(platform.creator, marketFundingAmount, false);
-
-    await platform.openMarket();
-
-    // Add options
-    await platform.addOption();
-    await platform.addOption();
-    // Verify reward amount
-    let market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(marketFundingAmount);
-
-    // Get creator balance before withdrawal
-    const rpc = platform.getRpc();
-    const creatorBalanceBefore = (await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))).data.amount;
-
-    // Withdraw reward (unlocked sponsor can withdraw)
-    await platform.withdrawReward();
-
-    // Verify creator received the reward tokens back
-    const creatorBalanceAfter = (await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))).data.amount;
-    expect(creatorBalanceAfter - creatorBalanceBefore).to.equal(marketFundingAmount);
-
-    // Verify market state
-    market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(0n);
-    expect(isNone(market.data.resolvedAtTimestamp)).to.be.true;
-  });
-
   it("allows early unstaking when market opts in", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const timeToStake = 30n;
@@ -967,76 +920,6 @@ describe("Opportunity markets", () => {
 
     stakeAccount = await platform.fetchStakeAccountData(staker, stakeAccountId);
     expect(isSome(stakeAccount.data.unstakedAtTimestamp)).to.be.true;
-  });
-
-  it("locked sponsor cannot withdraw but unlocked sponsor can", async () => {
-    const lockedAmount = 500_000_000n;
-    const unlockedAmount = 300_000_000n;
-
-    const observer = loadObserverKeypair();
-
-    const platform = await Platform.initialize(provider, programId, {
-      rpcUrl: RPC_URL,
-      wsUrl: WS_URL,
-      numParticipants: 2,
-      airdropLamports: 2_000_000_000n,
-      initialTokenAmount: 2_000_000_000n,
-      marketConfig: {
-        rewardAmount: 0n,
-        timeToStake: 10n,
-        authorizedReaderPubkey: observer.publicKey,
-      },
-    });
-
-    const [lockedSponsor, unlockedSponsor] = platform.participants;
-    const rpc = platform.getRpc();
-
-    // Record balances before sponsoring
-    const lockedBalanceBefore = (await fetchToken(rpc, platform.getUserTokenAccount(lockedSponsor))).data.amount;
-    const unlockedBalanceBefore = (await fetchToken(rpc, platform.getUserTokenAccount(unlockedSponsor))).data.amount;
-
-    // Locked sponsor adds reward with lock=true
-    await platform.addReward(lockedSponsor, lockedAmount, true);
-
-    // Unlocked sponsor adds reward with lock=false
-    await platform.addReward(unlockedSponsor, unlockedAmount, false);
-
-    // Verify market reward amount is the sum of both
-    let market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(lockedAmount + unlockedAmount);
-
-    // Verify token balances decreased
-    const lockedBalanceAfterAdd = (await fetchToken(rpc, platform.getUserTokenAccount(lockedSponsor))).data.amount;
-    expect(lockedBalanceBefore - lockedBalanceAfterAdd).to.equal(lockedAmount);
-
-    const unlockedBalanceAfterAdd = (await fetchToken(rpc, platform.getUserTokenAccount(unlockedSponsor))).data.amount;
-    expect(unlockedBalanceBefore - unlockedBalanceAfterAdd).to.equal(unlockedAmount);
-
-    // Verify market ATA holds total reward
-    const marketAta = await platform.getMarketAta();
-    const marketAtaBalance = (await fetchToken(rpc, marketAta)).data.amount;
-    expect(marketAtaBalance).to.equal(lockedAmount + unlockedAmount);
-
-    // Locked sponsor cannot withdraw
-    await shouldThrowCustomError(
-      () => platform.withdrawReward(lockedSponsor),
-      OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
-    );
-
-    // Unlocked sponsor can withdraw
-    await platform.withdrawReward(unlockedSponsor);
-
-    // Verify unlocked sponsor received tokens back
-    const unlockedBalanceAfterWithdraw = (await fetchToken(rpc, platform.getUserTokenAccount(unlockedSponsor))).data.amount;
-    expect(unlockedBalanceAfterWithdraw).to.equal(unlockedBalanceBefore);
-
-    // Verify market reward decreased by unlocked amount
-    market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(lockedAmount);
-
-    // Verify market ATA balance decreased accordingly
-    const marketAtaBalanceAfter = (await fetchToken(rpc, marketAta)).data.amount;
-    expect(marketAtaBalanceAfter).to.equal(lockedAmount);
   });
 
   it("can close a stuck stake account and refund", async () => {
@@ -1251,8 +1134,8 @@ describe("Opportunity markets", () => {
   });
 
   it("expired market lets sponsors recover their deposits", async () => {
-    const lockedAmount = 500_000_000n;
-    const unlockedAmount = 300_000_000n;
+    const sponsorAmountA = 500_000_000n;
+    const sponsorAmountB = 300_000_000n;
     const timeToStake = 15n;
     const marketResolutionDeadlineSeconds = 15n;
 
@@ -1272,30 +1155,30 @@ describe("Opportunity markets", () => {
       },
     });
 
-    const [lockedSponsor, unlockedSponsor] = platform.participants;
+    const [sponsorA, sponsorB] = platform.participants;
     const rpc = platform.getRpc();
 
-    const lockedBalanceBefore = (await fetchToken(rpc, platform.getUserTokenAccount(lockedSponsor))).data.amount;
-    const unlockedBalanceBefore = (await fetchToken(rpc, platform.getUserTokenAccount(unlockedSponsor))).data.amount;
+    const balanceBeforeA = (await fetchToken(rpc, platform.getUserTokenAccount(sponsorA))).data.amount;
+    const balanceBeforeB = (await fetchToken(rpc, platform.getUserTokenAccount(sponsorB))).data.amount;
 
-    await platform.addReward(lockedSponsor, lockedAmount, true);
-    await platform.addReward(unlockedSponsor, unlockedAmount, false);
+    await platform.addReward(sponsorA, sponsorAmountA);
+    await platform.addReward(sponsorB, sponsorAmountB);
 
     let market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(lockedAmount + unlockedAmount);
+    expect(market.data.rewardAmount).to.equal(sponsorAmountA + sponsorAmountB);
 
-    // Pre-open: locked sponsor cannot withdraw — lock is enforced.
+    // Pre-open: the market has no stake window yet, so withdrawal is rejected.
     await shouldThrowCustomError(
-      () => platform.withdrawReward(lockedSponsor),
-      OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
+      () => platform.withdrawReward(sponsorA),
+      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
     );
 
     const stakeEnd = Number(await platform.openMarket());
     await sleepUntilOnChainTimestamp(stakeEnd + ONCHAIN_TIMESTAMP_BUFFER_SECONDS, rpc);
 
-    // Resolution window: unlocked sponsor's withdraw is blocked by the time gate.
+    // Resolution window: rewards stay locked until the resolution deadline passes.
     await shouldThrowCustomError(
-      () => platform.withdrawReward(unlockedSponsor),
+      () => platform.withdrawReward(sponsorB),
       OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
     );
 
@@ -1303,13 +1186,13 @@ describe("Opportunity markets", () => {
     const expiredAt = stakeEnd + Number(marketResolutionDeadlineSeconds);
     await sleepUntilOnChainTimestamp(expiredAt + ONCHAIN_TIMESTAMP_BUFFER_SECONDS, rpc);
 
-    await platform.withdrawReward(lockedSponsor);
-    await platform.withdrawReward(unlockedSponsor);
+    await platform.withdrawReward(sponsorA);
+    await platform.withdrawReward(sponsorB);
 
-    const lockedBalanceAfter = (await fetchToken(rpc, platform.getUserTokenAccount(lockedSponsor))).data.amount;
-    const unlockedBalanceAfter = (await fetchToken(rpc, platform.getUserTokenAccount(unlockedSponsor))).data.amount;
-    expect(lockedBalanceAfter).to.equal(lockedBalanceBefore);
-    expect(unlockedBalanceAfter).to.equal(unlockedBalanceBefore);
+    const balanceAfterA = (await fetchToken(rpc, platform.getUserTokenAccount(sponsorA))).data.amount;
+    const balanceAfterB = (await fetchToken(rpc, platform.getUserTokenAccount(sponsorB))).data.amount;
+    expect(balanceAfterA).to.equal(balanceBeforeA);
+    expect(balanceAfterB).to.equal(balanceBeforeB);
 
     market = await platform.fetchMarket();
     expect(market.data.rewardAmount).to.equal(0n);

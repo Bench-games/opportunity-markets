@@ -11,8 +11,6 @@ import {
   fixDecoderSize,
   fixEncoderSize,
   getAddressEncoder,
-  getBooleanDecoder,
-  getBooleanEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
@@ -99,20 +97,15 @@ export type AddRewardInstruction<
 export type AddRewardInstructionData = {
   discriminator: ReadonlyUint8Array;
   amount: bigint;
-  lock: boolean;
 };
 
-export type AddRewardInstructionDataArgs = {
-  amount: number | bigint;
-  lock: boolean;
-};
+export type AddRewardInstructionDataArgs = { amount: number | bigint };
 
 export function getAddRewardInstructionDataEncoder(): FixedSizeEncoder<AddRewardInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['amount', getU64Encoder()],
-      ['lock', getBooleanEncoder()],
     ]),
     (value) => ({ ...value, discriminator: ADD_REWARD_DISCRIMINATOR })
   );
@@ -122,7 +115,6 @@ export function getAddRewardInstructionDataDecoder(): FixedSizeDecoder<AddReward
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['amount', getU64Decoder()],
-    ['lock', getBooleanDecoder()],
   ]);
 }
 
@@ -156,7 +148,6 @@ export type AddRewardAsyncInput<
   tokenProgram: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   amount: AddRewardInstructionDataArgs['amount'];
-  lock: AddRewardInstructionDataArgs['lock'];
 };
 
 export async function getAddRewardInstructionAsync<
@@ -298,7 +289,6 @@ export type AddRewardInput<
   tokenProgram: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   amount: AddRewardInstructionDataArgs['amount'];
-  lock: AddRewardInstructionDataArgs['lock'];
 };
 
 export function getAddRewardInstruction<

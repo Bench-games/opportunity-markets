@@ -256,5 +256,4 @@ pub struct OpportunityMarketSponsor {
     pub sponsor: Pubkey,
     pub market: Pubkey,
     pub reward_deposited: u64,
-    pub reward_locked: bool,
 }

@@ -140,8 +140,8 @@ pub mod opportunity_market {
         instructions::end_reveal_period(ctx)
     }
 
-    pub fn add_reward(ctx: Context<AddReward>, amount: u64, lock: bool) -> Result<()> {
-        instructions::add_reward(ctx, amount, lock)
+    pub fn add_reward(ctx: Context<AddReward>, amount: u64) -> Result<()> {
+        instructions::add_reward(ctx, amount)
     }
 
     pub fn finalize_reveal_stake(

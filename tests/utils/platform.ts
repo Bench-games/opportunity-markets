@@ -458,7 +458,7 @@ export class Platform {
 
     // Add initial reward from creator if configured
     if (marketConfig.rewardAmount > 0n) {
-      await runner.addReward(runner.marketCreator.solanaKeypair.address, marketConfig.rewardAmount, true);
+      await runner.addReward(runner.marketCreator.solanaKeypair.address, marketConfig.rewardAmount);
       console.log(`  Creator added reward: ${marketConfig.rewardAmount}`);
     }
 
@@ -617,7 +617,7 @@ export class Platform {
     });
   }
 
-  async addReward(userId: Address, amount: bigint, lock: boolean = false): Promise<void> {
+  async addReward(userId: Address, amount: bigint): Promise<void> {
     const user = this.getUser(userId);
 
     const ix = await addRewardIx({
@@ -627,7 +627,6 @@ export class Platform {
       sponsorTokenAccount: user.tokenAccount,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
       amount,
-      lock,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {

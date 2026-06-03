@@ -781,7 +781,7 @@ describe("Opportunity markets", () => {
     expect(market.data.rewardAmount).to.equal(initialReward + additionalReward);
   });
 
-  it("allows early unstaking when market opts in", async () => {
+  it("early unstaking works as expected", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const timeToStake = 30n;
     const stakeAmount = 50_000_000n;
@@ -794,10 +794,11 @@ describe("Opportunity markets", () => {
       numParticipants: 1,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
+      platformFeeBp: 100,
+      creatorFeeBp: 100,
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToStake,
-        allowUnstakingEarly: true,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -819,18 +820,23 @@ describe("Opportunity markets", () => {
     let stakeAccount = await platform.fetchStakeAccountData(staker, stakeAccountId);
     expect(isNone(stakeAccount.data.unstakedAtTimestamp)).to.be.true;
 
-    // Single-step unstake during the staking window (allowed because market opted in).
+    // Unstake during the staking window.
     await platform.unstake(staker, stakeAccountId);
 
-    stakeAccount = await platform.fetchStakeAccountData(staker, stakeAccountId);
     // Early unstake records the shortened staking window for scoring.
+    stakeAccount = await platform.fetchStakeAccountData(staker, stakeAccountId);
     expect(isSome(stakeAccount.data.unstakedAtTimestamp)).to.be.true;
 
-    // Net stake refunded (1% platform fee forfeited).
+    // Only the net stake is refunded: 1% platform fee and the 1% creator fee are forfeit
     const balanceAfterUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker))).data.amount;
-    const protocolFeeBp = 100n;
-    const expectedNet = stakeAmount - (stakeAmount * protocolFeeBp / 10_000n);
+    const platformFee = stakeAmount * 100n / 10_000n;
+    const creatorFee = stakeAmount * 100n / 10_000n;
+    const expectedNet = stakeAmount - platformFee - creatorFee;
     expect(balanceAfterUnstake - balanceBeforeStake + stakeAmount).to.equal(expectedNet);
+
+    // The creator fee collected at stake time stays with the market
+    const marketAfterUnstake = await platform.fetchMarket();
+    expect(marketAfterUnstake.data.collectedCreatorFees).to.equal(creatorFee);
 
     // Double unstake should fail.
     await shouldThrowCustomError(
@@ -838,43 +844,13 @@ describe("Opportunity markets", () => {
       OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED,
     );
 
-    // Reveal still works post-stake-end (early unstaker keeps participation rights).
     await sleepUntilOnChainTimestamp(Number(stakeEnd) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
     await platform.selectSingleWinningOption(optionA);
 
+    // Reveal works
     await platform.revealStake(staker, stakeAccountId);
     stakeAccount = await platform.fetchStakeAccountData(staker, stakeAccountId);
     expect(stakeAccount.data.revealedOption).to.deep.equal(some(BigInt(optionA)));
-  });
-
-  it("blocks early unstaking when market does not opt in", async () => {
-    const observer = loadObserverKeypair();
-
-    const platform = await Platform.initialize(provider, programId, {
-      rpcUrl: RPC_URL,
-      wsUrl: WS_URL,
-      numParticipants: 1,
-      airdropLamports: 2_000_000_000n,
-      initialTokenAmount: 2_000_000_000n,
-      marketConfig: {
-        rewardAmount: 1_000_000_000n,
-        timeToStake: 10n,
-        allowUnstakingEarly: false,
-        authorizedReaderPubkey: observer.publicKey,
-      },
-    });
-
-    await platform.openMarket();
-    const [staker] = platform.participants;
-    const { optionId: optionA } = await platform.addOption();
-    await platform.addOption();
-    const stakeAccountId = await platform.stakeOnOption(staker, 50_000_000n, optionA);
-
-    // Window is still open and opt-in is false — must reject.
-    await shouldThrowCustomError(
-      () => platform.unstake(staker, stakeAccountId),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
-    );
   });
 
   it("staking becomes permissionless only after stake period", async () => {
@@ -892,7 +868,6 @@ describe("Opportunity markets", () => {
       marketConfig: {
         rewardAmount: 1_000_000_000n,
         timeToStake,
-        allowUnstakingEarly: true,
         authorizedReaderPubkey: observer.publicKey,
       },
     });

@@ -95,7 +95,6 @@ async function main() {
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
     marketIndex,
     marketAuthority: config.marketAuthority ? address(config.marketAuthority) : payer.address,
-    allowUnstakingEarly: config.allowUnstakingEarly,
     authorizedReaderPubkey,
     earlinessCutoffSeconds: BigInt(config.earlinessCutoffSeconds),
     earlinessMultiplier: config.earlinessMultiplier ?? 10_000,

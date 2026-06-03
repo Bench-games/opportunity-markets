@@ -81,7 +81,6 @@ export type OpportunityMarket = {
   mint: Address;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
-  allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Array<number>;
   feeRates: FeeRates;
   collectedPlatformFees: bigint;
@@ -108,7 +107,6 @@ export type OpportunityMarketArgs = {
   mint: Address;
   earlinessCutoffSeconds: number | bigint;
   earlinessMultiplier: number;
-  allowUnstakingEarly: boolean;
   authorizedReaderPubkey: Array<number>;
   feeRates: FeeRatesArgs;
   collectedPlatformFees: number | bigint;
@@ -138,7 +136,6 @@ export function getOpportunityMarketEncoder(): Encoder<OpportunityMarketArgs> {
       ['mint', getAddressEncoder()],
       ['earlinessCutoffSeconds', getU64Encoder()],
       ['earlinessMultiplier', getU16Encoder()],
-      ['allowUnstakingEarly', getBooleanEncoder()],
       ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
       ['feeRates', getFeeRatesEncoder()],
       ['collectedPlatformFees', getU64Encoder()],
@@ -170,7 +167,6 @@ export function getOpportunityMarketDecoder(): Decoder<OpportunityMarket> {
     ['mint', getAddressDecoder()],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['earlinessMultiplier', getU16Decoder()],
-    ['allowUnstakingEarly', getBooleanDecoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['feeRates', getFeeRatesDecoder()],
     ['collectedPlatformFees', getU64Decoder()],

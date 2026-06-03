@@ -76,8 +76,6 @@ pub struct OpportunityMarket {
     // Peak earliness multiplier, PRECISION-scaled. Range [PRECISION, 2*PRECISION].
     pub earliness_multiplier: u16,
 
-    pub allow_unstaking_early: bool,
-
     // Public key for voluntary disclosure of encrypted stake data
     pub authorized_reader_pubkey: [u8; 32],
 

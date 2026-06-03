@@ -12,8 +12,6 @@ import {
   getAddressEncoder,
   getArrayDecoder,
   getArrayEncoder,
-  getBooleanDecoder,
-  getBooleanEncoder,
   getI64Decoder,
   getI64Encoder,
   getStructDecoder,
@@ -46,7 +44,6 @@ export type MarketCreatedEvent = {
   earlinessMultiplier: number;
   marketAuthority: Address;
   authorizedReaderPubkey: Array<number>;
-  allowUnstakingEarly: boolean;
   minStakeAmount: bigint;
   feeRates: FeeRates;
   creatorFeeClaimer: Address;
@@ -65,7 +62,6 @@ export type MarketCreatedEventArgs = {
   earlinessMultiplier: number;
   marketAuthority: Address;
   authorizedReaderPubkey: Array<number>;
-  allowUnstakingEarly: boolean;
   minStakeAmount: number | bigint;
   feeRates: FeeRatesArgs;
   creatorFeeClaimer: Address;
@@ -85,7 +81,6 @@ export function getMarketCreatedEventEncoder(): FixedSizeEncoder<MarketCreatedEv
     ['earlinessMultiplier', getU16Encoder()],
     ['marketAuthority', getAddressEncoder()],
     ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
-    ['allowUnstakingEarly', getBooleanEncoder()],
     ['minStakeAmount', getU64Encoder()],
     ['feeRates', getFeeRatesEncoder()],
     ['creatorFeeClaimer', getAddressEncoder()],
@@ -106,7 +101,6 @@ export function getMarketCreatedEventDecoder(): FixedSizeDecoder<MarketCreatedEv
     ['earlinessMultiplier', getU16Decoder()],
     ['marketAuthority', getAddressDecoder()],
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
-    ['allowUnstakingEarly', getBooleanDecoder()],
     ['minStakeAmount', getU64Decoder()],
     ['feeRates', getFeeRatesDecoder()],
     ['creatorFeeClaimer', getAddressDecoder()],

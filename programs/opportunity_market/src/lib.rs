@@ -30,50 +30,16 @@ pub mod opportunity_market {
 
     pub fn init_platform_config(
         ctx: Context<InitPlatformConfig>,
-        name: String,
-        platform_fee_bp: u16,
-        reward_pool_fee_bp: u16,
-        creator_fee_bp: u16,
-        fee_claim_authority: Pubkey,
-        reveal_authority: Pubkey,
-        min_time_to_stake_seconds: u64,
-        reveal_period_seconds: u64,
-        market_resolution_deadline_seconds: u64,
+        params: InitPlatformParameters,
     ) -> Result<()> {
-        instructions::init_platform_config(
-            ctx,
-            name,
-            platform_fee_bp,
-            reward_pool_fee_bp,
-            creator_fee_bp,
-            fee_claim_authority,
-            reveal_authority,
-            min_time_to_stake_seconds,
-            reveal_period_seconds,
-            market_resolution_deadline_seconds,
-        )
+        instructions::init_platform_config(ctx, params)
     }
 
     pub fn update_platform_config(
         ctx: Context<UpdatePlatformConfig>,
-        platform_fee_bp: u16,
-        reward_pool_fee_bp: u16,
-        creator_fee_bp: u16,
-        reveal_authority: Pubkey,
-        min_time_to_stake_seconds: u64,
-        reveal_period_seconds: u64,
-        market_resolution_deadline_seconds: u64,
+        params: UpdatePlatformParameters,
     ) -> Result<()> {
-        instructions::update_platform_config(
-            ctx,
-            platform_fee_bp,
-            reward_pool_fee_bp,
-            creator_fee_bp,
-            reveal_authority,
-            min_time_to_stake_seconds,
-            reveal_period_seconds,
-            market_resolution_deadline_seconds,
-        )
+        instructions::update_platform_config(ctx, params)
     }
 
     pub fn set_update_authority(ctx: Context<SetUpdateAuthority>) -> Result<()> {

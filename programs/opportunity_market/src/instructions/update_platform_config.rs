@@ -1,10 +1,18 @@
 use anchor_lang::prelude::*;
 
-#[cfg(feature = "production-settings")]
-use crate::constants::MIN_MARKET_RESOLUTION_DEADLINE_SECONDS;
-use crate::constants::{MAX_REVEAL_PERIOD_SECONDS, MIN_REVEAL_PERIOD_SECONDS};
 use crate::error::ErrorCode;
 use crate::state::{FeeRates, PlatformConfig};
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct UpdatePlatformParameters {
+    pub platform_fee_bp: Option<u16>,
+    pub reward_pool_fee_bp: Option<u16>,
+    pub creator_fee_bp: Option<u16>,
+    pub reveal_authority: Option<Pubkey>,
+    pub min_time_to_stake_seconds: Option<u64>,
+    pub reveal_period_seconds: Option<u64>,
+    pub market_resolution_deadline_seconds: Option<u64>,
+}
 
 #[derive(Accounts)]
 pub struct UpdatePlatformConfig<'info> {
@@ -19,29 +27,38 @@ pub struct UpdatePlatformConfig<'info> {
 
 pub fn update_platform_config(
     ctx: Context<UpdatePlatformConfig>,
-    platform_fee_bp: u16,
-    reward_pool_fee_bp: u16,
-    creator_fee_bp: u16,
-    reveal_authority: Pubkey,
-    min_time_to_stake_seconds: u64,
-    reveal_period_seconds: u64,
-    market_resolution_deadline_seconds: u64,
+    params: UpdatePlatformParameters,
 ) -> Result<()> {
-    #[cfg(feature = "production-settings")]
-    require!(
-        market_resolution_deadline_seconds >= MIN_MARKET_RESOLUTION_DEADLINE_SECONDS,
-        ErrorCode::InvalidParameters
-    );
-    require!(
-        (MIN_REVEAL_PERIOD_SECONDS..=MAX_REVEAL_PERIOD_SECONDS).contains(&reveal_period_seconds),
-        ErrorCode::InvalidParameters
-    );
-
     let platform_config = &mut ctx.accounts.platform_config;
-    platform_config.fee_rates = FeeRates::new(platform_fee_bp, reward_pool_fee_bp, creator_fee_bp)?;
-    platform_config.reveal_authority = reveal_authority;
-    platform_config.min_time_to_stake_seconds = min_time_to_stake_seconds;
-    platform_config.reveal_period_seconds = reveal_period_seconds;
-    platform_config.market_resolution_deadline_seconds = market_resolution_deadline_seconds;
+    let new_platform_config = PlatformConfig::try_new(
+        platform_config.bump,
+        platform_config.name.clone(),
+        platform_config.update_authority,
+        platform_config.fee_claim_authority,
+        FeeRates::new(
+            params
+                .platform_fee_bp
+                .unwrap_or(platform_config.fee_rates.platform_fee_bp),
+            params
+                .reward_pool_fee_bp
+                .unwrap_or(platform_config.fee_rates.reward_pool_fee_bp),
+            params
+                .creator_fee_bp
+                .unwrap_or(platform_config.fee_rates.creator_fee_bp),
+        )?,
+        params
+            .market_resolution_deadline_seconds
+            .unwrap_or(platform_config.market_resolution_deadline_seconds),
+        params
+            .min_time_to_stake_seconds
+            .unwrap_or(platform_config.min_time_to_stake_seconds),
+        params
+            .reveal_authority
+            .unwrap_or(platform_config.reveal_authority),
+        params
+            .reveal_period_seconds
+            .unwrap_or(platform_config.reveal_period_seconds),
+    )?;
+    platform_config.set_inner(new_platform_config);
     Ok(())
 }

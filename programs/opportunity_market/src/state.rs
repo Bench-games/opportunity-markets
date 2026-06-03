@@ -219,6 +219,7 @@ pub struct StakeAccount {
     pub revealed_option: Option<u64>,
     pub score: Option<u64>,
     pub unstaked: bool, // whether staked tokens have been returned
+    pub rewards_claimed: bool,
     pub id: u32,
 
     // Computation account pubkey of the in-flight stake computation.
@@ -238,7 +239,7 @@ pub struct OpportunityMarketOption {
 
     pub created_at: u64,
 
-    pub total_staked: u64,
+    pub unclaimed_stake: u64,
     pub total_score: u128,
 
     /// Non-zero iff this option is a winner; share of pool in basis points (0–10_000).

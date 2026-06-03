@@ -1,14 +1,14 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
-use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED, STAKE_ACCOUNT_SEED};
+use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeAccountClosedEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketOption, StakeAccount};
+use crate::state::{OpportunityMarket, StakeAccount};
 use crate::utils::{check_close_market_state, refund_stake_fees, CloseMarketState};
 
 #[derive(Accounts)]
-pub struct CloseStakeAccount<'info> {
+pub struct CloseUnrevealedStakeAccount<'info> {
     #[account(mut)]
     pub owner: Signer<'info>,
 
@@ -25,17 +25,9 @@ pub struct CloseStakeAccount<'info> {
         bump = stake_account.bump,
         close = owner,
         constraint = stake_account.unstaked_at_timestamp.is_some() @ ErrorCode::InvalidAccountState,
-        constraint = stake_account.revealed_option.is_some() @ ErrorCode::InvalidOptionId,
+        constraint = stake_account.revealed_option.is_none() @ ErrorCode::InvalidAccountState,
     )]
     pub stake_account: Box<Account<'info, StakeAccount>>,
-
-    /// CHECK: option is validated by seeds and in the instruction
-    #[account(
-        mut,
-        seeds = [OPTION_SEED, market.key().as_ref(), &stake_account.revealed_option.unwrap().to_le_bytes()],
-        bump,
-    )]
-    pub option: UncheckedAccount<'info>,
 
     #[account(address = market.mint)]
     pub token_mint: Box<InterfaceAccount<'info, Mint>>,
@@ -60,7 +52,9 @@ pub struct CloseStakeAccount<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>) -> Result<()> {
+pub fn close_unrevealed_stake_account<'info>(
+    ctx: Context<'info, CloseUnrevealedStakeAccount<'info>>,
+) -> Result<()> {
     let market_state = check_close_market_state(&ctx.accounts.market)?;
 
     let mut fee_refund = 0;
@@ -75,25 +69,13 @@ pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>)
         )?;
     }
 
-    let option_closed =
-        ctx.accounts.option.owner == &System::id() && ctx.accounts.option.data_is_empty();
-    if !option_closed {
-        let option = Account::<OpportunityMarketOption>::try_from(ctx.accounts.option.as_ref())?;
-        require!(
-            option.reward_bp == 0
-                || ctx.accounts.stake_account.score.is_none()
-                || ctx.accounts.stake_account.rewards_claimed,
-            ErrorCode::InvalidAccountState
-        );
-    }
-
     let stake_account = &ctx.accounts.stake_account;
     emit_ts!(StakeAccountClosedEvent {
         owner: ctx.accounts.owner.key(),
         market: ctx.accounts.market.key(),
         stake_account: stake_account.key(),
         stake_account_id: stake_account.id,
-        option_id: stake_account.revealed_option,
+        option_id: None,
         stake_amount: stake_account.amount,
         fee_refund: fee_refund,
         staked_at_timestamp: stake_account.staked_at_timestamp.unwrap_or(0),

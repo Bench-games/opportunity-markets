@@ -473,6 +473,207 @@
       "args": []
     },
     {
+      "name": "claim_rewards",
+      "discriminator": [
+        4,
+        144,
+        132,
+        71,
+        116,
+        23,
+        151,
+        80
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116,
+                  117,
+                  110,
+                  105,
+                  116,
+                  121,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.platform",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.index",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "stake_account.id",
+                "account": "StakeAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "option",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "stake_account.revealed_option",
+                "account": "StakeAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "close_option_account",
       "discriminator": [
         46,
@@ -678,8 +879,9 @@
                 "path": "market"
               },
               {
-                "kind": "arg",
-                "path": "stake_account_id"
+                "kind": "account",
+                "path": "stake_account.id",
+                "account": "StakeAccount"
               }
             ]
           }
@@ -705,8 +907,9 @@
                 "path": "market"
               },
               {
-                "kind": "arg",
-                "path": "option_id"
+                "kind": "account",
+                "path": "stake_account.revealed_option",
+                "account": "StakeAccount"
               }
             ]
           }
@@ -716,9 +919,6 @@
         },
         {
           "name": "market_token_ata",
-          "docs": [
-            "Market-owned ATA holding all program-held tokens for this market"
-          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -776,9 +976,6 @@
         },
         {
           "name": "owner_token_account",
-          "docs": [
-            "Owner's token account to receive rewards"
-          ],
           "writable": true
         },
         {
@@ -789,16 +986,7 @@
           "address": "11111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "option_id",
-          "type": "u64"
-        },
-        {
-          "name": "stake_account_id",
-          "type": "u32"
-        }
-      ]
+      "args": []
     },
     {
       "name": "close_stuck_stake_account",
@@ -982,6 +1170,183 @@
           "type": "u32"
         }
       ]
+    },
+    {
+      "name": "close_unrevealed_stake_account",
+      "discriminator": [
+        171,
+        229,
+        236,
+        216,
+        122,
+        118,
+        188,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116,
+                  117,
+                  110,
+                  105,
+                  116,
+                  121,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.platform",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.index",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "stake_account.id",
+                "account": "StakeAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "create_market",
@@ -3037,6 +3402,19 @@
       ]
     },
     {
+      "name": "RewardsClaimedEvent",
+      "discriminator": [
+        22,
+        1,
+        42,
+        183,
+        250,
+        8,
+        157,
+        146
+      ]
+    },
+    {
       "name": "StakeAccountClosedEvent",
       "discriminator": [
         214,
@@ -4347,7 +4725,7 @@
             "type": "u64"
           },
           {
-            "name": "total_staked",
+            "name": "unclaimed_stake",
             "type": "u64"
           },
           {
@@ -4745,6 +5123,46 @@
       }
     },
     {
+      "name": "RewardsClaimedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "option_id",
+            "type": "u64"
+          },
+          {
+            "name": "reward_amount",
+            "type": "u64"
+          },
+          {
+            "name": "score",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "SetUnset",
       "docs": [
         "Utility struct to store a value that needs to be set by a certain number of participants (keys",
@@ -4958,6 +5376,10 @@
             "type": "bool"
           },
           {
+            "name": "rewards_claimed",
+            "type": "bool"
+          },
+          {
             "name": "id",
             "type": "u32"
           },
@@ -4997,10 +5419,16 @@
           },
           {
             "name": "option_id",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "stake_amount",
             "type": "u64"
           },
           {
-            "name": "reward_amount",
+            "name": "fee_refund",
             "type": "u64"
           },
           {
@@ -5009,10 +5437,6 @@
           },
           {
             "name": "stake_end_timestamp",
-            "type": "u64"
-          },
-          {
-            "name": "stake_amount",
             "type": "u64"
           },
           {

@@ -111,11 +111,23 @@ pub struct StakeAccountClosedEvent {
     pub market: Pubkey,
     pub stake_account: Pubkey,
     pub stake_account_id: u32,
-    pub option_id: u64,
-    pub reward_amount: u64,
+    pub option_id: Option<u64>,
+    pub stake_amount: u64,
+    pub fee_refund: u64,
     pub staked_at_timestamp: u64,
     pub stake_end_timestamp: u64,
-    pub stake_amount: u64,
+    pub score: u64,
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct RewardsClaimedEvent {
+    pub owner: Pubkey,
+    pub market: Pubkey,
+    pub stake_account: Pubkey,
+    pub stake_account_id: u32,
+    pub option_id: u64,
+    pub reward_amount: u64,
     pub score: u64,
     pub timestamp: i64,
 }

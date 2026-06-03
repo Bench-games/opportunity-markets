@@ -82,6 +82,7 @@ describe("Opportunity markets", () => {
         authorizedReaderPubkey: observer.publicKey,
       },
     });
+    const rpc = platform.getRpc();
 
     // Open market
     await platform.openMarket();
@@ -97,21 +98,21 @@ describe("Opportunity markets", () => {
       (a, i) => a - expectedPlatformFeePerUser[i] - expectedCreatorFeePerUser[i],
     );
 
-    const purchases = platform.participants.map((userId, idx) => ({
+    const stakes = platform.participants.map((userId, idx) => ({
       userId,
       amount: stakeAmounts[idx],
       optionId: idx < numParticipants / 2 ? optionA : optionB,
     }));
-    const stakeAccountIds = await platform.stakeOnOptionBatch(purchases);
+    const stakeAccountIds = await platform.stakeOnOptionBatch(stakes);
 
     // Verify user can decrypt their own encrypted option choice
-    purchases.forEach((purchase, i) => {
+    stakes.forEach((purchase, i) => {
       const decrypted = platform.decryptStakeOption(purchase.userId, stakeAccountIds[i]);
       expect(decrypted.optionId).to.equal(BigInt(purchase.optionId));
     });
 
     // Verify observer can decrypt disclosed option choices
-    purchases.forEach((purchase, i) => {
+    stakes.forEach((purchase, i) => {
       const disclosed = platform.decryptDisclosedStakeOption(purchase.userId, stakeAccountIds[i], observer);
       expect(disclosed.optionId).to.equal(BigInt(purchase.optionId));
     });
@@ -153,7 +154,7 @@ describe("Opportunity markets", () => {
       expect(stakeAccount.data.revealedOption).to.deep.equal(some(BigInt(winningOptionIndex)));
     }
 
-    // Increment option tally for winners
+    // Finalize stake reveal for winners
     await platform.finalizeRevealStakeBatch(
       winners.map((userId, i) => ({
         userId,
@@ -162,13 +163,13 @@ describe("Opportunity markets", () => {
       }))
     );
 
-    // Verify option tally (amounts are net of fees)
+    // Verify option tally equals sum of all stake on it
     const totalWinningStaked = winnerStakeAccounts.reduce((sum, sa) => {
-      const idx = purchases.findIndex(p => p.userId === winners[winnerStakeAccounts.indexOf(sa)]);
+      const idx = stakes.findIndex(p => p.userId === winners[winnerStakeAccounts.indexOf(sa)]);
       return sum + expectedNetPerUser[idx];
     }, 0n);
     const optionAccount = await platform.fetchOptionData(winningOptionIndex);
-    expect(optionAccount.data.totalStaked).to.equal(totalWinningStaked);
+    expect(optionAccount.data.unclaimedStake).to.equal(totalWinningStaked);
 
     // Reclaim staked tokens for winners
     await platform.unstakeBatch(
@@ -202,9 +203,8 @@ describe("Opportunity markets", () => {
 
     await platform.endRevealPeriod();
 
-    // After the reveal period ends, the market creator can claim the
-    // accumulated creator fees.
-    const winnerIndices = purchases
+    // After the reveal period ends, the market creator can claim the accumulated creator fees.
+    const winnerIndices = stakes
       .map((p, idx) => (p.optionId === winningOptionIndex ? idx : -1))
       .filter((idx) => idx !== -1);
     const sumWinnerCreatorFees = winnerIndices.reduce(
@@ -214,13 +214,12 @@ describe("Opportunity markets", () => {
     const totalExpectedCreatorFees = expectedCreatorFeePerUser.reduce((sum, f) => sum + f, 0n);
     const claimableCreatorFees = totalExpectedCreatorFees - sumWinnerCreatorFees;
 
-    const rpcForCreatorFee = platform.getRpc();
     const creatorBalanceBeforeCreatorFee = (
-      await fetchToken(rpcForCreatorFee, platform.getUserTokenAccount(platform.creator))
+      await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))
     ).data.amount;
     await platform.claimCreatorFees();
     const creatorBalanceAfterCreatorFee = (
-      await fetchToken(rpcForCreatorFee, platform.getUserTokenAccount(platform.creator))
+      await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))
     ).data.amount;
     expect(creatorBalanceAfterCreatorFee - creatorBalanceBeforeCreatorFee).to.equal(
       claimableCreatorFees,
@@ -231,7 +230,6 @@ describe("Opportunity markets", () => {
     expect(marketAfterCreatorClaim.data.collectedCreatorFees).to.equal(0n);
 
     // Get token balances before closing (after reclaim, so only reward transfer remains)
-    const rpc = platform.getRpc();
     const marketAta = await platform.getMarketAta();
 
     const balancesBefore = await Promise.all(
@@ -248,7 +246,7 @@ describe("Opportunity markets", () => {
       OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
     );
 
-    // Close stake accounts for winners (transfers reward only)
+    // Settle stake accounts (claim rewards, then close)
     await platform.closeStakeAccountBatch(
       winners.map((userId, i) => ({
         userId,
@@ -256,6 +254,10 @@ describe("Opportunity markets", () => {
         stakeAccountId: winnerStakeAccounts[i].id,
       }))
     );
+
+    // All winning stake has been claimed.
+    const optionAfterClaim = await platform.fetchOptionData(winningOptionIndex);
+    expect(optionAfterClaim.data.unclaimedStake).to.equal(0n);
 
     // Verify stake accounts were closed
     for (let i = 0; i < winners.length; i++) {
@@ -1154,9 +1156,10 @@ describe("Opportunity markets", () => {
     const feeAuthAfter = (await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))).data.amount;
     expect(feeAuthAfter - feeAuthBefore).to.equal(expectedPlatformFee);
 
-    // Check that winner gets the reward + pool and creator fee refund
+    // Winner claims reward + fee refund, then closes the stake account.
     const userBalanceBeforeClose = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
-    await platform.closeStakeAccount(user, optionId, stakeAccountId);
+    await platform.claimRewards(user, optionId, stakeAccountId);
+    await platform.closeRevealedStakeAccountBatch([{ userId: user, optionId, stakeAccountId }]);
     const userBalanceAfterClose = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
     const expectedReward = marketFundingAmount + expectedRewardPoolFee + expectedCreatorFee;
     const userGain = userBalanceAfterClose - userBalanceBeforeClose;
@@ -1225,8 +1228,8 @@ describe("Opportunity markets", () => {
     // Stake reclaim returns the net staked amount.
     await platform.unstake(user, stakeAccountId);
 
-    // Closing on the expired path refunds reward_pool_fee + creator_fee.
-    await platform.closeStakeAccount(user, optionId, stakeAccountId);
+    // Expired path: never revealed → close_unrevealed refunds reward_pool_fee + creator_fee.
+    await platform.closeUnrevealedStakeAccount(user, stakeAccountId);
 
     const userBalanceAfter = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
     // Net loss equals the platform fee only — reward pool and creator fees were refunded.

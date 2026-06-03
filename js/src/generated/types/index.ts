@@ -40,6 +40,7 @@ export * from './revealPeriodEndedEvent';
 export * from './revealStakeFinalizedEvent';
 export * from './revealStakeOutput';
 export * from './rewardAddedEvent';
+export * from './rewardsClaimedEvent';
 export * from './rewardWithdrawnEvent';
 export * from './stakeAccountClosedEvent';
 export * from './stakeAccountInitializedEvent';

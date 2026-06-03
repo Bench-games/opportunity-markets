@@ -2,7 +2,7 @@
 
 Opportunity Markets allow users to influence decision making by staking. Decision makers benefit from opportunity markets by getting access to high-quality signals, helping them make the best choice.
 
-Program address on Solana Devnet: `bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G`
+Program address on Solana Devnet: `bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp`
 
 ## Documentation
 
@@ -53,7 +53,7 @@ must be bumped together with the repo whenever they change:
 
 ### Program keypair
 
-Tests use a deterministic program keypair assumed to be located at `../bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G.json`. If you don't have this keypair, generate your own and update the
+Tests use a deterministic program keypair assumed to be located at `../bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp.json`. If you don't have this keypair, generate your own and update the
 following to match:
 
 1. `declare_id!()` in `programs/opportunity_market/src/lib.rs`
@@ -95,7 +95,7 @@ arcium build
 
 ## Deployment
 
-1. Enable the `production-settings` feature by adding to the  defaults in `programs/opportunity_market/Cargo.toml`
+1. Enable the `production-settings` feature by adding it to `default` in `programs/opportunity_market/Cargo.toml`
 2. Update the program `declare_id!` macro to use your program keypair's pubkey
 3. Run `./build.sh`
 

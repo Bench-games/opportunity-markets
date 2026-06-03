@@ -33,8 +33,7 @@ pub fn stake_comp_def(ctx: Context<StakeCompDef>) -> Result<()> {
         init_computation_def(
             ctx.accounts,
             Some(CircuitSource::OffChain(OffChainCircuitSource {
-                source: "https://blobs.bench.markets/stake.arcis"
-                    .to_string(),
+                source: "https://blobs.bench.markets/stake.arcis".to_string(),
                 hash: circuit_hash!("stake"),
             })),
         )?;
@@ -72,8 +71,7 @@ pub fn reveal_stake_comp_def(ctx: Context<RevealStakeCompDef>) -> Result<()> {
         init_computation_def(
             ctx.accounts,
             Some(CircuitSource::OffChain(OffChainCircuitSource {
-                source: "https://blobs.bench.markets/reveal_stake.arcis"
-                    .to_string(),
+                source: "https://blobs.bench.markets/reveal_stake.arcis".to_string(),
                 hash: circuit_hash!("reveal_stake"),
             })),
         )?;

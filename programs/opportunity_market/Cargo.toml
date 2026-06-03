@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "opportunity_market"
 
 [features]
-default = ["production-settings"]
+default = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

@@ -54,22 +54,22 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
     let sponsor_account = &ctx.accounts.sponsor_account;
     let market = &ctx.accounts.market;
 
-    if let Some(stake_end) = market.stake_end_timestamp {
-        let current_timestamp = Clock::get()?.unix_timestamp as u64;
-        let expired_at = stake_end
-            .checked_add(market.market_resolution_deadline_seconds)
-            .ok_or(ErrorCode::Overflow)?;
-
-        // If market expired without resolution, even locked reward can be withdrawn.
-        let market_expired =
-            current_timestamp >= expired_at && market.resolved_at_timestamp.is_none();
-        if !market_expired {
-            require!(current_timestamp < stake_end, ErrorCode::TimeWindowMismatch);
-            require!(!sponsor_account.reward_locked, ErrorCode::Unauthorized);
-        }
-    } else {
-        require!(!sponsor_account.reward_locked, ErrorCode::Unauthorized);
-    }
+    // Rewards can be withdrawn if market was never resolved and expired.
+    require!(
+        market.resolved_at_timestamp.is_none(),
+        ErrorCode::Unauthorized
+    );
+    let stake_end = market
+        .stake_end_timestamp
+        .ok_or(ErrorCode::TimeWindowMismatch)?;
+    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    let expired_at = stake_end
+        .checked_add(market.market_resolution_deadline_seconds)
+        .ok_or(ErrorCode::Overflow)?;
+    require!(
+        current_timestamp >= expired_at,
+        ErrorCode::TimeWindowMismatch
+    );
 
     let reward_amount = sponsor_account.reward_deposited;
 

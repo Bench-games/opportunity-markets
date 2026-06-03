@@ -10,8 +10,6 @@ import {
   combineCodec,
   getAddressDecoder,
   getAddressEncoder,
-  getBooleanDecoder,
-  getBooleanEncoder,
   getI64Decoder,
   getI64Encoder,
   getStructDecoder,
@@ -29,7 +27,6 @@ export type RewardAddedEvent = {
   sponsor: Address;
   amount: bigint;
   totalRewardAmount: bigint;
-  locked: boolean;
   timestamp: bigint;
 };
 
@@ -38,7 +35,6 @@ export type RewardAddedEventArgs = {
   sponsor: Address;
   amount: number | bigint;
   totalRewardAmount: number | bigint;
-  locked: boolean;
   timestamp: number | bigint;
 };
 
@@ -48,7 +44,6 @@ export function getRewardAddedEventEncoder(): FixedSizeEncoder<RewardAddedEventA
     ['sponsor', getAddressEncoder()],
     ['amount', getU64Encoder()],
     ['totalRewardAmount', getU64Encoder()],
-    ['locked', getBooleanEncoder()],
     ['timestamp', getI64Encoder()],
   ]);
 }
@@ -59,7 +54,6 @@ export function getRewardAddedEventDecoder(): FixedSizeDecoder<RewardAddedEvent>
     ['sponsor', getAddressDecoder()],
     ['amount', getU64Decoder()],
     ['totalRewardAmount', getU64Decoder()],
-    ['locked', getBooleanDecoder()],
     ['timestamp', getI64Decoder()],
   ]);
 }

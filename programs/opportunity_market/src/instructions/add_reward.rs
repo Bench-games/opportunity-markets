@@ -52,7 +52,7 @@ pub struct AddReward<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn add_reward(ctx: Context<AddReward>, amount: u64, lock: bool) -> Result<()> {
+pub fn add_reward(ctx: Context<AddReward>, amount: u64) -> Result<()> {
     require!(amount > 0, ErrorCode::InsufficientRewardFunding);
 
     let market = &ctx.accounts.market;
@@ -71,11 +71,6 @@ pub fn add_reward(ctx: Context<AddReward>, amount: u64, lock: bool) -> Result<()
         sponsor_account.bump = ctx.bumps.sponsor_account;
         sponsor_account.sponsor = ctx.accounts.sponsor.key();
         sponsor_account.market = ctx.accounts.market.key();
-    }
-
-    // Lock logic: once locked, stays locked
-    if lock {
-        sponsor_account.reward_locked = true;
     }
 
     // Transfer tokens from sponsor to the market's ATA.
@@ -109,7 +104,6 @@ pub fn add_reward(ctx: Context<AddReward>, amount: u64, lock: bool) -> Result<()
         sponsor: ctx.accounts.sponsor.key(),
         amount: amount,
         total_reward_amount: market.reward_amount,
-        locked: sponsor_account.reward_locked,
     });
 
     Ok(())

@@ -154,7 +154,6 @@ pub struct RewardAddedEvent {
     pub sponsor: Pubkey,
     pub amount: u64,
     pub total_reward_amount: u64,
-    pub locked: bool,
     pub timestamp: i64,
 }
 

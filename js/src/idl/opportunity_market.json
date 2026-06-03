@@ -197,10 +197,6 @@
         {
           "name": "amount",
           "type": "u64"
-        },
-        {
-          "name": "lock",
-          "type": "bool"
         }
       ]
     },
@@ -4769,10 +4765,6 @@
           {
             "name": "reward_deposited",
             "type": "u64"
-          },
-          {
-            "name": "reward_locked",
-            "type": "bool"
           }
         ]
       }
@@ -5082,10 +5074,6 @@
           {
             "name": "total_reward_amount",
             "type": "u64"
-          },
-          {
-            "name": "locked",
-            "type": "bool"
           },
           {
             "name": "timestamp",

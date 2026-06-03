@@ -17,8 +17,6 @@ import {
   fixEncoderSize,
   getAddressDecoder,
   getAddressEncoder,
-  getBooleanDecoder,
-  getBooleanEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getStructDecoder,
@@ -57,7 +55,6 @@ export type OpportunityMarketSponsor = {
   sponsor: Address;
   market: Address;
   rewardDeposited: bigint;
-  rewardLocked: boolean;
 };
 
 export type OpportunityMarketSponsorArgs = {
@@ -65,7 +62,6 @@ export type OpportunityMarketSponsorArgs = {
   sponsor: Address;
   market: Address;
   rewardDeposited: number | bigint;
-  rewardLocked: boolean;
 };
 
 export function getOpportunityMarketSponsorEncoder(): FixedSizeEncoder<OpportunityMarketSponsorArgs> {
@@ -76,7 +72,6 @@ export function getOpportunityMarketSponsorEncoder(): FixedSizeEncoder<Opportuni
       ['sponsor', getAddressEncoder()],
       ['market', getAddressEncoder()],
       ['rewardDeposited', getU64Encoder()],
-      ['rewardLocked', getBooleanEncoder()],
     ]),
     (value) => ({
       ...value,
@@ -92,7 +87,6 @@ export function getOpportunityMarketSponsorDecoder(): FixedSizeDecoder<Opportuni
     ['sponsor', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['rewardDeposited', getU64Decoder()],
-    ['rewardLocked', getBooleanDecoder()],
   ]);
 }
 

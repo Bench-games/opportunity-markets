@@ -72,35 +72,34 @@ pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     }
 
     let amount = ctx.accounts.stake_account.amount;
+    require!(amount > 0, ErrorCode::AlreadyUnstaked);
 
-    if amount > 0 {
-        let platform = market.platform;
-        let creator = market.creator;
-        let index_bytes = market.index.to_le_bytes();
-        let market_bump = market.bump;
-        let market_seeds: &[&[&[u8]]] = &[&[
-            OPPORTUNITY_MARKET_SEED,
-            platform.as_ref(),
-            creator.as_ref(),
-            &index_bytes,
-            &[market_bump],
-        ]];
+    let platform = market.platform;
+    let creator = market.creator;
+    let index_bytes = market.index.to_le_bytes();
+    let market_bump = market.bump;
+    let market_seeds: &[&[&[u8]]] = &[&[
+        OPPORTUNITY_MARKET_SEED,
+        platform.as_ref(),
+        creator.as_ref(),
+        &index_bytes,
+        &[market_bump],
+    ]];
 
-        transfer_checked(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.key(),
-                TransferChecked {
-                    from: ctx.accounts.market_token_ata.to_account_info(),
-                    mint: ctx.accounts.token_mint.to_account_info(),
-                    to: ctx.accounts.owner_token_account.to_account_info(),
-                    authority: ctx.accounts.market.to_account_info(),
-                },
-                market_seeds,
-            ),
-            amount,
-            ctx.accounts.token_mint.decimals,
-        )?;
-    }
+    transfer_checked(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.key(),
+            TransferChecked {
+                from: ctx.accounts.market_token_ata.to_account_info(),
+                mint: ctx.accounts.token_mint.to_account_info(),
+                to: ctx.accounts.owner_token_account.to_account_info(),
+                authority: ctx.accounts.market.to_account_info(),
+            },
+            market_seeds,
+        ),
+        amount,
+        ctx.accounts.token_mint.decimals,
+    )?;
 
     emit_ts!(UnstakedEvent {
         owner: ctx.accounts.stake_account.owner,

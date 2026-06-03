@@ -168,7 +168,7 @@ describe("Opportunity markets", () => {
       return sum + expectedNetPerUser[idx];
     }, 0n);
     const optionAccount = await platform.fetchOptionData(winningOptionIndex);
-    expect(optionAccount.data.totalStaked).to.equal(totalWinningStaked);
+    expect(optionAccount.data.unclaimedStake).to.equal(totalWinningStaked);
 
     // Reclaim staked tokens for winners
     await platform.unstakeBatch(
@@ -256,6 +256,10 @@ describe("Opportunity markets", () => {
         stakeAccountId: winnerStakeAccounts[i].id,
       }))
     );
+
+    // All winning stake has been claimed.
+    const optionAfterClaim = await platform.fetchOptionData(winningOptionIndex);
+    expect(optionAfterClaim.data.unclaimedStake).to.equal(0n);
 
     // Verify stake accounts were closed
     for (let i = 0; i < winners.length; i++) {

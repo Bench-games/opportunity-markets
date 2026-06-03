@@ -1,7 +1,7 @@
 import { type TransactionSigner, type Address, type Instruction } from "@solana/kit";
 import {
   fetchMaybePlatformConfig,
-  getInitPlatformConfigInstructionAsync,
+  getInitPlatformConfigInstruction,
 } from "../generated";
 import { getPlatformConfigAddress } from "../accounts/platformConfig";
 import { type BaseInstructionParams } from "./instructionParams";
@@ -49,19 +49,22 @@ export async function createPlatformConfig(
     );
   }
 
-  return getInitPlatformConfigInstructionAsync(
+  return getInitPlatformConfigInstruction(
     {
       payer: signer,
-      name,
-      platformFeeBp,
-      rewardPoolFeeBp,
-      creatorFeeBp,
-      feeClaimAuthority,
-      revealAuthority,
-      minTimeToStakeSeconds,
-      revealPeriodSeconds,
-      marketResolutionDeadlineSeconds,
+      platformConfig: platformConfigAddress,
+      params: {
+        name,
+        platformFeeBp,
+        rewardPoolFeeBp,
+        creatorFeeBp,
+        feeClaimAuthority,
+        revealAuthority,
+        minTimeToStakeSeconds,
+        revealPeriodSeconds,
+        marketResolutionDeadlineSeconds,
+      },
     },
     programAddress ? { programAddress } : undefined,
-  ) as Promise<Instruction>;
+  ) as Instruction;
 }

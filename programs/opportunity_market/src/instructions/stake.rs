@@ -26,7 +26,7 @@ pub struct Stake<'info> {
 
     #[account(
         mut,
-        constraint = market.stake_end_timestamp.is_some() @ ErrorCode::MarketNotOpen,
+        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
         constraint = market.resolved_at_timestamp.is_none() @ ErrorCode::WinnerAlreadySelected,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
@@ -117,12 +117,12 @@ pub fn stake(
     // Enforce staking period is active
     let market = &ctx.accounts.market;
     let authorized_reader_pubkey = market.authorized_reader_pubkey;
-    let stake_end = market.stake_end_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
+    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
     let clock = Clock::get()?;
     let current_timestamp = clock.unix_timestamp as u64;
 
     require!(
-        current_timestamp <= stake_end,
+        current_timestamp <= staking_window_end,
         ErrorCode::TimeWindowMismatch
     );
 

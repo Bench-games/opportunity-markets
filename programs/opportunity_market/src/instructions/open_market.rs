@@ -12,7 +12,7 @@ pub struct OpenMarket<'info> {
     #[account(
         mut,
         has_one = market_authority @ ErrorCode::Unauthorized,
-        constraint = market.stake_end_timestamp.is_none() @ ErrorCode::MarketAlreadyOpen,
+        constraint = market.staking_window_end.is_none() @ ErrorCode::MarketAlreadyOpen,
     )]
     pub market: Account<'info, OpportunityMarket>,
 
@@ -32,16 +32,16 @@ pub fn open_market(ctx: Context<OpenMarket>, time_to_stake: u64) -> Result<()> {
         ErrorCode::InvalidParameters
     );
 
-    let stake_end_timestamp = open_timestamp
+    let staking_window_end = open_timestamp
         .checked_add(time_to_stake)
         .ok_or(ErrorCode::Overflow)?;
 
-    market.stake_end_timestamp = Some(stake_end_timestamp);
+    market.staking_window_end = Some(staking_window_end);
 
     emit_ts!(MarketOpenedEvent {
         market: market.key(),
         creator: market.creator,
-        stake_end_timestamp: stake_end_timestamp,
+        staking_window_end: staking_window_end,
     });
 
     Ok(())

@@ -36,9 +36,9 @@ pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Resul
     // Enforce staking period is not over (if market is open)
     let clock = Clock::get()?;
     let current_timestamp = clock.unix_timestamp as u64;
-    if let Some(stake_end) = market.stake_end_timestamp {
+    if let Some(staking_window_end) = market.staking_window_end {
         require!(
-            current_timestamp <= stake_end,
+            current_timestamp <= staking_window_end,
             ErrorCode::TimeWindowMismatch
         );
     }

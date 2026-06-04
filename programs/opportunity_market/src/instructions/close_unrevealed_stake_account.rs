@@ -79,7 +79,7 @@ pub fn close_unrevealed_stake_account<'info>(
         stake_amount: stake_account.amount,
         fee_refund: fee_refund,
         staked_at_timestamp: stake_account.staked_at_timestamp.unwrap_or(0),
-        stake_end_timestamp: stake_account.unstaked_at_timestamp.unwrap_or(0),
+        staking_window_end: stake_account.unstaked_at_timestamp.unwrap_or(0),
         score: stake_account.score.unwrap_or(0),
     });
 

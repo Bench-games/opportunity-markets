@@ -40,12 +40,12 @@ pub fn close_option_account(ctx: Context<CloseOptionAccount>, option_id: u64) ->
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp as u64;
 
-    let stake_end = ctx
+    let staking_window_end = ctx
         .accounts
         .market
-        .stake_end_timestamp
+        .staking_window_end
         .ok_or(ErrorCode::MarketNotOpen)?;
-    let select_deadline = stake_end
+    let select_deadline = staking_window_end
         .checked_add(ctx.accounts.market.market_resolution_deadline_seconds)
         .ok_or(ErrorCode::Overflow)?;
 

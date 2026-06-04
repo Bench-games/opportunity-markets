@@ -20,7 +20,7 @@ pub struct Unstake<'info> {
     #[account(
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
         bump = market.bump,
-        constraint = market.stake_end_timestamp.is_some() @ ErrorCode::MarketNotOpen,
+        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
@@ -61,14 +61,14 @@ pub struct Unstake<'info> {
 pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     let market = &ctx.accounts.market;
 
-    let stake_end = market.stake_end_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
+    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
     let current_timestamp = Clock::get()?.unix_timestamp as u64;
 
-    if current_timestamp < stake_end {
+    if current_timestamp < staking_window_end {
         require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
         ctx.accounts.stake_account.unstaked_at_timestamp = Some(current_timestamp);
     } else {
-        ctx.accounts.stake_account.unstaked_at_timestamp = Some(stake_end);
+        ctx.accounts.stake_account.unstaked_at_timestamp = Some(staking_window_end);
     }
 
     let amount = ctx.accounts.stake_account.amount;

@@ -106,7 +106,7 @@ pub struct OpportunityMarket {
     pub platform: Pubkey,
 
     // Some(...) once open_market is called; None means the market is not yet open.
-    pub stake_end_timestamp: Option<u64>,
+    pub staking_window_end: Option<u64>,
 
     pub resolved_at_timestamp: Option<u64>,
     pub winning_option_allocation: u16,

@@ -27,16 +27,16 @@ pub fn resolve_market(ctx: Context<ResolveMarket>) -> Result<()> {
         ErrorCode::InvalidParameters,
     );
 
-    let stake_end = market.stake_end_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
+    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
     let clock = Clock::get()?;
     let current_timestamp = clock.unix_timestamp as u64;
 
     require!(
-        current_timestamp >= stake_end,
+        current_timestamp >= staking_window_end,
         ErrorCode::TimeWindowMismatch,
     );
 
-    let select_deadline = stake_end
+    let select_deadline = staking_window_end
         .checked_add(market.market_resolution_deadline_seconds)
         .ok_or(ErrorCode::Overflow)?;
     require!(

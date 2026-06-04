@@ -35,20 +35,20 @@ pub fn set_winning_option(
     );
     require!(reward_bp <= 10_000, ErrorCode::InvalidParameters);
 
-    let stake_end = ctx
+    let staking_window_end = ctx
         .accounts
         .market
-        .stake_end_timestamp
+        .staking_window_end
         .ok_or(ErrorCode::MarketNotOpen)?;
     let clock = Clock::get()?;
     let current_timestamp = clock.unix_timestamp as u64;
 
     require!(
-        current_timestamp >= stake_end,
+        current_timestamp >= staking_window_end,
         ErrorCode::TimeWindowMismatch,
     );
 
-    let select_deadline = stake_end
+    let select_deadline = staking_window_end
         .checked_add(ctx.accounts.market.market_resolution_deadline_seconds)
         .ok_or(ErrorCode::Overflow)?;
     require!(

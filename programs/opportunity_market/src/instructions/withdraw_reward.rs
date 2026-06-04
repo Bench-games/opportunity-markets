@@ -59,11 +59,11 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
         market.resolved_at_timestamp.is_none(),
         ErrorCode::Unauthorized
     );
-    let stake_end = market
-        .stake_end_timestamp
+    let staking_window_end = market
+        .staking_window_end
         .ok_or(ErrorCode::TimeWindowMismatch)?;
     let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    let expired_at = stake_end
+    let expired_at = staking_window_end
         .checked_add(market.market_resolution_deadline_seconds)
         .ok_or(ErrorCode::Overflow)?;
     require!(

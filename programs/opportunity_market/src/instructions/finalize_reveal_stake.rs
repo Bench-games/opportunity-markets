@@ -45,11 +45,14 @@ pub fn finalize_reveal_stake(
     let market = &ctx.accounts.market;
 
     // Check that we are within the reveal window
-    let reveal_start = market.stake_end_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
+    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp as u64;
 
-    require!(current_time >= reveal_start, ErrorCode::TimeWindowMismatch);
+    require!(
+        current_time >= staking_window_end,
+        ErrorCode::TimeWindowMismatch
+    );
     require!(!market.reveal_ended, ErrorCode::RevealPeriodEnded);
 
     let revealed_option = ctx
@@ -73,16 +76,18 @@ pub fn finalize_reveal_stake(
     let staked_at_timestamp = stake_account
         .staked_at_timestamp
         .ok_or(ErrorCode::NoStake)?;
-    let user_stake_end = stake_account.unstaked_at_timestamp.unwrap_or(reveal_start);
+    let user_staking_window_end = stake_account
+        .unstaked_at_timestamp
+        .unwrap_or(staking_window_end);
 
     let stake_base_amount = stake_amount
         .checked_add(ctx.accounts.stake_account.collected_fees.total()?)
         .ok_or(ErrorCode::Overflow)?;
     let user_score = calculate_user_score(
         ctx.accounts.option.created_at,
-        reveal_start,
+        staking_window_end,
         staked_at_timestamp,
-        user_stake_end,
+        user_staking_window_end,
         stake_base_amount,
         market.earliness_cutoff_seconds,
         market.earliness_multiplier,

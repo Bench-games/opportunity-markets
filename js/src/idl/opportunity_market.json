@@ -4403,7 +4403,7 @@
             "type": "pubkey"
           },
           {
-            "name": "stake_end_timestamp",
+            "name": "staking_window_end",
             "type": "u64"
           },
           {
@@ -4600,7 +4600,7 @@
             "type": "pubkey"
           },
           {
-            "name": "stake_end_timestamp",
+            "name": "staking_window_end",
             "type": {
               "option": "u64"
             }
@@ -5412,7 +5412,7 @@
             "type": "u64"
           },
           {
-            "name": "stake_end_timestamp",
+            "name": "staking_window_end",
             "type": "u64"
           },
           {

@@ -37,7 +37,7 @@ export type StakeAccountClosedEvent = {
   stakeAmount: bigint;
   feeRefund: bigint;
   stakedAtTimestamp: bigint;
-  stakeEndTimestamp: bigint;
+  stakingWindowEnd: bigint;
   score: bigint;
   timestamp: bigint;
 };
@@ -51,7 +51,7 @@ export type StakeAccountClosedEventArgs = {
   stakeAmount: number | bigint;
   feeRefund: number | bigint;
   stakedAtTimestamp: number | bigint;
-  stakeEndTimestamp: number | bigint;
+  stakingWindowEnd: number | bigint;
   score: number | bigint;
   timestamp: number | bigint;
 };
@@ -66,7 +66,7 @@ export function getStakeAccountClosedEventEncoder(): Encoder<StakeAccountClosedE
     ['stakeAmount', getU64Encoder()],
     ['feeRefund', getU64Encoder()],
     ['stakedAtTimestamp', getU64Encoder()],
-    ['stakeEndTimestamp', getU64Encoder()],
+    ['stakingWindowEnd', getU64Encoder()],
     ['score', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
@@ -82,7 +82,7 @@ export function getStakeAccountClosedEventDecoder(): Decoder<StakeAccountClosedE
     ['stakeAmount', getU64Decoder()],
     ['feeRefund', getU64Decoder()],
     ['stakedAtTimestamp', getU64Decoder()],
-    ['stakeEndTimestamp', getU64Decoder()],
+    ['stakingWindowEnd', getU64Decoder()],
     ['score', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);

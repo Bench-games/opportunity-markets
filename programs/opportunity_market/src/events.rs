@@ -82,7 +82,7 @@ pub struct UnstakedEvent {
 pub struct MarketOpenedEvent {
     pub market: Pubkey,
     pub creator: Pubkey,
-    pub stake_end_timestamp: u64,
+    pub staking_window_end: u64,
     pub timestamp: i64,
 }
 
@@ -114,7 +114,7 @@ pub struct StakeAccountClosedEvent {
     pub stake_amount: u64,
     pub fee_refund: u64,
     pub staked_at_timestamp: u64,
-    pub stake_end_timestamp: u64,
+    pub staking_window_end: u64,
     pub score: u64,
     pub timestamp: i64,
 }

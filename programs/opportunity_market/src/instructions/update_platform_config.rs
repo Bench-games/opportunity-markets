@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 
+use crate::constants::{MAX_REVEAL_PERIOD_SECONDS, MIN_REVEAL_PERIOD_SECONDS};
 #[cfg(not(feature = "disable-prod-guardrails"))]
 use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
-use crate::constants::{MAX_REVEAL_PERIOD_SECONDS, MIN_REVEAL_PERIOD_SECONDS};
 use crate::error::ErrorCode;
 use crate::state::{FeeRates, PlatformConfig};
 

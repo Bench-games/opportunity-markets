@@ -129,7 +129,8 @@ pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
     );
 
     let collected_fees = market.calculate_fees(params.amount)?;
-    let net_amount = params.amount
+    let net_amount = params
+        .amount
         .checked_sub(collected_fees.total()?)
         .ok_or(ErrorCode::Overflow)?;
 

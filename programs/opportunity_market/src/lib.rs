@@ -54,10 +54,7 @@ pub mod opportunity_market {
         instructions::init_allowed_mint(ctx)
     }
 
-    pub fn create_market(
-        ctx: Context<CreateMarket>,
-        params: CreateMarketParameters,
-    ) -> Result<()> {
+    pub fn create_market(ctx: Context<CreateMarket>, params: CreateMarketParameters) -> Result<()> {
         instructions::create_market(ctx, params)
     }
 

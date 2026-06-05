@@ -17,11 +17,11 @@ import {
 import { OpportunityMarket } from "../target/types/opportunity_market";
 import { Platform } from "./utils/platform";
 import { initializeAllCompDefs } from "./utils/comp-defs";
+import { getWalletSecretKey } from "./utils/deployer";
 import { sleepUntilOnChainTimestamp } from "./utils/sleep";
 import { generateX25519Keypair, X25519Keypair } from "../js/src/x25519/keypair";
 import { shouldThrowCustomError } from "./utils/errors";
 import * as fs from "fs";
-import * as os from "os";
 
 const ONCHAIN_TIMESTAMP_BUFFER_SECONDS = 6;
 
@@ -50,8 +50,7 @@ describe("Opportunity markets", () => {
   const programId = address(program.programId.toBase58());
 
   before(async () => {
-    const file = fs.readFileSync(`${os.homedir()}/.config/solana/id.json`);
-    const secretKey = new Uint8Array(JSON.parse(file.toString()));
+    const secretKey = getWalletSecretKey();
 
     const rpc = createSolanaRpc(RPC_URL);
     const rpcSubscriptions = createSolanaRpcSubscriptions(WS_URL);

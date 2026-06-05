@@ -18,8 +18,8 @@ Program address on Solana Devnet: `bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp`
 
 Arcium v0.10.3 cli required.
 
-Before testing, make sure you build without the feature `production-settings`.
-In `programs/opportunity_market/Cargo.toml` make sure it's not in the defaults array.
+For local tests, `./test.sh` enables feature `disable-prod-guardrails` automatically.
+Keep it out of `default = []` in `programs/opportunity_market/Cargo.toml`.
 
 ### Formatting & linting
 
@@ -83,7 +83,7 @@ This runs `anchor build`, copies the IDL into `js/src/idl/`, installs deps, and 
 
 If tests fail with `Error Code: DeclaredProgramIdMismatch`, the compiled `.so` binary has a different program ID baked in than the deploy keypair. This happens when:
 
-- `target/deploy/opportunity_market-keypair.json` doesn't match the `declare_id!()` in the source. The `test.sh` script copies the deterministic keypair here before building.
+- `target/deploy/opportunity_market-keypair.json` doesn't match the `declare_id!()` in the source (prod builds copy the deterministic keypair via `build.sh`).
 - The build was skipped due to caching (arcium reports "Skipping build") and the cached `.so` was compiled with a different keypair. Fix by deleting stale artifacts and rebuilding:
 
 ```bash
@@ -95,7 +95,7 @@ arcium build
 
 ## Deployment
 
-1. Enable the `production-settings` feature by adding it to `default` in `programs/opportunity_market/Cargo.toml`
+1. Ensure `disable-prod-guardrails` is **not** enabled (mainnet/devnet deploys should keep production guardrails active)
 2. Update the program `declare_id!` macro to use your program keypair's pubkey
 3. Run `./build.sh`
 

@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use arcium_anchor::prelude::*;
-#[cfg(feature = "production-settings")]
+#[cfg(not(feature = "disable-prod-guardrails"))]
 use arcium_client::idl::arcium::types::{CircuitSource, OffChainCircuitSource};
-#[cfg(feature = "production-settings")]
+#[cfg(not(feature = "disable-prod-guardrails"))]
 use arcium_macros::circuit_hash;
 
 use crate::ID;
@@ -28,7 +28,7 @@ pub struct StakeCompDef<'info> {
 }
 
 pub fn stake_comp_def(ctx: Context<StakeCompDef>) -> Result<()> {
-    #[cfg(feature = "production-settings")]
+    #[cfg(not(feature = "disable-prod-guardrails"))]
     {
         init_computation_def(
             ctx.accounts,
@@ -38,7 +38,7 @@ pub fn stake_comp_def(ctx: Context<StakeCompDef>) -> Result<()> {
             })),
         )?;
     }
-    #[cfg(not(feature = "production-settings"))]
+    #[cfg(feature = "disable-prod-guardrails")]
     {
         init_computation_def(ctx.accounts, None)?;
     }
@@ -66,7 +66,7 @@ pub struct RevealStakeCompDef<'info> {
 }
 
 pub fn reveal_stake_comp_def(ctx: Context<RevealStakeCompDef>) -> Result<()> {
-    #[cfg(feature = "production-settings")]
+    #[cfg(not(feature = "disable-prod-guardrails"))]
     {
         init_computation_def(
             ctx.accounts,
@@ -76,7 +76,7 @@ pub fn reveal_stake_comp_def(ctx: Context<RevealStakeCompDef>) -> Result<()> {
             })),
         )?;
     }
-    #[cfg(not(feature = "production-settings"))]
+    #[cfg(feature = "disable-prod-guardrails")]
     {
         init_computation_def(ctx.accounts, None)?;
     }

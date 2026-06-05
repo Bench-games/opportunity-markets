@@ -18,7 +18,7 @@ idl-build = ["anchor-lang/idl-build", "arcium-anchor/idl-build", "anchor-spl/idl
 anchor-debug = []
 custom-heap = []
 custom-panic = []
-production-settings = []
+disable-prod-guardrails = []
 
 [dependencies]
 anchor-lang = { version = "1.0.2", features = ["init-if-needed"] }

@@ -27,3 +27,8 @@ upgradeable = false
 bind_address = "127.0.0.1"
 ledger = ".anchor/test-ledger"
 rpc_port = 8899
+
+# Load the program at declare_id without owning the program keypair.
+[[test.validator.program]]
+address = "bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp"
+path = "target/deploy/opportunity_market.so"

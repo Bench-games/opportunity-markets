@@ -11,21 +11,11 @@ import {
   fixDecoderSize,
   fixEncoderSize,
   getAddressEncoder,
-  getArrayDecoder,
-  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
-  getU128Decoder,
-  getU128Encoder,
-  getU32Decoder,
-  getU32Encoder,
-  getU64Decoder,
-  getU64Encoder,
-  getU8Decoder,
-  getU8Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
@@ -49,6 +39,12 @@ import {
   getAccountMetaFactory,
   type ResolvedAccount,
 } from '../shared';
+import {
+  getStakeParametersDecoder,
+  getStakeParametersEncoder,
+  type StakeParameters,
+  type StakeParametersArgs,
+} from '../types';
 
 export const STAKE_DISCRIMINATOR = new Uint8Array([
   206, 176, 202, 18, 200, 209, 179, 108,
@@ -153,42 +149,16 @@ export type StakeInstruction<
 
 export type StakeInstructionData = {
   discriminator: ReadonlyUint8Array;
-  computationOffset: bigint;
-  stakeAccountId: number;
-  amount: bigint;
-  selectedOptionCiphertext: Array<number>;
-  inputNonce: bigint;
-  authorizedReaderNonce: bigint;
-  userPubkey: Array<number>;
-  stateNonce: bigint;
+  params: StakeParameters;
 };
 
-export type StakeInstructionDataArgs = {
-  computationOffset: number | bigint;
-  stakeAccountId: number;
-  amount: number | bigint;
-  selectedOptionCiphertext: Array<number>;
-  inputNonce: number | bigint;
-  authorizedReaderNonce: number | bigint;
-  userPubkey: Array<number>;
-  stateNonce: number | bigint;
-};
+export type StakeInstructionDataArgs = { params: StakeParametersArgs };
 
 export function getStakeInstructionDataEncoder(): FixedSizeEncoder<StakeInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['computationOffset', getU64Encoder()],
-      ['stakeAccountId', getU32Encoder()],
-      ['amount', getU64Encoder()],
-      [
-        'selectedOptionCiphertext',
-        getArrayEncoder(getU8Encoder(), { size: 32 }),
-      ],
-      ['inputNonce', getU128Encoder()],
-      ['authorizedReaderNonce', getU128Encoder()],
-      ['userPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
-      ['stateNonce', getU128Encoder()],
+      ['params', getStakeParametersEncoder()],
     ]),
     (value) => ({ ...value, discriminator: STAKE_DISCRIMINATOR })
   );
@@ -197,14 +167,7 @@ export function getStakeInstructionDataEncoder(): FixedSizeEncoder<StakeInstruct
 export function getStakeInstructionDataDecoder(): FixedSizeDecoder<StakeInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['computationOffset', getU64Decoder()],
-    ['stakeAccountId', getU32Decoder()],
-    ['amount', getU64Decoder()],
-    ['selectedOptionCiphertext', getArrayDecoder(getU8Decoder(), { size: 32 })],
-    ['inputNonce', getU128Decoder()],
-    ['authorizedReaderNonce', getU128Decoder()],
-    ['userPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
-    ['stateNonce', getU128Decoder()],
+    ['params', getStakeParametersDecoder()],
   ]);
 }
 
@@ -259,14 +222,7 @@ export type StakeAsyncInput<
   clockAccount?: Address<TAccountClockAccount>;
   systemProgram?: Address<TAccountSystemProgram>;
   arciumProgram?: Address<TAccountArciumProgram>;
-  computationOffset: StakeInstructionDataArgs['computationOffset'];
-  stakeAccountId: StakeInstructionDataArgs['stakeAccountId'];
-  amount: StakeInstructionDataArgs['amount'];
-  selectedOptionCiphertext: StakeInstructionDataArgs['selectedOptionCiphertext'];
-  inputNonce: StakeInstructionDataArgs['inputNonce'];
-  authorizedReaderNonce: StakeInstructionDataArgs['authorizedReaderNonce'];
-  userPubkey: StakeInstructionDataArgs['userPubkey'];
-  stateNonce: StakeInstructionDataArgs['stateNonce'];
+  params: StakeInstructionDataArgs['params'];
 };
 
 export async function getStakeInstructionAsync<
@@ -511,14 +467,7 @@ export type StakeInput<
   clockAccount?: Address<TAccountClockAccount>;
   systemProgram?: Address<TAccountSystemProgram>;
   arciumProgram?: Address<TAccountArciumProgram>;
-  computationOffset: StakeInstructionDataArgs['computationOffset'];
-  stakeAccountId: StakeInstructionDataArgs['stakeAccountId'];
-  amount: StakeInstructionDataArgs['amount'];
-  selectedOptionCiphertext: StakeInstructionDataArgs['selectedOptionCiphertext'];
-  inputNonce: StakeInstructionDataArgs['inputNonce'];
-  authorizedReaderNonce: StakeInstructionDataArgs['authorizedReaderNonce'];
-  userPubkey: StakeInstructionDataArgs['userPubkey'];
-  stateNonce: StakeInstructionDataArgs['stateNonce'];
+  params: StakeInstructionDataArgs['params'];
 };
 
 export function getStakeInstruction<

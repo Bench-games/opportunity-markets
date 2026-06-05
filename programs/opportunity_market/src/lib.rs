@@ -56,24 +56,9 @@ pub mod opportunity_market {
 
     pub fn create_market(
         ctx: Context<CreateMarket>,
-        market_index: u64,
-        market_authority: Pubkey,
-        authorized_reader_pubkey: [u8; 32],
-        earliness_cutoff_seconds: u64,
-        earliness_multiplier: u16,
-        min_stake_amount: u64,
-        creator_fee_claimer: Pubkey,
+        params: CreateMarketParameters,
     ) -> Result<()> {
-        instructions::create_market(
-            ctx,
-            market_index,
-            market_authority,
-            authorized_reader_pubkey,
-            earliness_cutoff_seconds,
-            earliness_multiplier,
-            min_stake_amount,
-            creator_fee_claimer,
-        )
+        instructions::create_market(ctx, params)
     }
 
     pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Result<()> {
@@ -161,28 +146,8 @@ pub mod opportunity_market {
         instructions::stake_comp_def(ctx)
     }
 
-    pub fn stake(
-        ctx: Context<Stake>,
-        computation_offset: u64,
-        stake_account_id: u32,
-        amount: u64,
-        selected_option_ciphertext: [u8; 32],
-        input_nonce: u128,
-        authorized_reader_nonce: u128,
-        user_pubkey: [u8; 32],
-        state_nonce: u128,
-    ) -> Result<()> {
-        instructions::stake(
-            ctx,
-            computation_offset,
-            stake_account_id,
-            amount,
-            selected_option_ciphertext,
-            input_nonce,
-            authorized_reader_nonce,
-            user_pubkey,
-            state_nonce,
-        )
+    pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
+        instructions::stake(ctx, params)
     }
 
     #[arcium_callback(encrypted_ix = "stake")]

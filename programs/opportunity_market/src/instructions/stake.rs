@@ -12,9 +12,21 @@ use crate::state::{CollectedFees, OpportunityMarket, StakeAccount};
 use crate::COMP_DEF_OFFSET_STAKE;
 use crate::{ArciumSignerAccount, ID, ID_CONST};
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct StakeParameters {
+    pub computation_offset: u64,
+    pub stake_account_id: u32,
+    pub amount: u64,
+    pub selected_option_ciphertext: [u8; 32],
+    pub input_nonce: u128,
+    pub authorized_reader_nonce: u128,
+    pub user_pubkey: [u8; 32],
+    pub state_nonce: u128,
+}
+
 #[queue_computation_accounts("stake", payer)]
 #[derive(Accounts)]
-#[instruction(computation_offset: u64, stake_account_id: u32)]
+#[instruction(params: StakeParameters)]
 pub struct Stake<'info> {
     #[account(
         constraint = signer.key() == stake_account.owner @ ErrorCode::Unauthorized,
@@ -33,7 +45,7 @@ pub struct Stake<'info> {
 
     #[account(
         mut,
-        seeds = [STAKE_ACCOUNT_SEED, stake_account.owner.as_ref(), market.key().as_ref(), &stake_account_id.to_le_bytes()],
+        seeds = [STAKE_ACCOUNT_SEED, stake_account.owner.as_ref(), market.key().as_ref(), &params.stake_account_id.to_le_bytes()],
         bump = stake_account.bump,
         constraint = stake_account.staked_at_timestamp.is_none() @ ErrorCode::AlreadyStaked,
         constraint = stake_account.unstaked_at_timestamp.is_none() @ ErrorCode::AlreadyUnstaked,
@@ -82,7 +94,7 @@ pub struct Stake<'info> {
     #[account(mut, address = derive_execpool_pda!(mxe_account))]
     /// CHECK: executing_pool
     pub executing_pool: UncheckedAccount<'info>,
-    #[account(mut, address = derive_comp_pda!(computation_offset, mxe_account))]
+    #[account(mut, address = derive_comp_pda!(params.computation_offset, mxe_account))]
     /// CHECK: computation_account
     pub computation_account: UncheckedAccount<'info>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_STAKE))]
@@ -97,20 +109,10 @@ pub struct Stake<'info> {
     pub arcium_program: Program<'info, Arcium>,
 }
 
-pub fn stake(
-    ctx: Context<Stake>,
-    computation_offset: u64,
-    _stake_account_id: u32,
-    amount: u64,
-    selected_option_ciphertext: [u8; 32],
-    input_nonce: u128,
-    authorized_reader_nonce: u128,
-    user_pubkey: [u8; 32],
-    state_nonce: u128,
-) -> Result<()> {
-    require!(amount > 0, ErrorCode::InsufficientBalance);
+pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
+    require!(params.amount > 0, ErrorCode::InsufficientBalance);
     require!(
-        amount >= ctx.accounts.market.min_stake_amount,
+        params.amount >= ctx.accounts.market.min_stake_amount,
         ErrorCode::StakeBelowMinimum
     );
 
@@ -126,8 +128,8 @@ pub fn stake(
         ErrorCode::TimeWindowMismatch
     );
 
-    let collected_fees = market.calculate_fees(amount)?;
-    let net_amount = amount
+    let collected_fees = market.calculate_fees(params.amount)?;
+    let net_amount = params.amount
         .checked_sub(collected_fees.total()?)
         .ok_or(ErrorCode::Overflow)?;
 
@@ -141,7 +143,7 @@ pub fn stake(
                 authority: ctx.accounts.signer.to_account_info(),
             },
         ),
-        amount,
+        params.amount,
         ctx.accounts.token_mint.decimals,
     )?;
 
@@ -149,8 +151,8 @@ pub fn stake(
     ctx.accounts.stake_account.staked_at_timestamp = Some(current_timestamp);
     ctx.accounts.stake_account.amount = net_amount;
     ctx.accounts.stake_account.collected_fees = collected_fees;
-    ctx.accounts.stake_account.user_pubkey = user_pubkey;
-    ctx.accounts.stake_account.state_nonce = state_nonce;
+    ctx.accounts.stake_account.user_pubkey = params.user_pubkey;
+    ctx.accounts.stake_account.state_nonce = params.state_nonce;
     ctx.accounts.stake_account.pending_stake_computation =
         Some(ctx.accounts.computation_account.key());
 
@@ -160,25 +162,25 @@ pub fn stake(
     // Build args for encrypted computation
     let args = ArgBuilder::new()
         // User's option input (Enc<Shared, SelectedOption>)
-        .x25519_pubkey(user_pubkey)
-        .plaintext_u128(input_nonce)
-        .encrypted_u64(selected_option_ciphertext)
+        .x25519_pubkey(params.user_pubkey)
+        .plaintext_u128(params.input_nonce)
+        .encrypted_u64(params.selected_option_ciphertext)
         // Authorized reader context (Shared)
         .x25519_pubkey(authorized_reader_pubkey)
-        .plaintext_u128(authorized_reader_nonce) // .account => no locking by hand
+        .plaintext_u128(params.authorized_reader_nonce) // .account => no locking by hand
         // Stake account context (Shared for MXE output encryption)
-        .x25519_pubkey(user_pubkey)
-        .plaintext_u128(state_nonce)
+        .x25519_pubkey(params.user_pubkey)
+        .plaintext_u128(params.state_nonce)
         .build();
 
     // Queue computation with callback
     ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
     queue_computation(
         ctx.accounts,
-        computation_offset,
+        params.computation_offset,
         args,
         vec![StakeCallback::callback_ix(
-            computation_offset,
+            params.computation_offset,
             &ctx.accounts.mxe_account,
             &[
                 CallbackAccount {

@@ -1,6 +1,6 @@
 {
   "marketIndex": 2,
-  "platformName": "bench",
+  "platformName": "benchdev",
   "tokenMint": "6eP7puC9f9YkvrNW9FyzbgboxchSmzboULXDjN6dfNCj",
   "authorizedReaderKeypairPath": "./scripts/example-x25519-keypair.json",
   "marketAuthority": null,

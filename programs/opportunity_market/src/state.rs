@@ -3,6 +3,12 @@ use anchor_lang::prelude::*;
 use crate::constants::{
     MAX_CREATOR_FEE_BP, MAX_PLATFORM_FEE_BP, MAX_REWARD_POOL_FEE_BP, MAX_TOTAL_FEE_BP,
 };
+use crate::constants::{
+    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MIN_PLATFORM_NAME_LEN,
+    MIN_REVEAL_PERIOD_SECONDS,
+};
+#[cfg(not(feature = "disable-prod-guardrails"))]
+use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
 use crate::error::ErrorCode;
 
 #[account]
@@ -33,6 +39,53 @@ pub struct PlatformConfig {
     pub reveal_period_seconds: u64,
 }
 
+impl PlatformConfig {
+    pub fn try_new(
+        bump: u8,
+        name: String,
+        update_authority: Pubkey,
+        fee_claim_authority: Pubkey,
+        fee_rates: FeeRates,
+        market_resolution_deadline_seconds: u64,
+        min_time_to_stake_seconds: u64,
+        reveal_authority: Pubkey,
+        reveal_period_seconds: u64,
+    ) -> Result<Self> {
+        require!(
+            name.len() >= MIN_PLATFORM_NAME_LEN && name.len() <= MAX_PLATFORM_NAME_LEN,
+            ErrorCode::InvalidParameters
+        );
+
+        #[cfg(not(feature = "disable-prod-guardrails"))]
+        require!(
+            market_resolution_deadline_seconds >= MIN_MARKET_RESOLUTION_DEADLINE_SECONDS,
+            ErrorCode::InvalidParameters
+        );
+        #[cfg(not(feature = "disable-prod-guardrails"))]
+        require!(
+            min_time_to_stake_seconds >= MIN_TIME_TO_STAKE_FLOOR_SECONDS,
+            ErrorCode::InvalidParameters
+        );
+        require!(
+            (MIN_REVEAL_PERIOD_SECONDS..=MAX_REVEAL_PERIOD_SECONDS)
+                .contains(&reveal_period_seconds),
+            ErrorCode::InvalidParameters
+        );
+
+        Ok(Self {
+            bump,
+            name,
+            update_authority,
+            fee_claim_authority,
+            fee_rates,
+            market_resolution_deadline_seconds,
+            min_time_to_stake_seconds,
+            reveal_authority,
+            reveal_period_seconds,
+        })
+    }
+}
+
 /// Whitelisted token per platform
 #[account]
 #[derive(InitSpace)]
@@ -53,7 +106,7 @@ pub struct OpportunityMarket {
     pub platform: Pubkey,
 
     // Some(...) once open_market is called; None means the market is not yet open.
-    pub stake_end_timestamp: Option<u64>,
+    pub staking_window_end: Option<u64>,
 
     pub resolved_at_timestamp: Option<u64>,
     pub winning_option_allocation: u16,

@@ -51,13 +51,15 @@ export async function updatePlatformConfig(
     {
       updateAuthority: signer,
       platformConfig: platformConfigAddress,
-      platformFeeBp,
-      rewardPoolFeeBp,
-      creatorFeeBp,
-      revealAuthority,
-      minTimeToStakeSeconds,
-      revealPeriodSeconds,
-      marketResolutionDeadlineSeconds,
+      params: {
+        platformFeeBp,
+        rewardPoolFeeBp,
+        creatorFeeBp,
+        revealAuthority,
+        minTimeToStakeSeconds,
+        revealPeriodSeconds,
+        marketResolutionDeadlineSeconds,
+      },
     },
     programAddress ? { programAddress } : undefined,
   ) as Instruction;

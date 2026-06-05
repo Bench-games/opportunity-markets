@@ -59,11 +59,11 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
         market.resolved_at_timestamp.is_none(),
         ErrorCode::Unauthorized
     );
-    let stake_end = market
-        .stake_end_timestamp
+    let staking_window_end = market
+        .staking_window_end
         .ok_or(ErrorCode::TimeWindowMismatch)?;
     let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    let expired_at = stake_end
+    let expired_at = staking_window_end
         .checked_add(market.market_resolution_deadline_seconds)
         .ok_or(ErrorCode::Overflow)?;
     require!(
@@ -72,35 +72,34 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
     );
 
     let reward_amount = sponsor_account.reward_deposited;
+    require!(reward_amount > 0, ErrorCode::NoRewardToClaim);
 
-    if reward_amount > 0 {
-        let platform = market.platform;
-        let creator = market.creator;
-        let index_bytes = market.index.to_le_bytes();
-        let market_bump = market.bump;
-        let market_seeds: &[&[&[u8]]] = &[&[
-            OPPORTUNITY_MARKET_SEED,
-            platform.as_ref(),
-            creator.as_ref(),
-            &index_bytes,
-            &[market_bump],
-        ]];
+    let platform = market.platform;
+    let creator = market.creator;
+    let index_bytes = market.index.to_le_bytes();
+    let market_bump = market.bump;
+    let market_seeds: &[&[&[u8]]] = &[&[
+        OPPORTUNITY_MARKET_SEED,
+        platform.as_ref(),
+        creator.as_ref(),
+        &index_bytes,
+        &[market_bump],
+    ]];
 
-        transfer_checked(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.key(),
-                TransferChecked {
-                    from: ctx.accounts.market_token_ata.to_account_info(),
-                    mint: ctx.accounts.token_mint.to_account_info(),
-                    to: ctx.accounts.refund_token_account.to_account_info(),
-                    authority: ctx.accounts.market.to_account_info(),
-                },
-                market_seeds,
-            ),
-            reward_amount,
-            ctx.accounts.token_mint.decimals,
-        )?;
-    }
+    transfer_checked(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.key(),
+            TransferChecked {
+                from: ctx.accounts.market_token_ata.to_account_info(),
+                mint: ctx.accounts.token_mint.to_account_info(),
+                to: ctx.accounts.refund_token_account.to_account_info(),
+                authority: ctx.accounts.market.to_account_info(),
+            },
+            market_seeds,
+        ),
+        reward_amount,
+        ctx.accounts.token_mint.decimals,
+    )?;
 
     let market = &mut ctx.accounts.market;
     market.reward_amount = market

@@ -25,14 +25,14 @@ import {
 export type MarketOpenedEvent = {
   market: Address;
   creator: Address;
-  stakeEndTimestamp: bigint;
+  stakingWindowEnd: bigint;
   timestamp: bigint;
 };
 
 export type MarketOpenedEventArgs = {
   market: Address;
   creator: Address;
-  stakeEndTimestamp: number | bigint;
+  stakingWindowEnd: number | bigint;
   timestamp: number | bigint;
 };
 
@@ -40,7 +40,7 @@ export function getMarketOpenedEventEncoder(): FixedSizeEncoder<MarketOpenedEven
   return getStructEncoder([
     ['market', getAddressEncoder()],
     ['creator', getAddressEncoder()],
-    ['stakeEndTimestamp', getU64Encoder()],
+    ['stakingWindowEnd', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
 }
@@ -49,7 +49,7 @@ export function getMarketOpenedEventDecoder(): FixedSizeDecoder<MarketOpenedEven
   return getStructDecoder([
     ['market', getAddressDecoder()],
     ['creator', getAddressDecoder()],
-    ['stakeEndTimestamp', getU64Decoder()],
+    ['stakingWindowEnd', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);
 }

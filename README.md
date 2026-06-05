@@ -2,7 +2,7 @@
 
 Opportunity Markets allow users to influence decision making by staking. Decision makers benefit from opportunity markets by getting access to high-quality signals, helping them make the best choice.
 
-Program address on Solana Devnet: `bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G`
+Program address on Solana Devnet: `bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp`
 
 ## Documentation
 
@@ -53,7 +53,7 @@ must be bumped together with the repo whenever they change:
 
 ### Program keypair
 
-Tests use a deterministic program keypair assumed to be located at `../bnchkMdYe3MWubqAWJbCYQGNmnjTg2YWEEi1a8qs82G.json`. If you don't have this keypair, generate your own and update the
+Tests use a deterministic program keypair assumed to be located at `../bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp.json`. If you don't have this keypair, generate your own and update the
 following to match:
 
 1. `declare_id!()` in `programs/opportunity_market/src/lib.rs`
@@ -83,7 +83,7 @@ This runs `anchor build`, copies the IDL into `js/src/idl/`, installs deps, and 
 
 If tests fail with `Error Code: DeclaredProgramIdMismatch`, the compiled `.so` binary has a different program ID baked in than the deploy keypair. This happens when:
 
-- `target/deploy/opportunity_market-keypair.json` doesn't match the `declare_id!()` in the source. The `test.sh` script copies the deterministic keypair here before building.
+- `target/deploy/opportunity_market-keypair.json` doesn't match the `declare_id!()` in the source (prod builds copy the deterministic keypair via `build.sh`).
 - The build was skipped due to caching (arcium reports "Skipping build") and the cached `.so` was compiled with a different keypair. Fix by deleting stale artifacts and rebuilding:
 
 ```bash

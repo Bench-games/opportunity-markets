@@ -10,23 +10,17 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressDecoder,
-  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
-  getU64Decoder,
-  getU64Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -37,6 +31,12 @@ import {
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
+import {
+  getUpdatePlatformParametersDecoder,
+  getUpdatePlatformParametersEncoder,
+  type UpdatePlatformParameters,
+  type UpdatePlatformParametersArgs,
+} from '../types';
 
 export const UPDATE_PLATFORM_CONFIG_DISCRIMINATOR = new Uint8Array([
   195, 60, 76, 129, 146, 45, 67, 143,
@@ -70,36 +70,18 @@ export type UpdatePlatformConfigInstruction<
 
 export type UpdatePlatformConfigInstructionData = {
   discriminator: ReadonlyUint8Array;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
-  revealAuthority: Address;
-  minTimeToStakeSeconds: bigint;
-  revealPeriodSeconds: bigint;
-  marketResolutionDeadlineSeconds: bigint;
+  params: UpdatePlatformParameters;
 };
 
 export type UpdatePlatformConfigInstructionDataArgs = {
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
-  revealAuthority: Address;
-  minTimeToStakeSeconds: number | bigint;
-  revealPeriodSeconds: number | bigint;
-  marketResolutionDeadlineSeconds: number | bigint;
+  params: UpdatePlatformParametersArgs;
 };
 
-export function getUpdatePlatformConfigInstructionDataEncoder(): FixedSizeEncoder<UpdatePlatformConfigInstructionDataArgs> {
+export function getUpdatePlatformConfigInstructionDataEncoder(): Encoder<UpdatePlatformConfigInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['platformFeeBp', getU16Encoder()],
-      ['rewardPoolFeeBp', getU16Encoder()],
-      ['creatorFeeBp', getU16Encoder()],
-      ['revealAuthority', getAddressEncoder()],
-      ['minTimeToStakeSeconds', getU64Encoder()],
-      ['revealPeriodSeconds', getU64Encoder()],
-      ['marketResolutionDeadlineSeconds', getU64Encoder()],
+      ['params', getUpdatePlatformParametersEncoder()],
     ]),
     (value) => ({
       ...value,
@@ -108,20 +90,14 @@ export function getUpdatePlatformConfigInstructionDataEncoder(): FixedSizeEncode
   );
 }
 
-export function getUpdatePlatformConfigInstructionDataDecoder(): FixedSizeDecoder<UpdatePlatformConfigInstructionData> {
+export function getUpdatePlatformConfigInstructionDataDecoder(): Decoder<UpdatePlatformConfigInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['platformFeeBp', getU16Decoder()],
-    ['rewardPoolFeeBp', getU16Decoder()],
-    ['creatorFeeBp', getU16Decoder()],
-    ['revealAuthority', getAddressDecoder()],
-    ['minTimeToStakeSeconds', getU64Decoder()],
-    ['revealPeriodSeconds', getU64Decoder()],
-    ['marketResolutionDeadlineSeconds', getU64Decoder()],
+    ['params', getUpdatePlatformParametersDecoder()],
   ]);
 }
 
-export function getUpdatePlatformConfigInstructionDataCodec(): FixedSizeCodec<
+export function getUpdatePlatformConfigInstructionDataCodec(): Codec<
   UpdatePlatformConfigInstructionDataArgs,
   UpdatePlatformConfigInstructionData
 > {
@@ -137,13 +113,7 @@ export type UpdatePlatformConfigInput<
 > = {
   updateAuthority: TransactionSigner<TAccountUpdateAuthority>;
   platformConfig: Address<TAccountPlatformConfig>;
-  platformFeeBp: UpdatePlatformConfigInstructionDataArgs['platformFeeBp'];
-  rewardPoolFeeBp: UpdatePlatformConfigInstructionDataArgs['rewardPoolFeeBp'];
-  creatorFeeBp: UpdatePlatformConfigInstructionDataArgs['creatorFeeBp'];
-  revealAuthority: UpdatePlatformConfigInstructionDataArgs['revealAuthority'];
-  minTimeToStakeSeconds: UpdatePlatformConfigInstructionDataArgs['minTimeToStakeSeconds'];
-  revealPeriodSeconds: UpdatePlatformConfigInstructionDataArgs['revealPeriodSeconds'];
-  marketResolutionDeadlineSeconds: UpdatePlatformConfigInstructionDataArgs['marketResolutionDeadlineSeconds'];
+  params: UpdatePlatformConfigInstructionDataArgs['params'];
 };
 
 export function getUpdatePlatformConfigInstruction<

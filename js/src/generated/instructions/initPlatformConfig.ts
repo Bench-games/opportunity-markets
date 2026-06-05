@@ -7,26 +7,13 @@
  */
 
 import {
-  addDecoderSizePrefix,
-  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressDecoder,
-  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
-  getU32Decoder,
-  getU32Encoder,
-  getU64Decoder,
-  getU64Encoder,
-  getUtf8Decoder,
-  getUtf8Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
@@ -44,12 +31,13 @@ import {
   type WritableSignerAccount,
 } from '@solana/kit';
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
+import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 import {
-  expectAddress,
-  expectSome,
-  getAccountMetaFactory,
-  type ResolvedAccount,
-} from '../shared';
+  getInitPlatformParametersDecoder,
+  getInitPlatformParametersEncoder,
+  type InitPlatformParameters,
+  type InitPlatformParametersArgs,
+} from '../types';
 
 export const INIT_PLATFORM_CONFIG_DISCRIMINATOR = new Uint8Array([
   101, 52, 47, 49, 156, 16, 32, 118,
@@ -88,42 +76,18 @@ export type InitPlatformConfigInstruction<
 
 export type InitPlatformConfigInstructionData = {
   discriminator: ReadonlyUint8Array;
-  name: string;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
-  feeClaimAuthority: Address;
-  revealAuthority: Address;
-  minTimeToStakeSeconds: bigint;
-  revealPeriodSeconds: bigint;
-  marketResolutionDeadlineSeconds: bigint;
+  params: InitPlatformParameters;
 };
 
 export type InitPlatformConfigInstructionDataArgs = {
-  name: string;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
-  feeClaimAuthority: Address;
-  revealAuthority: Address;
-  minTimeToStakeSeconds: number | bigint;
-  revealPeriodSeconds: number | bigint;
-  marketResolutionDeadlineSeconds: number | bigint;
+  params: InitPlatformParametersArgs;
 };
 
 export function getInitPlatformConfigInstructionDataEncoder(): Encoder<InitPlatformConfigInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['name', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
-      ['platformFeeBp', getU16Encoder()],
-      ['rewardPoolFeeBp', getU16Encoder()],
-      ['creatorFeeBp', getU16Encoder()],
-      ['feeClaimAuthority', getAddressEncoder()],
-      ['revealAuthority', getAddressEncoder()],
-      ['minTimeToStakeSeconds', getU64Encoder()],
-      ['revealPeriodSeconds', getU64Encoder()],
-      ['marketResolutionDeadlineSeconds', getU64Encoder()],
+      ['params', getInitPlatformParametersEncoder()],
     ]),
     (value) => ({ ...value, discriminator: INIT_PLATFORM_CONFIG_DISCRIMINATOR })
   );
@@ -132,15 +96,7 @@ export function getInitPlatformConfigInstructionDataEncoder(): Encoder<InitPlatf
 export function getInitPlatformConfigInstructionDataDecoder(): Decoder<InitPlatformConfigInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['name', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
-    ['platformFeeBp', getU16Decoder()],
-    ['rewardPoolFeeBp', getU16Decoder()],
-    ['creatorFeeBp', getU16Decoder()],
-    ['feeClaimAuthority', getAddressDecoder()],
-    ['revealAuthority', getAddressDecoder()],
-    ['minTimeToStakeSeconds', getU64Decoder()],
-    ['revealPeriodSeconds', getU64Decoder()],
-    ['marketResolutionDeadlineSeconds', getU64Decoder()],
+    ['params', getInitPlatformParametersDecoder()],
   ]);
 }
 
@@ -154,103 +110,6 @@ export function getInitPlatformConfigInstructionDataCodec(): Codec<
   );
 }
 
-export type InitPlatformConfigAsyncInput<
-  TAccountPayer extends string = string,
-  TAccountPlatformConfig extends string = string,
-  TAccountSystemProgram extends string = string,
-> = {
-  payer: TransactionSigner<TAccountPayer>;
-  platformConfig?: Address<TAccountPlatformConfig>;
-  systemProgram?: Address<TAccountSystemProgram>;
-  name: InitPlatformConfigInstructionDataArgs['name'];
-  platformFeeBp: InitPlatformConfigInstructionDataArgs['platformFeeBp'];
-  rewardPoolFeeBp: InitPlatformConfigInstructionDataArgs['rewardPoolFeeBp'];
-  creatorFeeBp: InitPlatformConfigInstructionDataArgs['creatorFeeBp'];
-  feeClaimAuthority: InitPlatformConfigInstructionDataArgs['feeClaimAuthority'];
-  revealAuthority: InitPlatformConfigInstructionDataArgs['revealAuthority'];
-  minTimeToStakeSeconds: InitPlatformConfigInstructionDataArgs['minTimeToStakeSeconds'];
-  revealPeriodSeconds: InitPlatformConfigInstructionDataArgs['revealPeriodSeconds'];
-  marketResolutionDeadlineSeconds: InitPlatformConfigInstructionDataArgs['marketResolutionDeadlineSeconds'];
-};
-
-export async function getInitPlatformConfigInstructionAsync<
-  TAccountPayer extends string,
-  TAccountPlatformConfig extends string,
-  TAccountSystemProgram extends string,
-  TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
->(
-  input: InitPlatformConfigAsyncInput<
-    TAccountPayer,
-    TAccountPlatformConfig,
-    TAccountSystemProgram
-  >,
-  config?: { programAddress?: TProgramAddress }
-): Promise<
-  InitPlatformConfigInstruction<
-    TProgramAddress,
-    TAccountPayer,
-    TAccountPlatformConfig,
-    TAccountSystemProgram
-  >
-> {
-  // Program address.
-  const programAddress =
-    config?.programAddress ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    payer: { value: input.payer ?? null, isWritable: true },
-    platformConfig: { value: input.platformConfig ?? null, isWritable: true },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  // Original args.
-  const args = { ...input };
-
-  // Resolve default values.
-  if (!accounts.platformConfig.value) {
-    accounts.platformConfig.value = await getProgramDerivedAddress({
-      programAddress,
-      seeds: [
-        getBytesEncoder().encode(
-          new Uint8Array([
-            112, 108, 97, 116, 102, 111, 114, 109, 95, 99, 111, 110, 102, 105,
-            103,
-          ])
-        ),
-        getAddressEncoder().encode(expectAddress(accounts.payer.value)),
-        getUtf8Encoder().encode(expectSome(args.name)),
-      ],
-    });
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value =
-      '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
-  return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.payer),
-      getAccountMeta(accounts.platformConfig),
-      getAccountMeta(accounts.systemProgram),
-    ],
-    data: getInitPlatformConfigInstructionDataEncoder().encode(
-      args as InitPlatformConfigInstructionDataArgs
-    ),
-    programAddress,
-  } as InitPlatformConfigInstruction<
-    TProgramAddress,
-    TAccountPayer,
-    TAccountPlatformConfig,
-    TAccountSystemProgram
-  >);
-}
-
 export type InitPlatformConfigInput<
   TAccountPayer extends string = string,
   TAccountPlatformConfig extends string = string,
@@ -259,15 +118,7 @@ export type InitPlatformConfigInput<
   payer: TransactionSigner<TAccountPayer>;
   platformConfig: Address<TAccountPlatformConfig>;
   systemProgram?: Address<TAccountSystemProgram>;
-  name: InitPlatformConfigInstructionDataArgs['name'];
-  platformFeeBp: InitPlatformConfigInstructionDataArgs['platformFeeBp'];
-  rewardPoolFeeBp: InitPlatformConfigInstructionDataArgs['rewardPoolFeeBp'];
-  creatorFeeBp: InitPlatformConfigInstructionDataArgs['creatorFeeBp'];
-  feeClaimAuthority: InitPlatformConfigInstructionDataArgs['feeClaimAuthority'];
-  revealAuthority: InitPlatformConfigInstructionDataArgs['revealAuthority'];
-  minTimeToStakeSeconds: InitPlatformConfigInstructionDataArgs['minTimeToStakeSeconds'];
-  revealPeriodSeconds: InitPlatformConfigInstructionDataArgs['revealPeriodSeconds'];
-  marketResolutionDeadlineSeconds: InitPlatformConfigInstructionDataArgs['marketResolutionDeadlineSeconds'];
+  params: InitPlatformConfigInstructionDataArgs['params'];
 };
 
 export function getInitPlatformConfigInstruction<

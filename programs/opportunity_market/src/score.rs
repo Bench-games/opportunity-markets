@@ -8,13 +8,16 @@ pub const OVERFLOW_DIVISOR: u128 = 200;
 
 pub fn calculate_user_score_components(
     option_created: u64,
-    reveal_start: u64,
+    staking_window_end: u64,
     user_staked_at: u64,
     user_stake_end: u64,
     earliness_cutoff_seconds: u64, // unlimited, not an issue
     earliness_multiplier: u16,     // 10000 - 20000
 ) -> Result<(u64, u64)> {
-    require!(reveal_start > option_created, ErrorCode::InvalidParameters);
+    require!(
+        staking_window_end > option_created,
+        ErrorCode::InvalidParameters
+    );
 
     let earliness_cutoff = earliness_cutoff_seconds.max(1);
     let earliness_multiplier = earliness_multiplier as u64;
@@ -23,7 +26,7 @@ pub fn calculate_user_score_components(
     let delay_after_option_creation = user_staked_at.saturating_sub(option_created).max(1);
 
     let earliest_stake_start = option_created;
-    let latest_stake_end = reveal_start;
+    let latest_stake_end = staking_window_end;
     let valid_stake_start = user_staked_at.max(earliest_stake_start);
     let valid_stake_end = user_stake_end.min(latest_stake_end);
 
@@ -61,7 +64,7 @@ pub fn calculate_user_score_components(
 
 pub fn calculate_user_score(
     option_created: u64,
-    reveal_start: u64,
+    staking_window_end: u64,
     user_staked_at: u64,
     user_stake_end: u64,
     stake_amount: u64,
@@ -70,7 +73,7 @@ pub fn calculate_user_score(
 ) -> Result<u64> {
     let (time_pct, earliness) = calculate_user_score_components(
         option_created,
-        reveal_start,
+        staking_window_end,
         user_staked_at,
         user_stake_end,
         earliness_cutoff_seconds,
@@ -110,12 +113,12 @@ mod tests {
     #[test]
     fn peak_boost_when_staking_at_market_open() {
         // Staker enters at t=0, never unstakes early.
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let (time_pct, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             ONE_WEEK,
             MULT_2X,
         )
@@ -128,13 +131,13 @@ mod tests {
 
     #[test]
     fn no_boost_at_cutoff_boundary() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let cutoff = 24 * 60 * 60; // 1 day
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED + cutoff,
-            reveal_start,
+            staking_window_end,
             cutoff,
             MULT_2X,
         )
@@ -146,13 +149,13 @@ mod tests {
 
     #[test]
     fn no_boost_after_cutoff() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let cutoff = 24 * 60 * 60;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED + 2 * cutoff,
-            reveal_start,
+            staking_window_end,
             cutoff,
             MULT_2X,
         )
@@ -164,13 +167,13 @@ mod tests {
 
     #[test]
     fn midway_boost_is_linear() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let cutoff = 24 * 60 * 60;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED + cutoff / 2,
-            reveal_start,
+            staking_window_end,
             cutoff,
             MULT_2X,
         )
@@ -182,12 +185,12 @@ mod tests {
 
     #[test]
     fn multiplier_equal_to_precision_means_no_boost() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED + 60,
-            reveal_start,
+            staking_window_end,
             ONE_WEEK,
             MULT_1X,
         )
@@ -199,12 +202,12 @@ mod tests {
     #[test]
     fn realistic_full_score_with_1_5x_multiplier() {
         // Stake 1M tokens (9 decimals) at t=0 of a 1-week market, never unstake.
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             STAKE,
             ONE_WEEK,
             MULT_1_5X,
@@ -233,11 +236,11 @@ mod tests {
     #[test]
     fn early_unstake_pulls_time_pct_below_full() {
         // User stakes at t=0, unstakes 1 day into a 1-week market.
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let day = 24 * 60 * 60;
         let (time_pct, _) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED,
             MARKET_OPENED + day,
             ONE_WEEK,
@@ -251,12 +254,12 @@ mod tests {
 
     #[test]
     fn zero_amount_yields_zero_score() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             0,
             ONE_WEEK,
             MULT_2X,
@@ -269,11 +272,18 @@ mod tests {
     #[test]
     fn zero_stake_duration_yields_zero_score() {
         // Staker unstakes the same second they stake.
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let t = MARKET_OPENED + 60;
-        let score =
-            calculate_user_score(MARKET_OPENED, reveal_start, t, t, STAKE, ONE_WEEK, MULT_2X)
-                .unwrap();
+        let score = calculate_user_score(
+            MARKET_OPENED,
+            staking_window_end,
+            t,
+            t,
+            STAKE,
+            ONE_WEEK,
+            MULT_2X,
+        )
+        .unwrap();
 
         assert_eq!(score, 0);
     }
@@ -282,12 +292,12 @@ mod tests {
     fn zero_cutoff_does_not_panic_and_gives_no_boost() {
         // Cutoff = 0 is .max(1)'d internally; any delay_after_option_creation >= 1 hits the
         // clamp, so factor = PRECISION (1.0x) regardless of staking time.
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED + 60,
-            reveal_start,
+            staking_window_end,
             0,
             MULT_2X,
         )
@@ -300,7 +310,7 @@ mod tests {
     fn reveal_before_option_creation_errors() {
         let r = calculate_user_score(
             MARKET_OPENED,
-            // reveal_start < option_created
+            // staking_window_end < option_created
             MARKET_OPENED - 1,
             MARKET_OPENED,
             MARKET_OPENED,
@@ -313,10 +323,10 @@ mod tests {
 
     #[test]
     fn stake_end_before_stake_start_errors() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let r = calculate_user_score(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED + 100,
             // unstake before stake
             MARKET_OPENED + 50,
@@ -329,15 +339,15 @@ mod tests {
 
     #[test]
     fn stake_before_option_creation_gets_peak_earliness() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let user_staked_at = MARKET_OPENED + 10;
         let option_created = MARKET_OPENED + 60 * 60;
 
         let (_, earliness) = calculate_user_score_components(
             option_created,
-            reveal_start,
+            staking_window_end,
             user_staked_at,
-            reveal_start,
+            staking_window_end,
             ONE_WEEK,
             MULT_2X,
         )
@@ -348,12 +358,12 @@ mod tests {
 
     #[test]
     fn tiny_stake_gets_some_score() {
-        let reveal_start = MARKET_OPENED + ONE_WEEK;
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             MARKET_OPENED,
-            reveal_start,
+            staking_window_end,
             1,
             ONE_WEEK,
             MULT_2X,

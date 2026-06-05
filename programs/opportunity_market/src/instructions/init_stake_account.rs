@@ -16,7 +16,7 @@ pub struct InitStakeAccount<'info> {
     pub owner: UncheckedAccount<'info>,
 
     #[account(
-        constraint = market.stake_end_timestamp.is_some() @ ErrorCode::MarketNotOpen,
+        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
     )]
     pub market: Account<'info, OpportunityMarket>,
 

@@ -1,16 +1,23 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::{
-    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MIN_PLATFORM_NAME_LEN,
-    MIN_REVEAL_PERIOD_SECONDS, PLATFORM_CONFIG_SEED,
-};
-#[cfg(not(feature = "disable-prod-guardrails"))]
-use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
-use crate::error::ErrorCode;
+use crate::constants::PLATFORM_CONFIG_SEED;
 use crate::state::{FeeRates, PlatformConfig};
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct InitPlatformParameters {
+    pub name: String,
+    pub platform_fee_bp: u16,
+    pub reward_pool_fee_bp: u16,
+    pub creator_fee_bp: u16,
+    pub fee_claim_authority: Pubkey,
+    pub reveal_authority: Pubkey,
+    pub min_time_to_stake_seconds: u64,
+    pub reveal_period_seconds: u64,
+    pub market_resolution_deadline_seconds: u64,
+}
+
 #[derive(Accounts)]
-#[instruction(name: String)]
+#[instruction(params: InitPlatformParameters)]
 pub struct InitPlatformConfig<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -19,7 +26,7 @@ pub struct InitPlatformConfig<'info> {
         init,
         payer = payer,
         space = 8 + PlatformConfig::INIT_SPACE,
-        seeds = [PLATFORM_CONFIG_SEED, payer.key().as_ref(), name.as_bytes()],
+        seeds = [PLATFORM_CONFIG_SEED, payer.key().as_ref(), params.name.as_bytes()],
         bump,
     )]
     pub platform_config: Account<'info, PlatformConfig>,
@@ -29,46 +36,23 @@ pub struct InitPlatformConfig<'info> {
 
 pub fn init_platform_config(
     ctx: Context<InitPlatformConfig>,
-    name: String,
-    platform_fee_bp: u16,
-    reward_pool_fee_bp: u16,
-    creator_fee_bp: u16,
-    fee_claim_authority: Pubkey,
-    reveal_authority: Pubkey,
-    min_time_to_stake_seconds: u64,
-    reveal_period_seconds: u64,
-    market_resolution_deadline_seconds: u64,
+    params: InitPlatformParameters,
 ) -> Result<()> {
-    require!(
-        name.len() >= MIN_PLATFORM_NAME_LEN && name.len() <= MAX_PLATFORM_NAME_LEN,
-        ErrorCode::InvalidParameters
-    );
-
-    #[cfg(not(feature = "disable-prod-guardrails"))]
-    require!(
-        market_resolution_deadline_seconds >= MIN_MARKET_RESOLUTION_DEADLINE_SECONDS,
-        ErrorCode::InvalidParameters
-    );
-    #[cfg(not(feature = "disable-prod-guardrails"))]
-    require!(
-        min_time_to_stake_seconds >= MIN_TIME_TO_STAKE_FLOOR_SECONDS,
-        ErrorCode::InvalidParameters
-    );
-    require!(
-        (MIN_REVEAL_PERIOD_SECONDS..=MAX_REVEAL_PERIOD_SECONDS).contains(&reveal_period_seconds),
-        ErrorCode::InvalidParameters
-    );
-
-    let platform_config = &mut ctx.accounts.platform_config;
-    platform_config.bump = ctx.bumps.platform_config;
-    platform_config.name = name;
-    platform_config.update_authority = ctx.accounts.payer.key();
-    platform_config.fee_rates = FeeRates::new(platform_fee_bp, reward_pool_fee_bp, creator_fee_bp)?;
-    platform_config.fee_claim_authority = fee_claim_authority;
-    platform_config.reveal_authority = reveal_authority;
-    platform_config.min_time_to_stake_seconds = min_time_to_stake_seconds;
-    platform_config.reveal_period_seconds = reveal_period_seconds;
-    platform_config.market_resolution_deadline_seconds = market_resolution_deadline_seconds;
-
+    let platform_config = PlatformConfig::try_new(
+        ctx.bumps.platform_config,
+        params.name,
+        ctx.accounts.payer.key(),
+        params.fee_claim_authority,
+        FeeRates::new(
+            params.platform_fee_bp,
+            params.reward_pool_fee_bp,
+            params.creator_fee_bp,
+        )?,
+        params.market_resolution_deadline_seconds,
+        params.min_time_to_stake_seconds,
+        params.reveal_authority,
+        params.reveal_period_seconds,
+    )?;
+    ctx.accounts.platform_config.set_inner(platform_config);
     Ok(())
 }

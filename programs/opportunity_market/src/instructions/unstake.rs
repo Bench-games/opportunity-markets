@@ -20,7 +20,7 @@ pub struct Unstake<'info> {
     #[account(
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
         bump = market.bump,
-        constraint = market.stake_end_timestamp.is_some() @ ErrorCode::MarketNotOpen,
+        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
@@ -61,46 +61,45 @@ pub struct Unstake<'info> {
 pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     let market = &ctx.accounts.market;
 
-    let stake_end = market.stake_end_timestamp.ok_or(ErrorCode::MarketNotOpen)?;
+    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
     let current_timestamp = Clock::get()?.unix_timestamp as u64;
 
-    if current_timestamp < stake_end {
+    if current_timestamp < staking_window_end {
         require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
         ctx.accounts.stake_account.unstaked_at_timestamp = Some(current_timestamp);
     } else {
-        ctx.accounts.stake_account.unstaked_at_timestamp = Some(stake_end);
+        ctx.accounts.stake_account.unstaked_at_timestamp = Some(staking_window_end);
     }
 
     let amount = ctx.accounts.stake_account.amount;
+    require!(amount > 0, ErrorCode::AlreadyUnstaked);
 
-    if amount > 0 {
-        let platform = market.platform;
-        let creator = market.creator;
-        let index_bytes = market.index.to_le_bytes();
-        let market_bump = market.bump;
-        let market_seeds: &[&[&[u8]]] = &[&[
-            OPPORTUNITY_MARKET_SEED,
-            platform.as_ref(),
-            creator.as_ref(),
-            &index_bytes,
-            &[market_bump],
-        ]];
+    let platform = market.platform;
+    let creator = market.creator;
+    let index_bytes = market.index.to_le_bytes();
+    let market_bump = market.bump;
+    let market_seeds: &[&[&[u8]]] = &[&[
+        OPPORTUNITY_MARKET_SEED,
+        platform.as_ref(),
+        creator.as_ref(),
+        &index_bytes,
+        &[market_bump],
+    ]];
 
-        transfer_checked(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.key(),
-                TransferChecked {
-                    from: ctx.accounts.market_token_ata.to_account_info(),
-                    mint: ctx.accounts.token_mint.to_account_info(),
-                    to: ctx.accounts.owner_token_account.to_account_info(),
-                    authority: ctx.accounts.market.to_account_info(),
-                },
-                market_seeds,
-            ),
-            amount,
-            ctx.accounts.token_mint.decimals,
-        )?;
-    }
+    transfer_checked(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.key(),
+            TransferChecked {
+                from: ctx.accounts.market_token_ata.to_account_info(),
+                mint: ctx.accounts.token_mint.to_account_info(),
+                to: ctx.accounts.owner_token_account.to_account_info(),
+                authority: ctx.accounts.market.to_account_info(),
+            },
+            market_seeds,
+        ),
+        amount,
+        ctx.accounts.token_mint.decimals,
+    )?;
 
     emit_ts!(UnstakedEvent {
         owner: ctx.accounts.stake_account.owner,

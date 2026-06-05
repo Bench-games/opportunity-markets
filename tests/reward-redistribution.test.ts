@@ -7,10 +7,9 @@ import { OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION } from "../js/src
 import { OpportunityMarket } from "../target/types/opportunity_market";
 import { Platform } from "./utils/platform";
 import { initializeAllCompDefs } from "./utils/comp-defs";
+import { getWalletSecretKey } from "./utils/deployer";
 import { generateX25519Keypair } from "../js/src/x25519/keypair";
 import { shouldThrowCustomError } from "./utils/errors";
-import * as fs from "fs";
-import * as os from "os";
 
 const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 const WS_URL = RPC_URL.replace("http", "ws").replace(":8899", ":8900");
@@ -22,8 +21,7 @@ describe("Redistributes rewards in unstaked options", () => {
   const programId = address(program.programId.toBase58());
 
   before(async () => {
-    const file = fs.readFileSync(`${os.homedir()}/.config/solana/id.json`);
-    const secretKey = new Uint8Array(JSON.parse(file.toString()));
+    const secretKey = getWalletSecretKey();
     const rpc = createSolanaRpc(RPC_URL);
     const rpcSubscriptions = createSolanaRpcSubscriptions(WS_URL);
     const sendAndConfirmTransaction = sendAndConfirmTransactionFactory({ rpc, rpcSubscriptions });

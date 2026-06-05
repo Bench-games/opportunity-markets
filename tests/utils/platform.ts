@@ -550,7 +550,7 @@ export class Platform {
     });
 
     const market = await this.fetchMarket();
-    const stakeEnd = unwrapOption(market.data.stakeEndTimestamp);
+    const stakeEnd = unwrapOption(market.data.stakingWindowEnd);
     if (stakeEnd === null) {
       throw new Error("Market did not record stake_end_timestamp after open_market");
     }

@@ -54,23 +54,28 @@ export async function stake(
     stateNonce,
   } = input;
 
+  const { computationOffset, ...computeAccounts } = getComputeAccounts("stake", config);
+
   return getStakeInstructionAsync(
     {
-      ...getComputeAccounts("stake", config),
+      ...computeAccounts,
       signer,
       payer,
       market,
       stakeAccount,
-      stakeAccountId,
       tokenMint,
       signerTokenAccount,
       tokenProgram,
-      amount,
-      selectedOptionCiphertext: toNumberArray(selectedOptionCiphertext),
-      inputNonce,
-      authorizedReaderNonce,
-      userPubkey: toNumberArray(userPubkey),
-      stateNonce,
+      params: {
+        computationOffset,
+        stakeAccountId,
+        amount,
+        selectedOptionCiphertext: toNumberArray(selectedOptionCiphertext),
+        inputNonce,
+        authorizedReaderNonce,
+        userPubkey: toNumberArray(userPubkey),
+        stateNonce,
+      },
     },
     programAddress ? { programAddress } : undefined,
   );

@@ -1406,7 +1406,7 @@
               },
               {
                 "kind": "arg",
-                "path": "market_index"
+                "path": "params.market_index"
               }
             ]
           }
@@ -1517,37 +1517,12 @@
       ],
       "args": [
         {
-          "name": "market_index",
-          "type": "u64"
-        },
-        {
-          "name": "market_authority",
-          "type": "pubkey"
-        },
-        {
-          "name": "authorized_reader_pubkey",
+          "name": "params",
           "type": {
-            "array": [
-              "u8",
-              32
-            ]
+            "defined": {
+              "name": "CreateMarketParameters"
+            }
           }
-        },
-        {
-          "name": "earliness_cutoff_seconds",
-          "type": "u64"
-        },
-        {
-          "name": "earliness_multiplier",
-          "type": "u16"
-        },
-        {
-          "name": "min_stake_amount",
-          "type": "u64"
-        },
-        {
-          "name": "creator_fee_claimer",
-          "type": "pubkey"
         }
       ]
     },
@@ -2393,7 +2368,7 @@
               },
               {
                 "kind": "arg",
-                "path": "stake_account_id"
+                "path": "params.stake_account_id"
               }
             ]
           }
@@ -2543,46 +2518,12 @@
       ],
       "args": [
         {
-          "name": "computation_offset",
-          "type": "u64"
-        },
-        {
-          "name": "stake_account_id",
-          "type": "u32"
-        },
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "selected_option_ciphertext",
+          "name": "params",
           "type": {
-            "array": [
-              "u8",
-              32
-            ]
+            "defined": {
+              "name": "StakeParameters"
+            }
           }
-        },
-        {
-          "name": "input_nonce",
-          "type": "u128"
-        },
-        {
-          "name": "authorized_reader_nonce",
-          "type": "u128"
-        },
-        {
-          "name": "user_pubkey",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "state_nonce",
-          "type": "u128"
         }
       ]
     },
@@ -4034,6 +3975,47 @@
                 }
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreateMarketParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market_index",
+            "type": "u64"
+          },
+          {
+            "name": "market_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "authorized_reader_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "earliness_cutoff_seconds",
+            "type": "u64"
+          },
+          {
+            "name": "earliness_multiplier",
+            "type": "u16"
+          },
+          {
+            "name": "min_stake_amount",
+            "type": "u64"
+          },
+          {
+            "name": "creator_fee_claimer",
+            "type": "pubkey"
           }
         ]
       }
@@ -5502,6 +5484,56 @@
                 ]
               }
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "computation_offset",
+            "type": "u64"
+          },
+          {
+            "name": "stake_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "selected_option_ciphertext",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "input_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "authorized_reader_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "user_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "state_nonce",
+            "type": "u128"
           }
         ]
       }

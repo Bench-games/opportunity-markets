@@ -8,8 +8,18 @@ use crate::events::{emit_ts, MarketCreatedEvent};
 use crate::score::PRECISION;
 use crate::state::{AllowedMint, OpportunityMarket, PlatformConfig};
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct CreateMarketParameters {
+    pub market_index: u64,
+    pub market_authority: Pubkey,
+    pub authorized_reader_pubkey: [u8; 32],
+    pub earliness_cutoff_seconds: u64,
+    pub earliness_multiplier: u16,
+    pub min_stake_amount: u64,
+    pub creator_fee_claimer: Pubkey,
+}
 #[derive(Accounts)]
-#[instruction(market_index: u64)]
+#[instruction(params: CreateMarketParameters)]
 pub struct CreateMarket<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
@@ -22,7 +32,7 @@ pub struct CreateMarket<'info> {
         init,
         payer = creator,
         space = 8 + OpportunityMarket::INIT_SPACE,
-        seeds = [OPPORTUNITY_MARKET_SEED, platform_config.key().as_ref(), creator.key().as_ref(), &market_index.to_le_bytes()],
+        seeds = [OPPORTUNITY_MARKET_SEED, platform_config.key().as_ref(), creator.key().as_ref(), &params.market_index.to_le_bytes()],
         bump,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
@@ -50,19 +60,10 @@ pub struct CreateMarket<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn create_market(
-    ctx: Context<CreateMarket>,
-    market_index: u64,
-    market_authority: Pubkey,
-    authorized_reader_pubkey: [u8; 32],
-    earliness_cutoff_seconds: u64,
-    earliness_multiplier: u16,
-    min_stake_amount: u64,
-    creator_fee_claimer: Pubkey,
-) -> Result<()> {
+pub fn create_market(ctx: Context<CreateMarket>, params: CreateMarketParameters) -> Result<()> {
     require!(
-        (earliness_multiplier as u64) >= PRECISION
-            && earliness_multiplier <= MAX_EARLINESS_MULTIPLIER,
+        (params.earliness_multiplier as u64) >= PRECISION
+            && params.earliness_multiplier <= MAX_EARLINESS_MULTIPLIER,
         ErrorCode::InvalidParameters
     );
 
@@ -77,32 +78,32 @@ pub fn create_market(
     let mint = ctx.accounts.token_mint.key();
     market.bump = ctx.bumps.market;
     market.creator = creator_key;
-    market.index = market_index;
+    market.index = params.market_index;
     market.platform = platform_key;
     market.mint = mint;
-    market.market_authority = market_authority;
-    market.earliness_cutoff_seconds = earliness_cutoff_seconds;
-    market.earliness_multiplier = earliness_multiplier;
-    market.authorized_reader_pubkey = authorized_reader_pubkey;
+    market.market_authority = params.market_authority;
+    market.earliness_cutoff_seconds = params.earliness_cutoff_seconds;
+    market.earliness_multiplier = params.earliness_multiplier;
+    market.authorized_reader_pubkey = params.authorized_reader_pubkey;
     market.fee_rates = ctx.accounts.platform_config.fee_rates;
-    market.creator_fee_claimer = creator_fee_claimer;
+    market.creator_fee_claimer = params.creator_fee_claimer;
     market.market_resolution_deadline_seconds = market_resolution_deadline_seconds;
     market.reveal_period_seconds = reveal_period_seconds;
-    market.min_stake_amount = min_stake_amount;
+    market.min_stake_amount = params.min_stake_amount;
 
     emit_ts!(MarketCreatedEvent {
         market: market.key(),
         creator: creator_key,
         platform: platform_key,
-        index: market_index,
+        index: params.market_index,
         mint: mint,
-        market_authority: market_authority,
-        authorized_reader_pubkey: authorized_reader_pubkey,
-        earliness_cutoff_seconds: earliness_cutoff_seconds,
-        earliness_multiplier: earliness_multiplier,
-        min_stake_amount: min_stake_amount,
+        market_authority: params.market_authority,
+        authorized_reader_pubkey: params.authorized_reader_pubkey,
+        earliness_cutoff_seconds: params.earliness_cutoff_seconds,
+        earliness_multiplier: params.earliness_multiplier,
+        min_stake_amount: params.min_stake_amount,
         fee_rates: ctx.accounts.platform_config.fee_rates,
-        creator_fee_claimer: creator_fee_claimer,
+        creator_fee_claimer: params.creator_fee_claimer,
         market_resolution_deadline_seconds: market_resolution_deadline_seconds,
         reveal_period_seconds: reveal_period_seconds,
     });

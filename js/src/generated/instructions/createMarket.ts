@@ -10,21 +10,12 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressDecoder,
   getAddressEncoder,
-  getArrayDecoder,
-  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
-  getU16Decoder,
-  getU16Encoder,
-  getU64Decoder,
-  getU64Encoder,
-  getU8Decoder,
-  getU8Encoder,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
@@ -44,10 +35,15 @@ import {
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from '../programs';
 import {
   expectAddress,
-  expectSome,
   getAccountMetaFactory,
   type ResolvedAccount,
 } from '../shared';
+import {
+  getCreateMarketParametersDecoder,
+  getCreateMarketParametersEncoder,
+  type CreateMarketParameters,
+  type CreateMarketParametersArgs,
+} from '../types';
 
 export const CREATE_MARKET_DISCRIMINATOR = new Uint8Array([
   103, 226, 97, 235, 200, 188, 251, 254,
@@ -111,36 +107,18 @@ export type CreateMarketInstruction<
 
 export type CreateMarketInstructionData = {
   discriminator: ReadonlyUint8Array;
-  marketIndex: bigint;
-  marketAuthority: Address;
-  authorizedReaderPubkey: Array<number>;
-  earlinessCutoffSeconds: bigint;
-  earlinessMultiplier: number;
-  minStakeAmount: bigint;
-  creatorFeeClaimer: Address;
+  params: CreateMarketParameters;
 };
 
 export type CreateMarketInstructionDataArgs = {
-  marketIndex: number | bigint;
-  marketAuthority: Address;
-  authorizedReaderPubkey: Array<number>;
-  earlinessCutoffSeconds: number | bigint;
-  earlinessMultiplier: number;
-  minStakeAmount: number | bigint;
-  creatorFeeClaimer: Address;
+  params: CreateMarketParametersArgs;
 };
 
 export function getCreateMarketInstructionDataEncoder(): FixedSizeEncoder<CreateMarketInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['marketIndex', getU64Encoder()],
-      ['marketAuthority', getAddressEncoder()],
-      ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
-      ['earlinessCutoffSeconds', getU64Encoder()],
-      ['earlinessMultiplier', getU16Encoder()],
-      ['minStakeAmount', getU64Encoder()],
-      ['creatorFeeClaimer', getAddressEncoder()],
+      ['params', getCreateMarketParametersEncoder()],
     ]),
     (value) => ({ ...value, discriminator: CREATE_MARKET_DISCRIMINATOR })
   );
@@ -149,13 +127,7 @@ export function getCreateMarketInstructionDataEncoder(): FixedSizeEncoder<Create
 export function getCreateMarketInstructionDataDecoder(): FixedSizeDecoder<CreateMarketInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['marketIndex', getU64Decoder()],
-    ['marketAuthority', getAddressDecoder()],
-    ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
-    ['earlinessCutoffSeconds', getU64Decoder()],
-    ['earlinessMultiplier', getU16Decoder()],
-    ['minStakeAmount', getU64Decoder()],
-    ['creatorFeeClaimer', getAddressDecoder()],
+    ['params', getCreateMarketParametersDecoder()],
   ]);
 }
 
@@ -183,20 +155,14 @@ export type CreateMarketAsyncInput<
   creator: TransactionSigner<TAccountCreator>;
   platformConfig: Address<TAccountPlatformConfig>;
   tokenMint: Address<TAccountTokenMint>;
-  market?: Address<TAccountMarket>;
+  market: Address<TAccountMarket>;
   /** This ATA holds all of the market's program-held tokens (stakes, rewards, fees). */
   marketTokenAta?: Address<TAccountMarketTokenAta>;
   allowedMint?: Address<TAccountAllowedMint>;
   tokenProgram: Address<TAccountTokenProgram>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  marketIndex: CreateMarketInstructionDataArgs['marketIndex'];
-  marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
-  authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
-  earlinessCutoffSeconds: CreateMarketInstructionDataArgs['earlinessCutoffSeconds'];
-  earlinessMultiplier: CreateMarketInstructionDataArgs['earlinessMultiplier'];
-  minStakeAmount: CreateMarketInstructionDataArgs['minStakeAmount'];
-  creatorFeeClaimer: CreateMarketInstructionDataArgs['creatorFeeClaimer'];
+  params: CreateMarketInstructionDataArgs['params'];
 };
 
 export async function getCreateMarketInstructionAsync<
@@ -265,24 +231,6 @@ export async function getCreateMarketInstructionAsync<
   const args = { ...input };
 
   // Resolve default values.
-  if (!accounts.market.value) {
-    accounts.market.value = await getProgramDerivedAddress({
-      programAddress,
-      seeds: [
-        getBytesEncoder().encode(
-          new Uint8Array([
-            111, 112, 112, 111, 114, 116, 117, 110, 105, 116, 121, 95, 109, 97,
-            114, 107, 101, 116,
-          ])
-        ),
-        getAddressEncoder().encode(
-          expectAddress(accounts.platformConfig.value)
-        ),
-        getAddressEncoder().encode(expectAddress(accounts.creator.value)),
-        getU64Encoder().encode(expectSome(args.marketIndex)),
-      ],
-    });
-  }
   if (!accounts.marketTokenAta.value) {
     accounts.marketTokenAta.value = await getProgramDerivedAddress({
       programAddress:
@@ -371,13 +319,7 @@ export type CreateMarketInput<
   tokenProgram: Address<TAccountTokenProgram>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  marketIndex: CreateMarketInstructionDataArgs['marketIndex'];
-  marketAuthority: CreateMarketInstructionDataArgs['marketAuthority'];
-  authorizedReaderPubkey: CreateMarketInstructionDataArgs['authorizedReaderPubkey'];
-  earlinessCutoffSeconds: CreateMarketInstructionDataArgs['earlinessCutoffSeconds'];
-  earlinessMultiplier: CreateMarketInstructionDataArgs['earlinessMultiplier'];
-  minStakeAmount: CreateMarketInstructionDataArgs['minStakeAmount'];
-  creatorFeeClaimer: CreateMarketInstructionDataArgs['creatorFeeClaimer'];
+  params: CreateMarketInstructionDataArgs['params'];
 };
 
 export function getCreateMarketInstruction<

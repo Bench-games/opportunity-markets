@@ -4,13 +4,12 @@ import { address, some, isNone, isSome, unwrapOption, createSolanaRpc, createSol
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
 import {
-  OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
   OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED,
   OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
   OPPORTUNITY_MARKET_ERROR__STAKE_BELOW_MINIMUM,
-  OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED,
   OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS,
   OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
+  OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
 } from "../js/src";
 
 import { OpportunityMarket } from "../target/types/opportunity_market";
@@ -118,7 +117,7 @@ describe("Opportunity markets", () => {
     // Negative check: creator fees cannot be claimed before winners are selected
     await shouldThrowCustomError(
       () => platform.claimCreatorFees(),
-      OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     // Market creator selects winning option
@@ -722,7 +721,7 @@ describe("Opportunity markets", () => {
     // Try to select option before stake period ends - should fail
     await shouldThrowCustomError(
       () => platform.selectSingleWinningOption(optionA),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     // Verify market is still unresolved
@@ -1142,7 +1141,7 @@ describe("Opportunity markets", () => {
     // Pre-open: the market has no stake window yet, so withdrawal is rejected.
     await shouldThrowCustomError(
       () => platform.withdrawReward(sponsorA),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     const stakeEnd = Number(await platform.openMarket());
@@ -1151,7 +1150,7 @@ describe("Opportunity markets", () => {
     // Resolution window: rewards stay locked until the resolution deadline passes.
     await shouldThrowCustomError(
       () => platform.withdrawReward(sponsorB),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     // After expiry without resolution, both sponsors recover their deposits in full.

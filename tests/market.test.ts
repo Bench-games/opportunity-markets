@@ -11,7 +11,6 @@ import {
   OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED,
   OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS,
   OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
-  OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
 } from "../js/src";
 
 import { OpportunityMarket } from "../target/types/opportunity_market";
@@ -190,15 +189,15 @@ describe("Opportunity markets", () => {
       })
     );
 
-    // Closing option accounts before the reveal period ends fails.
+    // Winning option still has open stake accounts during the reveal period.
     await shouldThrowCustomError(
       () => platform.closeOptionAccount(winningOptionIndex),
-      OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
+      OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
     );
-    await shouldThrowCustomError(
-      () => platform.closeOptionAccount(optionB),
-      OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
-    );
+    // Losing option with no finalized tally can be closed during the reveal period.
+    await platform.closeOptionAccount(optionB);
+    const optionBAddress = await platform.getOptionAddress(optionB);
+    expect(await platform.accountExists(optionBAddress)).to.be.false;
 
     await platform.endRevealPeriod();
 
@@ -334,9 +333,8 @@ describe("Opportunity markets", () => {
     const marketAfter = await platform.fetchMarket();
     expect(marketAfter.data.collectedPlatformFees).to.equal(0n, "Market collected platform fees should be 0 after claiming");
 
-    // Close every option account
+    // Close the remaining option account
     await platform.closeOptionAccount(winningOptionIndex);
-    await platform.closeOptionAccount(optionB);
 
     for (const optionId of [winningOptionIndex, optionB]) {
       const addr = await platform.getOptionAddress(optionId);

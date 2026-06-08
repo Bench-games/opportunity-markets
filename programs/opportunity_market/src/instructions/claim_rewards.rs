@@ -15,7 +15,7 @@ pub struct ClaimRewards<'info> {
     #[account(
         mut,
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
-        bump = market.bump,        
+        bump = market.bump
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 

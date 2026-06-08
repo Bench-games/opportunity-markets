@@ -8,7 +8,7 @@ use crate::state::{MarketPhase, OpportunityMarket, PlatformConfig};
 pub struct EndRevealPeriod<'info> {
     pub signer: Signer<'info>,
     #[account(
-        mut,        
+        mut,
         constraint = market.winning_option_active_bp > 0 @ ErrorCode::NoFinalizedWinningOption
     )]
     pub market: Account<'info, OpportunityMarket>,

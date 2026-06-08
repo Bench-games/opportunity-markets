@@ -11,7 +11,7 @@ pub struct OpenMarket<'info> {
 
     #[account(
         mut,
-        has_one = market_authority @ ErrorCode::Unauthorized,        
+        has_one = market_authority @ ErrorCode::Unauthorized
     )]
     pub market: Account<'info, OpportunityMarket>,
 

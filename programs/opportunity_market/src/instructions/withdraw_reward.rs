@@ -6,7 +6,7 @@ use anchor_spl::token_interface::{
 use crate::constants::{OPPORTUNITY_MARKET_SEED, SPONSOR_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardWithdrawnEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketSponsor};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketSponsor};
 
 #[derive(Accounts)]
 pub struct WithdrawReward<'info> {
@@ -55,21 +55,7 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
     let market = &ctx.accounts.market;
 
     // Rewards can be withdrawn if market was never resolved and expired.
-    require!(
-        market.resolved_at_timestamp.is_none(),
-        ErrorCode::Unauthorized
-    );
-    let staking_window_end = market
-        .staking_window_end
-        .ok_or(ErrorCode::TimeWindowMismatch)?;
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    let expired_at = staking_window_end
-        .checked_add(market.market_resolution_deadline_seconds)
-        .ok_or(ErrorCode::Overflow)?;
-    require!(
-        current_timestamp >= expired_at,
-        ErrorCode::TimeWindowMismatch
-    );
+    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Expired)?;
 
     let reward_amount = sponsor_account.reward_deposited;
     require!(reward_amount > 0, ErrorCode::NoRewardToClaim);

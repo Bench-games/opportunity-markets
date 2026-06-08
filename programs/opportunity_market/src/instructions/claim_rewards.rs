@@ -4,7 +4,7 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardsClaimedEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketOption, StakeAccount};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, StakeAccount};
 use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
@@ -15,9 +15,7 @@ pub struct ClaimRewards<'info> {
     #[account(
         mut,
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
-        bump = market.bump,
-        constraint = market.resolved_at_timestamp.is_some() @ ErrorCode::MarketNotResolved,
-        constraint = market.reveal_ended @ ErrorCode::MarketNotResolved,
+        bump = market.bump,        
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
@@ -62,6 +60,9 @@ pub struct ClaimRewards<'info> {
 }
 
 pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
+    let market = &mut ctx.accounts.market;
+    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
+
     let payout = compute_reward_payout(
         &ctx.accounts.stake_account,
         &ctx.accounts.market,

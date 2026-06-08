@@ -4,35 +4,7 @@ use anchor_spl::token_interface::{
 };
 
 use crate::constants::OPPORTUNITY_MARKET_SEED;
-use crate::error::ErrorCode;
 use crate::state::{OpportunityMarket, StakeAccount};
-
-#[derive(PartialEq)]
-pub enum CloseMarketState {
-    Resolved,
-    Expired,
-}
-
-pub fn check_close_market_state(market: &Account<OpportunityMarket>) -> Result<CloseMarketState> {
-    let clock = Clock::get()?;
-    let current_time = clock.unix_timestamp as u64;
-
-    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
-    let select_deadline = staking_window_end
-        .checked_add(market.market_resolution_deadline_seconds)
-        .ok_or(ErrorCode::Overflow)?;
-
-    let resolved = market.resolved_at_timestamp.is_some();
-    if resolved {
-        require!(market.reveal_ended, ErrorCode::MarketNotResolved);
-        return Ok(CloseMarketState::Resolved);
-    }
-    if current_time >= select_deadline {
-        return Ok(CloseMarketState::Expired);
-    }
-
-    Err(ErrorCode::MarketNotResolved.into())
-}
 
 pub fn refund_stake_fees<'info>(
     market: &mut Account<'info, OpportunityMarket>,

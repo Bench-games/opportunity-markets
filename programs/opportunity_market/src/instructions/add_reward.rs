@@ -6,17 +6,14 @@ use anchor_spl::token_interface::{
 use crate::constants::SPONSOR_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardAddedEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketSponsor};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketSponsor};
 
 #[derive(Accounts)]
 pub struct AddReward<'info> {
     #[account(mut)]
     pub sponsor: Signer<'info>,
 
-    #[account(
-        mut,
-        constraint = market.resolved_at_timestamp.is_none() @ ErrorCode::WinnerAlreadySelected,
-    )]
+    #[account(mut)]
     pub market: Account<'info, OpportunityMarket>,
 
     #[account(
@@ -57,15 +54,8 @@ pub fn add_reward(ctx: Context<AddReward>, amount: u64) -> Result<()> {
 
     let market = &ctx.accounts.market;
 
-    // Allow anytime before staking ends
-    if let Some(staking_window_end) = market.staking_window_end {
-        let clock = Clock::get()?;
-        let current_timestamp = clock.unix_timestamp as u64;
-        require!(
-            current_timestamp < staking_window_end,
-            ErrorCode::TimeWindowMismatch,
-        );
-    }
+    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    market.require_phase_at_most(current_timestamp, MarketPhase::Staking)?;
 
     let sponsor_account = &mut ctx.accounts.sponsor_account;
 

@@ -6,7 +6,7 @@ use anchor_spl::token_interface::{
 use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, UnstakedEvent};
-use crate::state::{OpportunityMarket, StakeAccount};
+use crate::state::{MarketPhase, OpportunityMarket, StakeAccount};
 
 #[derive(Accounts)]
 #[instruction(stake_account_id: u32)]
@@ -19,8 +19,7 @@ pub struct Unstake<'info> {
 
     #[account(
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
-        bump = market.bump,
-        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
+        bump = market.bump
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
@@ -60,15 +59,20 @@ pub struct Unstake<'info> {
 
 pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     let market = &ctx.accounts.market;
-
-    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
     let current_timestamp = Clock::get()?.unix_timestamp as u64;
 
-    if current_timestamp < staking_window_end {
-        require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
-        ctx.accounts.stake_account.unstaked_at_timestamp = Some(current_timestamp);
-    } else {
-        ctx.accounts.stake_account.unstaked_at_timestamp = Some(staking_window_end);
+    match market.phase(current_timestamp)? {
+        MarketPhase::NotOpen => return Err(ErrorCode::WrongMarketPhase.into()),
+        MarketPhase::Staking => {
+            require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
+            ctx.accounts.stake_account.unstaked_at_timestamp = Some(current_timestamp);
+        }
+        _ => {
+            let staking_window_end = market
+                .staking_window_end
+                .ok_or(ErrorCode::WrongMarketPhase)?;
+            ctx.accounts.stake_account.unstaked_at_timestamp = Some(staking_window_end);
+        }
     }
 
     let amount = ctx.accounts.stake_account.amount;

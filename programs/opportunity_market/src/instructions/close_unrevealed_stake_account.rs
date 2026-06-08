@@ -4,8 +4,8 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeAccountClosedEvent};
-use crate::state::{OpportunityMarket, StakeAccount};
-use crate::utils::{check_close_market_state, refund_stake_fees, CloseMarketState};
+use crate::state::{MarketPhase, OpportunityMarket, StakeAccount};
+use crate::utils::refund_stake_fees;
 
 #[derive(Accounts)]
 pub struct CloseUnrevealedStakeAccount<'info> {
@@ -55,12 +55,15 @@ pub struct CloseUnrevealedStakeAccount<'info> {
 pub fn close_unrevealed_stake_account<'info>(
     ctx: Context<'info, CloseUnrevealedStakeAccount<'info>>,
 ) -> Result<()> {
-    let market_state = check_close_market_state(&ctx.accounts.market)?;
+    let market = &mut ctx.accounts.market;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase_at_least(now, MarketPhase::Resolution)?;
+    let phase = market.phase(now)?;
 
     let mut fee_refund = 0;
-    if market_state == CloseMarketState::Expired {
+    if phase == MarketPhase::Expired {
         fee_refund = refund_stake_fees(
-            &mut ctx.accounts.market,
+            market,
             &ctx.accounts.stake_account,
             &ctx.accounts.token_mint,
             &ctx.accounts.market_token_ata,
@@ -72,7 +75,7 @@ pub fn close_unrevealed_stake_account<'info>(
     let stake_account = &ctx.accounts.stake_account;
     emit_ts!(StakeAccountClosedEvent {
         owner: ctx.accounts.owner.key(),
-        market: ctx.accounts.market.key(),
+        market: market.key(),
         stake_account: stake_account.key(),
         stake_account_id: stake_account.id,
         option_id: None,

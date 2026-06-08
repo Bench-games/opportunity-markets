@@ -8,7 +8,7 @@ use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::STAKE_ACCOUNT_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakedEvent};
-use crate::state::{CollectedFees, OpportunityMarket, StakeAccount};
+use crate::state::{CollectedFees, MarketPhase, OpportunityMarket, StakeAccount};
 use crate::COMP_DEF_OFFSET_STAKE;
 use crate::{ArciumSignerAccount, ID, ID_CONST};
 
@@ -36,11 +36,7 @@ pub struct Stake<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    #[account(
-        mut,
-        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
-        constraint = market.resolved_at_timestamp.is_none() @ ErrorCode::WinnerAlreadySelected,
-    )]
+    #[account(mut)]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
     #[account(
@@ -116,17 +112,10 @@ pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
         ErrorCode::StakeBelowMinimum
     );
 
-    // Enforce staking period is active
     let market = &ctx.accounts.market;
     let authorized_reader_pubkey = market.authorized_reader_pubkey;
-    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
-    let clock = Clock::get()?;
-    let current_timestamp = clock.unix_timestamp as u64;
-
-    require!(
-        current_timestamp <= staking_window_end,
-        ErrorCode::TimeWindowMismatch
-    );
+    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(current_timestamp, MarketPhase::Staking)?;
 
     let collected_fees = market.calculate_fees(params.amount)?;
     let net_amount = params

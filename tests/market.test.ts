@@ -1279,15 +1279,17 @@ describe("Opportunity markets", () => {
   });
 
   it("winner takes all when fees sum up to 100%", async () => {
-    // The user's stake is wholly consumed by fees which grow the reward pool.
+    // Fees consume all but 1 bp of the stake; net remains so unstake can run.
     const platformFeeBp = 100;
     const creatorFeeBp = 100;
-    const rewardPoolFeeBp = 9800;
+    const rewardPoolFeeBp = 9799;
 
     const stakeAmount = 100_000_000_000n;
     const expectedPoolFee = stakeAmount * BigInt(rewardPoolFeeBp) / 10_000n;
     const expectedPlatformFee = stakeAmount * BigInt(platformFeeBp) / 10_000n;
     const expectedCreatorFee = stakeAmount * BigInt(creatorFeeBp) / 10_000n;
+    const expectedNetStake =
+      stakeAmount - expectedPlatformFee - expectedPoolFee - expectedCreatorFee;
 
     const observer = loadObserverKeypair();
 
@@ -1322,9 +1324,9 @@ describe("Opportunity markets", () => {
     expect(marketAfterStakes.data.collectedPlatformFees).to.equal(expectedPlatformFee * 2n);
     expect(marketAfterStakes.data.collectedCreatorFees).to.equal(expectedCreatorFee * 2n);
 
-    // Stake accounts record zero net.
-    expect((await platform.fetchStakeAccountData(staker1, sa1)).data.amount).to.equal(0n);
-    expect((await platform.fetchStakeAccountData(staker2, sa2)).data.amount).to.equal(0n);
+    // Stake accounts retain 1 bp net; the rest went to fees.
+    expect((await platform.fetchStakeAccountData(staker1, sa1)).data.amount).to.equal(expectedNetStake);
+    expect((await platform.fetchStakeAccountData(staker2, sa2)).data.amount).to.equal(expectedNetStake);
 
     // Resolve with option A as the sole winner.
     await platform.waitForStakeEnd();
@@ -1349,7 +1351,7 @@ describe("Opportunity markets", () => {
     expect(marketAfterFinalize.data.rewardAmount).to.equal(expectedPoolFee);
     expect(marketAfterFinalize.data.collectedCreatorFees).to.equal(expectedCreatorFee);
 
-    // Unstake returns 0, everything went to fees.
+    // Unstake returns the negligible net stake; the reward pool holds the rest.
     const rpc = platform.getRpc();
     const bal1BeforeUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker1))).data.amount;
     const bal2BeforeUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker2))).data.amount;
@@ -1359,8 +1361,8 @@ describe("Opportunity markets", () => {
     ]);
     const bal1AfterUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker1))).data.amount;
     const bal2AfterUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker2))).data.amount;
-    expect(bal1AfterUnstake - bal1BeforeUnstake).to.equal(0n);
-    expect(bal2AfterUnstake - bal2BeforeUnstake).to.equal(0n);
+    expect(bal1AfterUnstake - bal1BeforeUnstake).to.equal(expectedNetStake);
+    expect(bal2AfterUnstake - bal2BeforeUnstake).to.equal(expectedNetStake);
 
     await platform.endRevealPeriod();
 

@@ -48,11 +48,11 @@ describe("Redistributes rewards in unstaked options", () => {
     const { optionId: optA } = await platform.addOption();
     const { optionId: optB } = await platform.addOption();
 
-    const [saA1, saA2] = await platform.stakeOnOptionBatch([
+    const [saA1, saA2, saB] = await platform.stakeOnOptionBatch([
       { userId: user, amount: 1000n, optionId: optA },
       { userId: user, amount: 2000n, optionId: optA },
+      { userId: user, amount: 3000n, optionId: optB },
     ]);
-    await platform.stakeOnOption(user, 3000n, optB);
 
     await platform.waitForStakeEnd();
     await platform.selectWinningOptions([
@@ -60,7 +60,6 @@ describe("Redistributes rewards in unstaked options", () => {
       { optionId: optB, rewardBp: 4000 },
     ]);
 
-    const saB = platform.getUserStakeAccountsForOption(user, optB)[0].id;
     await platform.revealStakeBatch([
       { userId: user, stakeAccountId: saA1 },
       { userId: user, stakeAccountId: saA2 },

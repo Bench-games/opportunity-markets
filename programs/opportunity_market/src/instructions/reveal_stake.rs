@@ -81,6 +81,8 @@ pub fn reveal_stake(
     let stake_account_nonce = ctx.accounts.stake_account.state_nonce;
 
     ctx.accounts.stake_account.pending_reveal = true;
+    ctx.accounts.stake_account.pending_reveal_computation =
+        Some(ctx.accounts.computation_account.key());
 
     let user_pubkey = ctx.accounts.stake_account.user_pubkey;
 
@@ -148,15 +150,19 @@ pub fn reveal_stake_callback(
         Err(e) => return Err(e),
     };
 
-    // Only run on the queue-time stake_account.
-    // A late callback delivered after close_stake_account + re-init would see pending_reveal=false
+    // Reject stale callbacks (mirrors stake_callback's pending_stake_computation check).
     require!(
-        ctx.accounts.stake_account.pending_reveal
-            && ctx.accounts.stake_account.revealed_option.is_none(),
+        ctx.accounts.stake_account.pending_reveal_computation
+            == Some(ctx.accounts.computation_account.key()),
+        ErrorCode::InvalidAccountState
+    );
+    require!(
+        ctx.accounts.stake_account.revealed_option.is_none(),
         ErrorCode::InvalidAccountState
     );
 
     ctx.accounts.stake_account.pending_reveal = false;
+    ctx.accounts.stake_account.pending_reveal_computation = None;
 
     // Set revealed option
     ctx.accounts.stake_account.revealed_option = Some(revealed_option);

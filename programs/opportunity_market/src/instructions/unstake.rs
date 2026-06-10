@@ -30,6 +30,7 @@ pub struct Unstake<'info> {
         bump = stake_account.bump,
         constraint = stake_account.unstaked_at_timestamp.is_none() @ ErrorCode::AlreadyUnstaked,
         constraint = stake_account.staked_at_timestamp.is_some() @ ErrorCode::NoStake,
+        constraint = stake_account.pending_stake_computation.is_none() @ ErrorCode::Locked,
     )]
     pub stake_account: Box<Account<'info, StakeAccount>>,
 

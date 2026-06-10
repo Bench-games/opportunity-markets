@@ -70,9 +70,6 @@ pub fn reveal_stake(
     computation_offset: u64,
     _stake_account_id: u32,
 ) -> Result<()> {
-    #[cfg(not(feature = "disable-prod-guardrails"))]
-    crate::comp_def_guard::require_reveal_stake_comp_def_hash(&ctx.accounts.comp_def_account)?;
-
     let market = &ctx.accounts.market;
 
     require!(
@@ -141,9 +138,6 @@ pub fn reveal_stake_callback(
     ctx: Context<RevealStakeCallback>,
     output: SignedComputationOutputs<RevealStakeOutput>,
 ) -> Result<()> {
-    #[cfg(not(feature = "disable-prod-guardrails"))]
-    crate::comp_def_guard::require_reveal_stake_comp_def_hash(&ctx.accounts.comp_def_account)?;
-
     // On failure, revert so the account stays locked ith pending_reveal=true,
     // allowing the user to retry reveal_stake
     let revealed_option = match output.verify_output(

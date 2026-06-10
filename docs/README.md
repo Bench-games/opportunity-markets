@@ -49,14 +49,14 @@ This token mint dictates the token that is used for rewards and fees within the 
 #### Adding initial options
 
 The market is not yet open to staking, but users can already start adding options to the market.
-This is done with the `add_market_option` instruction.
+This is done with the `add_market_option` instruction, which is **permissionless**: any signer can create an option PDA while the market is open for staking (including after `open_market`, until the staking window closes).
 
+`stake` does not require the target option PDA to exist; it only queues MPC on an encrypted `option_id`. A third party can therefore materialize the `[OPTION_SEED, market, option_id]` PDA first ("option ID squatting"). Settlement paths such as `finalize_reveal_stake` bind to that PDA and use `option.created_at` as the earliness anchor in `calculate_user_score`, so whoever creates the PDA sets that timestamp. This does not steal staked funds — reveal, finalize, and claim still run against the squatted PDA — but it can break delayed-creation privacy and let a squatter manipulate earliness (for example by creating the PDA immediately after observing a stake, or before a stake if the `option_id` is guessable).
 
 > [!NOTE]  
 > For keeping the user's option choice confidential, the user should not add an option using a wallet that can be linked to the wallet they stake with.
 > Otherwise, it will be quite obvious that they probably staked on the option they themselves created earlier.
-
-Options can also be added after the market is opened for staking, until the staking period closes.
+> Use unlinkable wallets when creating options, and avoid predictable `option_id` values if delayed creation matters for privacy or earliness.
 
 #### Funding the market
 

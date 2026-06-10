@@ -32,3 +32,5 @@ We assume that the callback will not continue to fail forever after some number 
 Example of this escape hatch implementation is the `close_stuck_stake_account` instruction for the case that the callback of the `stake` instruction fails to run.
 
 There is no separate escape hatch instruction for the `reveal_stake` instruction, but instead this instruction can be called again to retry the callback as many times as needed.
+
+The platform `reveal_authority` can end the reveal window before the market's snapshotted `reveal_period_seconds` elapse (`end_reveal_period`). This is accepted trusted-operator behavior in V1: stakers who have not completed reveal and finalize by then forfeit rewards but can still reclaim stake via `close_unrevealed_stake_account`. See [protocol documentation](/docs/README.md#revealing-stakes).

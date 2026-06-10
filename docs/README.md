@@ -139,8 +139,10 @@ The callback then records the plaintext option ID to the stake account struct st
 **`finalize_reveal_stake`** - Now that the option ID is public, this instruction can be called to calculate the user's score and add that to the total score tally for the option for later reward distribution calculation.
 
 There is a reveal period (configured per platform, snapshotted on the market at creation).
-The platform's `reveal_authority` (read live from platform config) can close it at any time after resolution via `end_reveal_period`.
+Before that period elapses, only the platform's `reveal_authority` (read live from platform config) can close it via `end_reveal_period`.
 After the market's snapshotted `reveal_period_seconds` have elapsed since resolution, anyone can call the same instruction.
+
+**Early end (V1 design choice):** The reveal authority may end the reveal window at any time after resolution, without waiting for the full snapshotted period. This is intentional platform-operator control in V1 and may change in a future version. Once `end_reveal_period` runs, `reveal_stake` and `finalize_reveal_stake` are no longer callable; stakers who have not revealed and finalized in time can reclaim their stake via `close_unrevealed_stake_account` but forfeit reward eligibility.
 
 #### Claiming rewards
 

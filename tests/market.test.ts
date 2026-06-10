@@ -12,6 +12,7 @@ import {
   OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS,
   OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
   OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
+  addMarketOption,
 } from "../js/src";
 
 import { OpportunityMarket } from "../target/types/opportunity_market";
@@ -21,6 +22,7 @@ import { getWalletSecretKey } from "./utils/deployer";
 import { sleepUntilOnChainTimestamp } from "./utils/sleep";
 import { generateX25519Keypair, X25519Keypair } from "../js/src/x25519/keypair";
 import { shouldThrowCustomError } from "./utils/errors";
+import { sendTransaction } from "./utils/transaction";
 import * as fs from "fs";
 
 const ONCHAIN_TIMESTAMP_BUFFER_SECONDS = 6;
@@ -1174,6 +1176,44 @@ describe("Opportunity markets", () => {
     const marketAta = await platform.getMarketAta();
     const marketAtaBalance = (await fetchToken(rpc, marketAta)).data.amount;
     expect(marketAtaBalance).to.equal(0n);
+  });
+
+  it("rejects add_market_option from non-market-authority", async () => {
+    const observer = loadObserverKeypair();
+
+    const platform = await Platform.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 1,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: 1_000_000_000n,
+        timeToStake: 10n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await platform.openMarket();
+    const attacker = platform.getUserSigner(platform.participants[0]);
+
+    await shouldThrowCustomError(
+      async () => {
+        const ix = await addMarketOption({
+          signer: attacker,
+          market: platform.market,
+          optionId: 42_424_242,
+        });
+        await sendTransaction(
+          platform.getRpc(),
+          platform.getSendAndConfirm(),
+          attacker,
+          [ix],
+          { label: "Attacker add option" },
+        );
+      },
+      OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
+    );
   });
 
   it("rejects staking below the minimum stake amount", async () => {

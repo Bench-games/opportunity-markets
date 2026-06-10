@@ -15,6 +15,7 @@ pub struct AddMarketOption<'info> {
         mut,
         constraint = market.resolved_at_timestamp.is_none() @ ErrorCode::WinnerAlreadySelected,
         constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
+        constraint = market.market_authority == signer.key() @ ErrorCode::Unauthorized,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 

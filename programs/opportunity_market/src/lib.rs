@@ -4,12 +4,23 @@ use anchor_lang::prelude::*;
 use arcium_anchor::prelude::*;
 
 pub mod constants;
+#[cfg(not(feature = "disable-prod-guardrails"))]
+pub mod comp_def_guard;
 pub mod error;
 pub mod events;
 pub mod instructions;
 pub mod score;
 pub mod state;
 pub mod utils;
+
+#[cfg(all(
+    feature = "disable-prod-guardrails",
+    not(feature = "allow-test-guardrails")
+))]
+compile_error!(
+    "feature `disable-prod-guardrails` requires `allow-test-guardrails`; \
+     production builds must not enable either feature"
+);
 
 pub use error::ErrorCode;
 pub use instructions::*;

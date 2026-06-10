@@ -5,7 +5,7 @@ if [ "${1:-}" = "--env" ] && [ "${2:-}" = "dev" ]; then
   echo "Building for local tests with disable-prod-guardrails..."
   rm -f target/deploy/opportunity_market-keypair.json
   arcium build --skip-program --skip-keys-sync
-  anchor build --ignore-keys -- --features disable-prod-guardrails
+  anchor build --ignore-keys -- --features disable-prod-guardrails,allow-test-guardrails
 
 else
   KEYPAIR_NAME="bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp"

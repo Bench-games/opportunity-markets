@@ -13,7 +13,7 @@ fi
 
 # Unit tests (host-native, fast — run before spinning up the validator)
 echo "Running unit tests..."
-cargo test -p opportunity_market --lib --features disable-prod-guardrails
+cargo test -p opportunity_market --lib --features disable-prod-guardrails,allow-test-guardrails
 
 echo "Running integration tests..."
 arcium test --skip-build

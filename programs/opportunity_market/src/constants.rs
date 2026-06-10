@@ -29,3 +29,7 @@ pub const OPPORTUNITY_MARKET_SEED: &[u8] = b"opportunity_market";
 pub const OPTION_SEED: &[u8] = b"option";
 pub const STAKE_ACCOUNT_SEED: &[u8] = b"stake_account";
 pub const SPONSOR_SEED: &[u8] = b"sponsor";
+
+/// Off-chain Arcium circuit URLs pinned in production comp-def registration.
+pub const STAKE_CIRCUIT_URL: &str = "https://blobs.bench.markets/stake.arcis";
+pub const REVEAL_STAKE_CIRCUIT_URL: &str = "https://blobs.bench.markets/reveal_stake.arcis";

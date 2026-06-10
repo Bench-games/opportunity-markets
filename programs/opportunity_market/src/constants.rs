@@ -22,6 +22,13 @@ pub const MAX_EARLINESS_MULTIPLIER: u16 = 20_000;
 
 pub const MAX_TIME_TO_STAKE_SECONDS: u64 = 3 * 30 * 24 * 60 * 60;
 
+/// Earliness boost window bounds (seconds after option creation).
+pub const MIN_EARLINESS_CUTOFF_SECONDS: u64 = 60;
+pub const MAX_EARLINESS_CUTOFF_SECONDS: u64 = MAX_TIME_TO_STAKE_SECONDS;
+
+/// Minimum stake amount (SPL token base units); must be non-zero.
+pub const MIN_MIN_STAKE_AMOUNT: u64 = 1;
+
 /// PDA seeds
 pub const PLATFORM_CONFIG_SEED: &[u8] = b"platform_config";
 pub const ALLOWED_MINT_SEED: &[u8] = b"allowed_mint";
@@ -29,3 +36,7 @@ pub const OPPORTUNITY_MARKET_SEED: &[u8] = b"opportunity_market";
 pub const OPTION_SEED: &[u8] = b"option";
 pub const STAKE_ACCOUNT_SEED: &[u8] = b"stake_account";
 pub const SPONSOR_SEED: &[u8] = b"sponsor";
+
+/// Off-chain Arcium circuit URLs pinned in production comp-def registration.
+pub const STAKE_CIRCUIT_URL: &str = "https://blobs.bench.markets/stake.arcis";
+pub const REVEAL_STAKE_CIRCUIT_URL: &str = "https://blobs.bench.markets/reveal_stake.arcis";

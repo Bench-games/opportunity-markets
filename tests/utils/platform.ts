@@ -171,9 +171,9 @@ const DEFAULT_CONFIG: Required<Omit<PlatformConfigArgs, "name">> = {
     rewardAmount: 1_000_000_000n,
     // Short by design so tests can wait through the stake window quickly.
     timeToStake: 10n,
-    earlinessCutoffSeconds: 0n,
+    earlinessCutoffSeconds: 60n,
     earlinessMultiplier: 10_000,
-    minStakeAmount: 0n,
+    minStakeAmount: 1n,
   },
 };
 

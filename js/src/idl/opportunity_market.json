@@ -21,9 +21,12 @@
       ],
       "accounts": [
         {
-          "name": "signer",
+          "name": "market_authority",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "market"
+          ]
         },
         {
           "name": "market",
@@ -5324,10 +5327,6 @@
             "type": {
               "option": "u64"
             }
-          },
-          {
-            "name": "unstaked",
-            "type": "bool"
           },
           {
             "name": "rewards_claimed",

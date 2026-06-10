@@ -224,13 +224,53 @@ mod tests {
             MARKET_OPENED,
             MARKET_OPENED + MAX_TIME_TO_STAKE_SECONDS,
             MARKET_OPENED,
-            u64::MAX,
+            MARKET_OPENED + MAX_TIME_TO_STAKE_SECONDS,
             u64::MAX,
             u64::MAX,
             MULT_2X,
         );
-        println!("result: {:?}", result);
         assert!(result.is_ok());
+        assert_eq!(result.unwrap(), u64::MAX);
+    }
+
+    /// Mirrors `compute_reward_payout` numerators. Max score equals max stake base amount;
+    /// multiplying by `reward_amount` and `reward_bp` before dividing by `total_score`
+    /// can overflow u128, but divide-first ordering matches the on-chain formula and stays safe.
+    #[test]
+    fn max_score_claim_reward_payout_intermediate_fits_u128() {
+        const MAX_REWARD_BP: u16 = 10_000;
+
+        let max_score = calculate_user_score(
+            MARKET_OPENED,
+            MARKET_OPENED + MAX_TIME_TO_STAKE_SECONDS,
+            MARKET_OPENED,
+            MARKET_OPENED + MAX_TIME_TO_STAKE_SECONDS,
+            u64::MAX,
+            u64::MAX,
+            MULT_2X,
+        )
+        .unwrap();
+        assert_eq!(max_score, u64::MAX);
+
+        let old_ordering = (max_score as u128)
+            .checked_mul(u64::MAX as u128)
+            .and_then(|product| product.checked_mul(MAX_REWARD_BP as u128));
+        assert!(
+            old_ordering.is_none(),
+            "multiply-before-divide claim path overflows u128 at max score and reward"
+        );
+
+        let total_score = max_score as u128;
+        let reward = (max_score as u128)
+            .checked_mul(u64::MAX as u128)
+            .unwrap()
+            .checked_div(total_score)
+            .unwrap()
+            .checked_mul(MAX_REWARD_BP as u128)
+            .unwrap()
+            .checked_div(MAX_REWARD_BP as u128)
+            .unwrap();
+        assert_eq!(reward, u64::MAX as u128);
     }
 
     #[test]

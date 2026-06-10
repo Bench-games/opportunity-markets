@@ -120,16 +120,16 @@ fn compute_reward_payout(
     let user_score = stake_account.score.ok_or(ErrorCode::NotRevealed)?;
     let total_score = option.total_score;
 
+    // Divide by total_score before multiplying reward_bp so the intermediate product
+    // stays ≤ reward_amount (u64) instead of growing toward u128::MAX.
     let reward = (user_score as u128)
         .checked_mul(market.reward_amount as u128)
         .ok_or(ErrorCode::Overflow)?
+        .checked_div(total_score)
+        .ok_or(ErrorCode::Overflow)?
         .checked_mul(option.reward_bp as u128)
         .ok_or(ErrorCode::Overflow)?
-        .checked_div(
-            total_score
-                .checked_mul(active_bp as u128)
-                .ok_or(ErrorCode::Overflow)?,
-        )
+        .checked_div(active_bp as u128)
         .ok_or(ErrorCode::Overflow)? as u64;
 
     let fees = stake_account.collected_fees;

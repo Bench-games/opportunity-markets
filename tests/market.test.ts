@@ -188,17 +188,22 @@ describe("Opportunity markets", () => {
       })
     );
 
-    // Winning option still has open stake accounts during the reveal period.
+    // Options cannot be closed while the reveal period is still open.
     await shouldThrowCustomError(
       () => platform.closeOptionAccount(winningOptionIndex),
-      OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
-    // Losing option with no finalized tally can be closed during the reveal period.
+    await shouldThrowCustomError(
+      () => platform.closeOptionAccount(optionB),
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
+    );
+
+    await platform.endRevealPeriod();
+
+    // Losing option with no finalized tally can be closed after the reveal period ends.
     await platform.closeOptionAccount(optionB);
     const optionBAddress = await platform.getOptionAddress(optionB);
     expect(await platform.accountExists(optionBAddress)).to.be.false;
-
-    await platform.endRevealPeriod();
 
     // After the reveal period ends, the market creator can claim the accumulated creator fees.
     const winnerIndices = stakes

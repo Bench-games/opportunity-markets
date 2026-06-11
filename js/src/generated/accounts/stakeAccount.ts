@@ -87,7 +87,6 @@ export type StakeAccount = {
   rewardsClaimed: boolean;
   id: number;
   pendingStakeComputation: Option<Address>;
-  pendingReveal: boolean;
   pendingRevealComputation: Option<Address>;
 };
 
@@ -110,7 +109,6 @@ export type StakeAccountArgs = {
   rewardsClaimed: boolean;
   id: number;
   pendingStakeComputation: OptionOrNullable<Address>;
-  pendingReveal: boolean;
   pendingRevealComputation: OptionOrNullable<Address>;
 };
 
@@ -139,7 +137,6 @@ export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
       ['rewardsClaimed', getBooleanEncoder()],
       ['id', getU32Encoder()],
       ['pendingStakeComputation', getOptionEncoder(getAddressEncoder())],
-      ['pendingReveal', getBooleanEncoder()],
       ['pendingRevealComputation', getOptionEncoder(getAddressEncoder())],
     ]),
     (value) => ({ ...value, discriminator: STAKE_ACCOUNT_DISCRIMINATOR })
@@ -170,7 +167,6 @@ export function getStakeAccountDecoder(): Decoder<StakeAccount> {
     ['rewardsClaimed', getBooleanDecoder()],
     ['id', getU32Decoder()],
     ['pendingStakeComputation', getOptionDecoder(getAddressDecoder())],
-    ['pendingReveal', getBooleanDecoder()],
     ['pendingRevealComputation', getOptionDecoder(getAddressDecoder())],
   ]);
 }

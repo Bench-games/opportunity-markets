@@ -277,9 +277,6 @@ pub struct StakeAccount {
     // `Some` means a stake computation is pending; None means no stake is in flight.
     pub pending_stake_computation: Option<Pubkey>,
 
-    // True while MPC reveal computation is in flight
-    pub pending_reveal: bool,
-
     // Computation account pubkey of the in-flight reveal computation.
     // `Some` means a reveal computation is pending; None means no reveal is in flight.
     pub pending_reveal_computation: Option<Pubkey>,

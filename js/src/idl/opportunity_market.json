@@ -5344,10 +5344,6 @@
             }
           },
           {
-            "name": "pending_reveal",
-            "type": "bool"
-          },
-          {
             "name": "pending_reveal_computation",
             "type": {
               "option": "pubkey"

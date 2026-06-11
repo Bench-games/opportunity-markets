@@ -149,10 +149,13 @@ pub fn reveal_stake_callback(
     };
 
     // Reject stale callbacks (mirrors stake_callback's pending_stake_computation check).
-    require!(
-        ctx.accounts.stake_account.pending_reveal_computation
-            == Some(ctx.accounts.computation_account.key()),
-        ErrorCode::InvalidAccountState
+    require_keys_eq!(
+        ctx.accounts
+            .stake_account
+            .pending_reveal_computation
+            .ok_or(ErrorCode::InvalidAccountState)?,
+        ctx.accounts.computation_account.key(),
+        ErrorCode::InvalidAccountState,
     );
     require!(
         ctx.accounts.stake_account.revealed_option.is_none(),

@@ -1,6 +1,6 @@
 import * as anchor from "@anchor-lang/core";
 import { Program } from "@anchor-lang/core";
-import { address, some, isNone, isSome, unwrapOption, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory } from "@solana/kit";
+import { address, some, isNone, isSome, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory } from "@solana/kit";
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
 import {
@@ -12,6 +12,7 @@ import {
   OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS,
   OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
   OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
+  OPPORTUNITY_MARKET_ERROR__LOCKED,
 } from "../js/src";
 
 import { OpportunityMarket } from "../target/types/opportunity_market";
@@ -945,6 +946,56 @@ describe("Opportunity markets", () => {
     const vaultAfter = await platform.fetchMarket();
     expect(vaultAfter.data.collectedPlatformFees).to.equal(vaultBefore.data.collectedPlatformFees,
       "Market collected_platform_fees should not have changed");
+  });
+
+  it("rejects stake + unstake + close_stuck double withdraw (OM-007)", async () => {
+    const observer = loadObserverKeypair();
+
+    const platform = await Platform.initialize(provider, programId, {
+      rpcUrl: RPC_URL,
+      wsUrl: WS_URL,
+      numParticipants: 2,
+      airdropLamports: 2_000_000_000n,
+      initialTokenAmount: 2_000_000_000n,
+      marketConfig: {
+        rewardAmount: 1_000_000_000n,
+        timeToStake: 10n,
+        authorizedReaderPubkey: observer.publicKey,
+      },
+    });
+
+    await platform.openMarket();
+    const { optionId } = await platform.addOption();
+
+    const [victim, attacker] = platform.participants;
+    const rpc = platform.getRpc();
+    const victimStakeAmount = 100_000_000n;
+    const attackerStakeAmount = 50_000_000n;
+
+    await platform.stakeOnOption(victim, victimStakeAmount, optionId);
+
+    const tokenVaultAta = await platform.getMarketAta();
+    const vaultBalanceBefore = (await fetchToken(rpc, tokenVaultAta)).data.amount;
+    const attackerBalanceBefore = (await fetchToken(rpc, platform.getUserTokenAccount(attacker)))
+      .data.amount;
+
+    await shouldThrowCustomError(
+      () => platform.stakeUnstakeAndCloseStuck(attacker, attackerStakeAmount, optionId),
+      OPPORTUNITY_MARKET_ERROR__LOCKED,
+    );
+
+    const vaultBalanceAfter = (await fetchToken(rpc, tokenVaultAta)).data.amount;
+    const attackerBalanceAfter = (await fetchToken(rpc, platform.getUserTokenAccount(attacker)))
+      .data.amount;
+
+    expect(vaultBalanceAfter).to.equal(
+      vaultBalanceBefore,
+      "market ATA should keep victim principal after blocked double-withdraw",
+    );
+    expect(attackerBalanceAfter).to.equal(
+      attackerBalanceBefore,
+      "attacker balance should be unchanged after failed exploit tx",
+    );
   });
 
   it("collects fee components correctly", async () => {

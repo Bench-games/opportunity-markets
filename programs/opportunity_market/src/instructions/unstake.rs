@@ -1,12 +1,11 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::{
-    transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked,
-};
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, UnstakedEvent};
 use crate::state::{OpportunityMarket, StakeAccount};
+use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
 #[instruction(stake_account_id: u32)]
@@ -73,33 +72,14 @@ pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     }
 
     let amount = ctx.accounts.stake_account.amount;
-    require!(amount > 0, ErrorCode::AlreadyUnstaked);
 
-    let platform = market.platform;
-    let creator = market.creator;
-    let index_bytes = market.index.to_le_bytes();
-    let market_bump = market.bump;
-    let market_seeds: &[&[&[u8]]] = &[&[
-        OPPORTUNITY_MARKET_SEED,
-        platform.as_ref(),
-        creator.as_ref(),
-        &index_bytes,
-        &[market_bump],
-    ]];
-
-    transfer_checked(
-        CpiContext::new_with_signer(
-            ctx.accounts.token_program.key(),
-            TransferChecked {
-                from: ctx.accounts.market_token_ata.to_account_info(),
-                mint: ctx.accounts.token_mint.to_account_info(),
-                to: ctx.accounts.owner_token_account.to_account_info(),
-                authority: ctx.accounts.market.to_account_info(),
-            },
-            market_seeds,
-        ),
+    transfer_from_market(
+        &ctx.accounts.market,
+        &ctx.accounts.token_mint,
+        &ctx.accounts.market_token_ata,
+        &ctx.accounts.owner_token_account,
+        &ctx.accounts.token_program,
         amount,
-        ctx.accounts.token_mint.decimals,
     )?;
 
     emit_ts!(UnstakedEvent {

@@ -62,11 +62,8 @@ Options can also be added after the market is opened for staking, until the stak
 
 The market has a reward pool that at the end is distributed to those that staked on the winning options.
 
-A sponsor can choose to fund the market with the `add_reward` instruction during the staking period or before it.
-They can lock the reward permanently or choose to add a withdrawable reward.
-A withdrawable reward can be withdrawn during the staking period or before it.
-
-In the case that the market creator fails to choose winning options for the market within the given time period, all rewards, including locked ones, can be withdrawn. More about this in the *Resolving the market* section.
+A sponsor can fund the market with the `add_reward` instruction during the staking period or before it.
+Deposited rewards remain in the market pool until resolution; if the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. More about this in the *Resolving the market* section.
 
 #### Staking
 

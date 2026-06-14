@@ -4,8 +4,8 @@ use crate::constants::{
     MAX_CREATOR_FEE_BP, MAX_PLATFORM_FEE_BP, MAX_REWARD_POOL_FEE_BP, MAX_TOTAL_FEE_BP,
 };
 use crate::constants::{
-    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MIN_PLATFORM_NAME_LEN,
-    MIN_REVEAL_PERIOD_SECONDS,
+    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MAX_TIME_TO_STAKE_SECONDS,
+    MIN_PLATFORM_NAME_LEN, MIN_REVEAL_PERIOD_SECONDS,
 };
 #[cfg(not(feature = "disable-prod-guardrails"))]
 use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
@@ -64,6 +64,10 @@ impl PlatformConfig {
         #[cfg(not(feature = "disable-prod-guardrails"))]
         require!(
             min_time_to_stake_seconds >= MIN_TIME_TO_STAKE_FLOOR_SECONDS,
+            ErrorCode::InvalidParameters
+        );
+        require!(
+            min_time_to_stake_seconds <= MAX_TIME_TO_STAKE_SECONDS,
             ErrorCode::InvalidParameters
         );
         require!(

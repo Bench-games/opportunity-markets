@@ -2,7 +2,10 @@ use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
-use crate::constants::{ALLOWED_MINT_SEED, MAX_EARLINESS_MULTIPLIER, OPPORTUNITY_MARKET_SEED};
+use crate::constants::{
+    ALLOWED_MINT_SEED, MAX_EARLINESS_CUTOFF_SECONDS, MAX_EARLINESS_MULTIPLIER,
+    MIN_EARLINESS_CUTOFF_SECONDS, MIN_MIN_STAKE_AMOUNT, OPPORTUNITY_MARKET_SEED,
+};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, MarketCreatedEvent};
 use crate::score::PRECISION;
@@ -64,6 +67,15 @@ pub fn create_market(ctx: Context<CreateMarket>, params: CreateMarketParameters)
     require!(
         (params.earliness_multiplier as u64) >= PRECISION
             && params.earliness_multiplier <= MAX_EARLINESS_MULTIPLIER,
+        ErrorCode::InvalidParameters
+    );
+    require!(
+        (MIN_EARLINESS_CUTOFF_SECONDS..=MAX_EARLINESS_CUTOFF_SECONDS)
+            .contains(&params.earliness_cutoff_seconds),
+        ErrorCode::InvalidParameters
+    );
+    require!(
+        params.min_stake_amount >= MIN_MIN_STAKE_AMOUNT,
         ErrorCode::InvalidParameters
     );
 

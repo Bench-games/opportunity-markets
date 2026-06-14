@@ -168,7 +168,6 @@ mod tests {
             collected_fees: fees,
             revealed_option: Some(0),
             score,
-            unstaked: true,
             rewards_claimed: false,
             id: 0,
             pending_stake_computation: None,

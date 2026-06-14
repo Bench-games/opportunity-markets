@@ -21,12 +21,9 @@
       ],
       "accounts": [
         {
-          "name": "market_authority",
+          "name": "signer",
           "writable": true,
-          "signer": true,
-          "relations": [
-            "market"
-          ]
+          "signer": true
         },
         {
           "name": "market",

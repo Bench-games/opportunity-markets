@@ -37,8 +37,9 @@ pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Resul
     let clock = Clock::get()?;
     let current_timestamp = clock.unix_timestamp as u64;
     if let Some(staking_window_end) = market.staking_window_end {
+        // Must stay strictly before window end so score math (staking_window_end > created_at) holds.
         require!(
-            current_timestamp <= staking_window_end,
+            current_timestamp < staking_window_end,
             ErrorCode::TimeWindowMismatch
         );
     }

@@ -322,6 +322,21 @@ mod tests {
     }
 
     #[test]
+    fn option_created_at_staking_window_end_errors() {
+        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        let r = calculate_user_score(
+            staking_window_end,
+            staking_window_end,
+            MARKET_OPENED,
+            staking_window_end,
+            STAKE,
+            ONE_WEEK,
+            MULT_2X,
+        );
+        assert!(r.is_err());
+    }
+
+    #[test]
     fn stake_end_before_stake_start_errors() {
         let staking_window_end = MARKET_OPENED + ONE_WEEK;
         let r = calculate_user_score(

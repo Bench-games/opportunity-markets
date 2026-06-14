@@ -26,6 +26,7 @@ pub struct CloseStuckStakeAccount<'info> {
         seeds = [STAKE_ACCOUNT_SEED, signer.key().as_ref(), market.key().as_ref(), &stake_account_id.to_le_bytes()],
         bump = stake_account.bump,
         constraint = stake_account.owner == signer.key() @ ErrorCode::Unauthorized,
+        constraint = stake_account.unstaked_at_timestamp.is_none() @ ErrorCode::AlreadyUnstaked,
     )]
     pub stake_account: Box<Account<'info, StakeAccount>>,
 

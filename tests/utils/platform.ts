@@ -1141,6 +1141,90 @@ export class Platform {
     return stakeAccountId;
   }
 
+  /**
+   * Stakes, then unstakes and closes the stuck stake account in the same transaction.
+   * While the MPC callback is pending this was a double-withdraw vector (OM-007).
+   */
+  async stakeUnstakeAndCloseStuck(
+    userId: Address,
+    amount: bigint,
+    optionId: number,
+  ): Promise<void> {
+    const user = this.getUser(userId);
+
+    const cipher = createCipher(user.x25519Keypair.secretKey, this.mxePublicKey);
+    const stakeAccountId = this.getNextStakeAccountId(user);
+    const stakeAccountNonce = deserializeLE(randomBytes(16));
+
+    const initIx = await initStakeAccount({
+      payer: user.solanaKeypair,
+      owner: user.solanaKeypair.address,
+      market: this.marketAddress,
+      stakeAccountId,
+    });
+
+    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [initIx], {
+      label: `Init stake account`,
+    });
+
+    const [stakeAccountAddress] = await getStakeAccountAddressPda(
+      userId,
+      this.marketAddress,
+      stakeAccountId,
+    );
+
+    const inputNonce = randomBytes(16);
+    const optionCiphertext = cipher.encrypt([BigInt(optionId)], inputNonce);
+    const computationOffset = randomComputationOffset();
+
+    const stakeInstruction = await stakeIx(
+      {
+        signer: user.solanaKeypair,
+        payer: user.solanaKeypair,
+        market: this.marketAddress,
+        stakeAccount: stakeAccountAddress,
+        stakeAccountId,
+        tokenMint: this.mint.address,
+        signerTokenAccount: user.tokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        amount,
+        selectedOptionCiphertext: optionCiphertext[0],
+        inputNonce: deserializeLE(inputNonce),
+        authorizedReaderNonce: deserializeLE(randomBytes(16)),
+        userPubkey: user.x25519Keypair.publicKey,
+        stateNonce: stakeAccountNonce,
+      },
+      this.getArciumConfig(computationOffset),
+    );
+
+    const unstakeInstruction = await unstakeIx({
+      signer: user.solanaKeypair,
+      owner: user.solanaKeypair.address,
+      market: this.marketAddress,
+      tokenMint: this.mint.address,
+      ownerTokenAccount: user.tokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      stakeAccountId,
+    });
+
+    const closeStuckIx = await closeStuckStakeAccountIx({
+      signer: user.solanaKeypair,
+      market: this.marketAddress,
+      tokenMint: this.mint.address,
+      signerTokenAccount: user.tokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      stakeAccountId,
+    });
+
+    await sendTransaction(
+      this.rpc,
+      this.sendAndConfirm,
+      user.solanaKeypair,
+      [stakeInstruction, unstakeInstruction, closeStuckIx],
+      { label: `Stake + unstake + close stuck stake account` },
+    );
+  }
+
   async unstakeBatch(requests: UnstakeRequest[]): Promise<void> {
     for (const r of requests) {
       const owner = this.getUser(r.userId);

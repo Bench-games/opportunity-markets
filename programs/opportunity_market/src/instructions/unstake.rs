@@ -72,9 +72,8 @@ pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     }
 
     let amount = ctx.accounts.stake_account.amount;
-
     transfer_from_market(
-        &ctx.accounts.market,
+        market,
         &ctx.accounts.token_mint,
         &ctx.accounts.market_token_ata,
         &ctx.accounts.owner_token_account,

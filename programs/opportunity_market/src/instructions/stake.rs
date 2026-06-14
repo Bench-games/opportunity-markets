@@ -110,6 +110,9 @@ pub struct Stake<'info> {
 }
 
 pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
+    #[cfg(not(feature = "disable-prod-guardrails"))]
+    crate::comp_def_guard::require_stake_comp_def_hash(&ctx.accounts.comp_def_account)?;
+
     require!(params.amount > 0, ErrorCode::InsufficientBalance);
     require!(
         params.amount >= ctx.accounts.market.min_stake_amount,
@@ -228,6 +231,9 @@ pub fn stake_callback(
     ctx: Context<StakeCallback>,
     output: SignedComputationOutputs<StakeOutput>,
 ) -> Result<()> {
+    #[cfg(not(feature = "disable-prod-guardrails"))]
+    crate::comp_def_guard::require_stake_comp_def_hash(&ctx.accounts.comp_def_account)?;
+
     // On failure, revert so the account stays stuck.
     // The owner can recover via close_stuck_stake_account.
     let res = match output.verify_output(

@@ -172,7 +172,7 @@ mod tests {
             rewards_claimed: false,
             id: 0,
             pending_stake_computation: None,
-            pending_reveal: false,
+            pending_reveal_computation: None,
         }
     }
 

@@ -83,11 +83,10 @@ export type StakeAccount = {
   collectedFees: CollectedFees;
   revealedOption: Option<bigint>;
   score: Option<bigint>;
-  unstaked: boolean;
   rewardsClaimed: boolean;
   id: number;
   pendingStakeComputation: Option<Address>;
-  pendingReveal: boolean;
+  pendingRevealComputation: Option<Address>;
 };
 
 export type StakeAccountArgs = {
@@ -105,11 +104,10 @@ export type StakeAccountArgs = {
   collectedFees: CollectedFeesArgs;
   revealedOption: OptionOrNullable<number | bigint>;
   score: OptionOrNullable<number | bigint>;
-  unstaked: boolean;
   rewardsClaimed: boolean;
   id: number;
   pendingStakeComputation: OptionOrNullable<Address>;
-  pendingReveal: boolean;
+  pendingRevealComputation: OptionOrNullable<Address>;
 };
 
 export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
@@ -133,11 +131,10 @@ export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
       ['collectedFees', getCollectedFeesEncoder()],
       ['revealedOption', getOptionEncoder(getU64Encoder())],
       ['score', getOptionEncoder(getU64Encoder())],
-      ['unstaked', getBooleanEncoder()],
       ['rewardsClaimed', getBooleanEncoder()],
       ['id', getU32Encoder()],
       ['pendingStakeComputation', getOptionEncoder(getAddressEncoder())],
-      ['pendingReveal', getBooleanEncoder()],
+      ['pendingRevealComputation', getOptionEncoder(getAddressEncoder())],
     ]),
     (value) => ({ ...value, discriminator: STAKE_ACCOUNT_DISCRIMINATOR })
   );
@@ -163,11 +160,10 @@ export function getStakeAccountDecoder(): Decoder<StakeAccount> {
     ['collectedFees', getCollectedFeesDecoder()],
     ['revealedOption', getOptionDecoder(getU64Decoder())],
     ['score', getOptionDecoder(getU64Decoder())],
-    ['unstaked', getBooleanDecoder()],
     ['rewardsClaimed', getBooleanDecoder()],
     ['id', getU32Decoder()],
     ['pendingStakeComputation', getOptionDecoder(getAddressDecoder())],
-    ['pendingReveal', getBooleanDecoder()],
+    ['pendingRevealComputation', getOptionDecoder(getAddressDecoder())],
   ]);
 }
 

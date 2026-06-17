@@ -209,7 +209,10 @@ pub struct StakeCallback<'info> {
     // Callback accounts
     #[account(mut)]
     pub stake_account: Box<Account<'info, StakeAccount>>,
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = market.key() == stake_account.market @ ErrorCode::InvalidAccountState,
+    )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 }
 

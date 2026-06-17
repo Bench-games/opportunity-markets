@@ -49,24 +49,21 @@ This token mint dictates the token that is used for rewards and fees within the 
 #### Adding initial options
 
 The market is not yet open to staking, but users can already start adding options to the market.
-This is done with the `add_market_option` instruction.
+This is done with the `add_market_option` instruction, which is **permissionless**: any signer can create an option PDA while the market is open for staking (including after `open_market`, until the staking window closes).
 
+`stake` does not require the target option PDA to exist; it only queues MPC on an encrypted `option_id`. A third party can therefore materialize the `[OPTION_SEED, market, option_id]` PDA first ("option ID squatting"). Settlement paths such as `finalize_reveal_stake` bind to that PDA and use `option.created_at` as the earliness anchor in `calculate_user_score`, so whoever creates the PDA sets that timestamp. This does not steal staked funds — reveal, finalize, and claim still run against the squatted PDA — but it can break delayed-creation privacy and let a squatter manipulate earliness (for example by creating the PDA immediately after observing a stake, or before a stake if the `option_id` is guessable).
 
 > [!NOTE]  
 > For keeping the user's option choice confidential, the user should not add an option using a wallet that can be linked to the wallet they stake with.
 > Otherwise, it will be quite obvious that they probably staked on the option they themselves created earlier.
-
-Options can also be added after the market is opened for staking, until the staking period closes.
+> Use unlinkable wallets when creating options, and avoid predictable `option_id` values if delayed creation matters for privacy or earliness.
 
 #### Funding the market
 
 The market has a reward pool that at the end is distributed to those that staked on the winning options.
 
-A sponsor can choose to fund the market with the `add_reward` instruction during the staking period or before it.
-They can lock the reward permanently or choose to add a withdrawable reward.
-A withdrawable reward can be withdrawn during the staking period or before it.
-
-In the case that the market creator fails to choose winning options for the market within the given time period, all rewards, including locked ones, can be withdrawn. More about this in the *Resolving the market* section.
+A sponsor can fund the market with the `add_reward` instruction during the staking period or before it.
+Deposited rewards remain in the market pool until resolution; if the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. More about this in the *Resolving the market* section.
 
 #### Staking
 
@@ -139,8 +136,10 @@ The callback then records the plaintext option ID to the stake account struct st
 **`finalize_reveal_stake`** - Now that the option ID is public, this instruction can be called to calculate the user's score and add that to the total score tally for the option for later reward distribution calculation.
 
 There is a reveal period (configured per platform, snapshotted on the market at creation).
-The platform's `reveal_authority` (read live from platform config) can close it at any time after resolution via `end_reveal_period`.
+Before that period elapses, only the platform's `reveal_authority` (read live from platform config) can close it via `end_reveal_period`.
 After the market's snapshotted `reveal_period_seconds` have elapsed since resolution, anyone can call the same instruction.
+
+**Early end (V1 design choice):** The reveal authority may end the reveal window at any time after resolution, without waiting for the full snapshotted period. This is intentional platform-operator control in V1 and may change in a future version. Once `end_reveal_period` runs, `reveal_stake` and `finalize_reveal_stake` are no longer callable; stakers who have not revealed and finalized in time can reclaim their stake via `close_unrevealed_stake_account` but forfeit reward eligibility.
 
 #### Claiming rewards
 

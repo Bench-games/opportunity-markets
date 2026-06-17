@@ -7,7 +7,7 @@ Users can deposit any amount of tokens in the program and should always be able 
 Users should never face the risk of loss-of-funds.
 Users should only ever get their initial stake deposit back OR additionally be rewarded fairly according to the rules of the protocol (see [protocol documentation](/docs/README.md)).
 
-Market sponsors should be able to deposit a market reward (can choose either permanently locked or withdrawable), and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit.
+Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit. If the market expires without resolution, sponsors can reclaim their deposit via `withdraw_reward`.
 
 We want to make sure that while an opportunity market is running, what option a given user staked on cannot be revealed by exploit. Likewise, total stake amounts per option while market is running should stay confidential.
 
@@ -32,3 +32,5 @@ We assume that the callback will not continue to fail forever after some number 
 Example of this escape hatch implementation is the `close_stuck_stake_account` instruction for the case that the callback of the `stake` instruction fails to run.
 
 There is no separate escape hatch instruction for the `reveal_stake` instruction, but instead this instruction can be called again to retry the callback as many times as needed.
+
+The platform `reveal_authority` can end the reveal window before the market's snapshotted `reveal_period_seconds` elapse (`end_reveal_period`). This is accepted trusted-operator behavior in V1: stakers who have not completed reveal and finalize by then forfeit rewards but can still reclaim stake via `close_unrevealed_stake_account`. See [protocol documentation](/docs/README.md#revealing-stakes).

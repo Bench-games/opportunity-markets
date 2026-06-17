@@ -4,8 +4,8 @@ use crate::constants::{
     MAX_CREATOR_FEE_BP, MAX_PLATFORM_FEE_BP, MAX_REWARD_POOL_FEE_BP, MAX_TOTAL_FEE_BP,
 };
 use crate::constants::{
-    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MIN_PLATFORM_NAME_LEN,
-    MIN_REVEAL_PERIOD_SECONDS,
+    MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MAX_TIME_TO_STAKE_SECONDS,
+    MIN_PLATFORM_NAME_LEN, MIN_REVEAL_PERIOD_SECONDS,
 };
 #[cfg(not(feature = "disable-prod-guardrails"))]
 use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_STAKE_FLOOR_SECONDS};
@@ -64,6 +64,10 @@ impl PlatformConfig {
         #[cfg(not(feature = "disable-prod-guardrails"))]
         require!(
             min_time_to_stake_seconds >= MIN_TIME_TO_STAKE_FLOOR_SECONDS,
+            ErrorCode::InvalidParameters
+        );
+        require!(
+            min_time_to_stake_seconds <= MAX_TIME_TO_STAKE_SECONDS,
             ErrorCode::InvalidParameters
         );
         require!(
@@ -321,7 +325,6 @@ pub struct StakeAccount {
     pub collected_fees: CollectedFees, // fees owed to the platform, reward pool, and creator
     pub revealed_option: Option<u64>,
     pub score: Option<u64>,
-    pub unstaked: bool, // whether staked tokens have been returned
     pub rewards_claimed: bool,
     pub id: u32,
 
@@ -329,8 +332,9 @@ pub struct StakeAccount {
     // `Some` means a stake computation is pending; None means no stake is in flight.
     pub pending_stake_computation: Option<Pubkey>,
 
-    // True while MPC reveal computation is in flight
-    pub pending_reveal: bool,
+    // Computation account pubkey of the in-flight reveal computation.
+    // `Some` means a reveal computation is pending; None means no reveal is in flight.
+    pub pending_reveal_computation: Option<Pubkey>,
 }
 
 #[account]

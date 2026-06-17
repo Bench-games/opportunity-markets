@@ -101,7 +101,7 @@ pub fn finalize_reveal_stake(
     let option = &mut ctx.accounts.option;
     let market = &mut ctx.accounts.market;
 
-    if option.reward_bp > 0 && !option.included_in_active_bp {
+    if option.reward_bp > 0 && !option.included_in_active_bp && option.total_score > 0 {
         market.winning_option_active_bp = market
             .winning_option_active_bp
             .checked_add(option.reward_bp)

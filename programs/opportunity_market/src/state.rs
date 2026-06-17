@@ -419,23 +419,14 @@ mod tests {
     fn phase_staking_ends_before_staking_window_end() {
         let market = test_market(Some(STAKING_END), None, false);
         assert_eq!(market.phase(0).unwrap(), MarketPhase::Staking);
-        assert_eq!(
-            market.phase(STAKING_END - 1).unwrap(),
-            MarketPhase::Staking
-        );
-        assert_eq!(
-            market.phase(STAKING_END).unwrap(),
-            MarketPhase::Selection
-        );
+        assert_eq!(market.phase(STAKING_END - 1).unwrap(), MarketPhase::Staking);
+        assert_eq!(market.phase(STAKING_END).unwrap(), MarketPhase::Selection);
     }
 
     #[test]
     fn phase_selection_after_staking_window() {
         let market = test_market(Some(STAKING_END), None, false);
-        assert_eq!(
-            market.phase(STAKING_END).unwrap(),
-            MarketPhase::Selection
-        );
+        assert_eq!(market.phase(STAKING_END).unwrap(), MarketPhase::Selection);
         assert_eq!(
             market.phase(STAKING_END + 1).unwrap(),
             MarketPhase::Selection

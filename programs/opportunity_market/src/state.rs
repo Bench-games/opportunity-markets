@@ -216,7 +216,7 @@ impl OpportunityMarket {
             return Ok(MarketPhase::NotOpen);
         };
 
-        if now <= staking_window_end {
+        if now < staking_window_end {
             return Ok(MarketPhase::Staking);
         }
 
@@ -416,15 +416,26 @@ mod tests {
     }
 
     #[test]
-    fn phase_staking_includes_staking_window_end() {
+    fn phase_staking_ends_before_staking_window_end() {
         let market = test_market(Some(STAKING_END), None, false);
         assert_eq!(market.phase(0).unwrap(), MarketPhase::Staking);
-        assert_eq!(market.phase(STAKING_END).unwrap(), MarketPhase::Staking);
+        assert_eq!(
+            market.phase(STAKING_END - 1).unwrap(),
+            MarketPhase::Staking
+        );
+        assert_eq!(
+            market.phase(STAKING_END).unwrap(),
+            MarketPhase::Selection
+        );
     }
 
     #[test]
     fn phase_selection_after_staking_window() {
         let market = test_market(Some(STAKING_END), None, false);
+        assert_eq!(
+            market.phase(STAKING_END).unwrap(),
+            MarketPhase::Selection
+        );
         assert_eq!(
             market.phase(STAKING_END + 1).unwrap(),
             MarketPhase::Selection
@@ -470,11 +481,14 @@ mod tests {
     fn require_phase_helpers_reject_mismatch() {
         let market = test_market(Some(STAKING_END), None, false);
         assert!(market
-            .require_phase(STAKING_END, MarketPhase::Staking)
+            .require_phase(STAKING_END - 1, MarketPhase::Staking)
             .is_ok());
         assert!(market
-            .require_phase(STAKING_END + 1, MarketPhase::Selection)
+            .require_phase(STAKING_END, MarketPhase::Selection)
             .is_ok());
+        assert!(market
+            .require_phase(STAKING_END, MarketPhase::Staking)
+            .is_err());
         assert!(market
             .require_phase(STAKING_END + 1, MarketPhase::Staking)
             .is_err());
@@ -482,8 +496,11 @@ mod tests {
             .require_phase_at_least(STAKING_END + 1, MarketPhase::Revealing)
             .is_err());
         assert!(market
-            .require_phase_at_most(STAKING_END, MarketPhase::Staking)
+            .require_phase_at_most(STAKING_END - 1, MarketPhase::Staking)
             .is_ok());
+        assert!(market
+            .require_phase_at_most(STAKING_END, MarketPhase::Staking)
+            .is_err());
         assert!(market
             .require_phase_at_most(STAKING_END + 1, MarketPhase::Staking)
             .is_err());

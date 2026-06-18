@@ -192,7 +192,7 @@ describe("Opportunity markets", () => {
     // Options cannot be closed while the reveal period is still open.
     await shouldThrowCustomError(
       () => platform.closeOptionAccount(winningOptionIndex),
-      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
+      OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
     );
     await shouldThrowCustomError(
       () => platform.closeOptionAccount(optionB),

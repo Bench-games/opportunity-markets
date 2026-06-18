@@ -5,7 +5,7 @@ use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::STAKE_ACCOUNT_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeRevealedEvent};
-use crate::state::{OpportunityMarket, StakeAccount};
+use crate::state::{MarketPhase, OpportunityMarket, StakeAccount};
 use crate::COMP_DEF_OFFSET_REVEAL_STAKE;
 use crate::{ArciumSignerAccount, ID, ID_CONST};
 
@@ -71,11 +71,8 @@ pub fn reveal_stake(
     _stake_account_id: u32,
 ) -> Result<()> {
     let market = &ctx.accounts.market;
-
-    require!(
-        market.resolved_at_timestamp.is_some(),
-        ErrorCode::MarketNotResolved,
-    );
+    let current_time = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(current_time, MarketPhase::Revealing)?;
 
     let stake_account_key = ctx.accounts.stake_account.key();
     let stake_account_nonce = ctx.accounts.stake_account.state_nonce;

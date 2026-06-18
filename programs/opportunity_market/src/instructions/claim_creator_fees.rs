@@ -6,7 +6,7 @@ use anchor_spl::token_interface::{
 use crate::constants::OPPORTUNITY_MARKET_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, CreatorFeesClaimedEvent};
-use crate::state::OpportunityMarket;
+use crate::state::{MarketPhase, OpportunityMarket};
 
 #[derive(Accounts)]
 pub struct ClaimCreatorFees<'info> {
@@ -16,8 +16,6 @@ pub struct ClaimCreatorFees<'info> {
         mut,
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
         bump = market.bump,
-        constraint = market.resolved_at_timestamp.is_some() @ ErrorCode::MarketNotResolved,
-        constraint = market.reveal_ended @ ErrorCode::TimeWindowMismatch,
         constraint = market.collected_creator_fees > 0 @ ErrorCode::NoFeesToClaim,
         constraint = market.creator_fee_claimer == signer.key() @ ErrorCode::Unauthorized,
     )]
@@ -45,6 +43,9 @@ pub struct ClaimCreatorFees<'info> {
 }
 
 pub fn claim_creator_fees(ctx: Context<ClaimCreatorFees>) -> Result<()> {
+    let market = &mut ctx.accounts.market;
+    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
+
     let fees = ctx.accounts.market.collected_creator_fees;
 
     let platform = ctx.accounts.market.platform;

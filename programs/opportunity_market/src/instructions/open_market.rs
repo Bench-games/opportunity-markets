@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::constants::MAX_TIME_TO_STAKE_SECONDS;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, MarketOpenedEvent};
-use crate::state::{OpportunityMarket, PlatformConfig};
+use crate::state::{MarketPhase, OpportunityMarket, PlatformConfig};
 
 #[derive(Accounts)]
 pub struct OpenMarket<'info> {
@@ -11,8 +11,7 @@ pub struct OpenMarket<'info> {
 
     #[account(
         mut,
-        has_one = market_authority @ ErrorCode::Unauthorized,
-        constraint = market.staking_window_end.is_none() @ ErrorCode::MarketAlreadyOpen,
+        has_one = market_authority @ ErrorCode::Unauthorized
     )]
     pub market: Account<'info, OpportunityMarket>,
 
@@ -22,6 +21,7 @@ pub struct OpenMarket<'info> {
 
 pub fn open_market(ctx: Context<OpenMarket>, time_to_stake: u64) -> Result<()> {
     let market = &mut ctx.accounts.market;
+    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::NotOpen)?;
 
     let clock = Clock::get()?;
     let open_timestamp = clock.unix_timestamp as u64;

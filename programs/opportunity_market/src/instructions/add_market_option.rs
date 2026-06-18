@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::constants::OPTION_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, MarketOptionCreatedEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketOption};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption};
 
 #[derive(Accounts)]
 #[instruction(option_id: u64)]
@@ -14,7 +14,6 @@ pub struct AddMarketOption<'info> {
     #[account(
         mut,
         constraint = market.resolved_at_timestamp.is_none() @ ErrorCode::WinnerAlreadySelected,
-        constraint = market.staking_window_end.is_some() @ ErrorCode::MarketNotOpen,
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
@@ -33,16 +32,8 @@ pub struct AddMarketOption<'info> {
 pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Result<()> {
     let market = &mut ctx.accounts.market;
 
-    // Enforce staking period is not over (if market is open)
-    let clock = Clock::get()?;
-    let current_timestamp = clock.unix_timestamp as u64;
-    if let Some(staking_window_end) = market.staking_window_end {
-        // Must stay strictly before window end so score math (staking_window_end > created_at) holds.
-        require!(
-            current_timestamp < staking_window_end,
-            ErrorCode::TimeWindowMismatch
-        );
-    }
+    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(current_timestamp, MarketPhase::Staking)?;
 
     // Increment total options
     market.total_options += 1;

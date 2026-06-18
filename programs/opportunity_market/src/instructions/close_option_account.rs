@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, OptionClosedEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketOption};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption};
 
 #[derive(Accounts)]
 #[instruction(option_id: u64)]
@@ -19,7 +19,6 @@ pub struct CloseOptionAccount<'info> {
         mut,
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
         bump = market.bump,
-        constraint = market.reveal_ended @ ErrorCode::RevealPeriodNotOver,
     )]
     pub market: Account<'info, OpportunityMarket>,
 
@@ -40,18 +39,9 @@ pub fn close_option_account(ctx: Context<CloseOptionAccount>, option_id: u64) ->
     let clock = Clock::get()?;
     let current_time = clock.unix_timestamp as u64;
 
-    let staking_window_end = ctx
-        .accounts
+    ctx.accounts
         .market
-        .staking_window_end
-        .ok_or(ErrorCode::MarketNotOpen)?;
-    let select_deadline = staking_window_end
-        .checked_add(ctx.accounts.market.market_resolution_deadline_seconds)
-        .ok_or(ErrorCode::Overflow)?;
-
-    let resolved = ctx.accounts.market.resolved_at_timestamp.is_some();
-    let expired = !resolved && current_time >= select_deadline;
-    require!(resolved || expired, ErrorCode::MarketNotResolved);
+        .require_phase_at_least(current_time, MarketPhase::Resolution)?;
 
     emit_ts!(OptionClosedEvent {
         option: ctx.accounts.option.key(),

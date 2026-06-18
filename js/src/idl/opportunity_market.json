@@ -3407,178 +3407,133 @@
   "errors": [
     {
       "code": 6000,
-      "name": "AbortedComputation",
-      "msg": "Computation aborted"
-    },
-    {
-      "code": 6001,
       "name": "Unauthorized",
       "msg": "Unauthorized"
     },
     {
-      "code": 6002,
+      "code": 6001,
       "name": "InsufficientBalance",
       "msg": "Insufficient balance"
     },
     {
-      "code": 6003,
+      "code": 6002,
       "name": "InsufficientRewardFunding",
       "msg": "Insufficient reward funding"
     },
     {
-      "code": 6004,
+      "code": 6003,
       "name": "InvalidParameters",
       "msg": "Invalid parameters"
     },
     {
-      "code": 6005,
-      "name": "MarketAlreadyOpen",
-      "msg": "Market is already open"
-    },
-    {
-      "code": 6006,
+      "code": 6004,
       "name": "InvalidOptionId",
       "msg": "Invalid option ID"
     },
     {
-      "code": 6007,
-      "name": "MarketNotOpen",
-      "msg": "Market is not open"
-    },
-    {
-      "code": 6008,
-      "name": "TimeWindowMismatch",
-      "msg": "Operation called outside its permitted time window"
-    },
-    {
-      "code": 6009,
+      "code": 6005,
       "name": "NoStake",
       "msg": "Stake account has no recorded stake"
     },
     {
-      "code": 6010,
+      "code": 6006,
       "name": "WinnerAlreadySelected",
       "msg": "Market winner already selected"
     },
     {
-      "code": 6011,
+      "code": 6007,
       "name": "AlreadyRevealed",
       "msg": "Stake already revealed"
     },
     {
-      "code": 6012,
-      "name": "MarketNotResolved",
-      "msg": "Market not yet resolved"
-    },
-    {
-      "code": 6013,
+      "code": 6008,
       "name": "NotRevealed",
       "msg": "Stake not yet revealed"
     },
     {
-      "code": 6014,
+      "code": 6009,
       "name": "TallyAlreadyIncremented",
       "msg": "Tally already incremented for this stake account"
     },
     {
-      "code": 6015,
+      "code": 6010,
       "name": "Overflow",
       "msg": "Arithmetic overflow"
     },
     {
-      "code": 6016,
-      "name": "RevealPeriodEnded",
-      "msg": "Reveal period has already ended"
-    },
-    {
-      "code": 6017,
+      "code": 6011,
       "name": "InvalidMint",
       "msg": "Token mint does not match account mint"
     },
     {
-      "code": 6018,
+      "code": 6012,
       "name": "AlreadyUnstaked",
       "msg": "Already unstaked"
     },
     {
-      "code": 6019,
+      "code": 6013,
       "name": "AlreadyStaked",
       "msg": "Already staked for this stake account"
     },
     {
-      "code": 6020,
-      "name": "DepositBelowMinimum",
-      "msg": "Deposit amount below minimum required for option creation"
-    },
-    {
-      "code": 6021,
-      "name": "AddOptionStakeFailed",
-      "msg": "Add option stake failed: insufficient balance or below minimum deposit"
-    },
-    {
-      "code": 6022,
+      "code": 6014,
       "name": "Locked",
       "msg": "Account is locked"
     },
     {
-      "code": 6023,
+      "code": 6015,
       "name": "InvalidAccountState",
       "msg": "Invalid account state"
     },
     {
-      "code": 6024,
+      "code": 6016,
       "name": "NoFeesToClaim",
       "msg": "No fees to claim"
     },
     {
-      "code": 6025,
+      "code": 6017,
       "name": "StakeNotStuck",
       "msg": "Stake account is not in a stuck or failed state"
     },
     {
-      "code": 6026,
+      "code": 6018,
       "name": "StakeBelowMinimum",
       "msg": "Stake amount is below the market minimum"
     },
     {
-      "code": 6027,
-      "name": "SelectOptionsDeadlinePassed",
-      "msg": "Deadline for selecting winning options has passed"
-    },
-    {
-      "code": 6028,
+      "code": 6019,
       "name": "InvalidFeeRates",
       "msg": "Invalid fee rates"
     },
     {
-      "code": 6029,
+      "code": 6020,
       "name": "OptionStillNeeded",
       "msg": "Option still needed"
     },
     {
-      "code": 6030,
+      "code": 6021,
       "name": "CreatorMismatch",
       "msg": "Creator mismatch"
     },
     {
-      "code": 6031,
-      "name": "RevealPeriodNotOver",
-      "msg": "Reveal period not over"
-    },
-    {
-      "code": 6032,
+      "code": 6022,
       "name": "NoFinalizedWinningOption",
       "msg": "No winning option has a finalized stake"
     },
     {
-      "code": 6033,
+      "code": 6023,
       "name": "NoRewardToClaim",
       "msg": "No reward to claim"
     },
     {
-      "code": 6034,
+      "code": 6024,
       "name": "RewardAlreadyClaimed",
       "msg": "Reward already claimed"
+    },
+    {
+      "code": 6025,
+      "name": "WrongMarketPhase",
+      "msg": "Operation is not permitted in the current market phase"
     }
   ],
   "types": [

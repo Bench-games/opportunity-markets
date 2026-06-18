@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use crate::constants::OPTION_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, WinningOptionSetEvent};
-use crate::state::{OpportunityMarket, OpportunityMarketOption};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption};
 
 #[derive(Accounts)]
 #[instruction(option_id: u64)]
@@ -35,26 +35,9 @@ pub fn set_winning_option(
     );
     require!(reward_bp <= 10_000, ErrorCode::InvalidParameters);
 
-    let staking_window_end = ctx
-        .accounts
-        .market
-        .staking_window_end
-        .ok_or(ErrorCode::MarketNotOpen)?;
-    let clock = Clock::get()?;
-    let current_timestamp = clock.unix_timestamp as u64;
-
-    require!(
-        current_timestamp >= staking_window_end,
-        ErrorCode::TimeWindowMismatch,
-    );
-
-    let select_deadline = staking_window_end
-        .checked_add(ctx.accounts.market.market_resolution_deadline_seconds)
-        .ok_or(ErrorCode::Overflow)?;
-    require!(
-        current_timestamp <= select_deadline,
-        ErrorCode::SelectOptionsDeadlinePassed,
-    );
+    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    let market = &mut ctx.accounts.market;
+    market.require_phase(current_timestamp, MarketPhase::Selection)?;
 
     let previous = ctx.accounts.option.reward_bp;
     let new_alloc = ctx

@@ -159,6 +159,16 @@ pub struct OpportunityMarket {
     pub min_stake_amount: u64,
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum MarketPhase {
+    NotOpen,
+    Staking,
+    Selection,
+    Revealing,
+    Resolution,
+    Expired,
+}
+
 #[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, InitSpace)]
 pub struct FeeRates {
     pub platform_fee_bp: u16,
@@ -193,6 +203,48 @@ impl FeeRates {
 }
 
 impl OpportunityMarket {
+    pub fn phase(&self, now: u64) -> Result<MarketPhase> {
+        if self.resolved_at_timestamp.is_some() {
+            return Ok(if self.reveal_ended {
+                MarketPhase::Resolution
+            } else {
+                MarketPhase::Revealing
+            });
+        }
+
+        let Some(staking_window_end) = self.staking_window_end else {
+            return Ok(MarketPhase::NotOpen);
+        };
+
+        if now < staking_window_end {
+            return Ok(MarketPhase::Staking);
+        }
+
+        let deadline = staking_window_end
+            .checked_add(self.market_resolution_deadline_seconds)
+            .ok_or(ErrorCode::Overflow)?;
+        if now <= deadline {
+            return Ok(MarketPhase::Selection);
+        }
+
+        Ok(MarketPhase::Expired)
+    }
+
+    pub fn require_phase(&self, now: u64, expected: MarketPhase) -> Result<()> {
+        require!(self.phase(now)? == expected, ErrorCode::WrongMarketPhase);
+        Ok(())
+    }
+
+    pub fn require_phase_at_least(&self, now: u64, min: MarketPhase) -> Result<()> {
+        require!(self.phase(now)? >= min, ErrorCode::WrongMarketPhase);
+        Ok(())
+    }
+
+    pub fn require_phase_at_most(&self, now: u64, max: MarketPhase) -> Result<()> {
+        require!(self.phase(now)? <= max, ErrorCode::WrongMarketPhase);
+        Ok(())
+    }
+
     pub fn calculate_fees(&self, amount: u64) -> Result<CollectedFees> {
         let platform_fee = (amount as u128)
             .checked_mul(self.fee_rates.platform_fee_bp as u128)
@@ -311,4 +363,144 @@ pub struct OpportunityMarketSponsor {
     pub sponsor: Pubkey,
     pub market: Pubkey,
     pub reward_deposited: u64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const STAKING_END: u64 = 1_000;
+    const RESOLUTION_DEADLINE_SECS: u64 = 600;
+    const SELECTION_END: u64 = STAKING_END + RESOLUTION_DEADLINE_SECS;
+
+    fn test_market(
+        staking_window_end: Option<u64>,
+        resolved_at_timestamp: Option<u64>,
+        reveal_ended: bool,
+    ) -> OpportunityMarket {
+        OpportunityMarket {
+            bump: 0,
+            creator: Pubkey::default(),
+            index: 0,
+            total_options: 0,
+            platform: Pubkey::default(),
+            staking_window_end,
+            resolved_at_timestamp,
+            winning_option_allocation: 0,
+            winning_option_active_bp: 0,
+            reward_amount: 0,
+            market_authority: Pubkey::default(),
+            mint: Pubkey::default(),
+            earliness_cutoff_seconds: 0,
+            earliness_multiplier: 0,
+            authorized_reader_pubkey: [0; 32],
+            fee_rates: FeeRates {
+                platform_fee_bp: 0,
+                reward_pool_fee_bp: 0,
+                creator_fee_bp: 0,
+            },
+            collected_platform_fees: 0,
+            collected_creator_fees: 0,
+            creator_fee_claimer: Pubkey::default(),
+            market_resolution_deadline_seconds: RESOLUTION_DEADLINE_SECS,
+            reveal_period_seconds: 0,
+            reveal_ended,
+            min_stake_amount: 0,
+        }
+    }
+
+    #[test]
+    fn phase_not_open_when_staking_window_unset() {
+        let market = test_market(None, None, false);
+        assert_eq!(market.phase(0).unwrap(), MarketPhase::NotOpen);
+    }
+
+    #[test]
+    fn phase_staking_ends_before_staking_window_end() {
+        let market = test_market(Some(STAKING_END), None, false);
+        assert_eq!(market.phase(0).unwrap(), MarketPhase::Staking);
+        assert_eq!(market.phase(STAKING_END - 1).unwrap(), MarketPhase::Staking);
+        assert_eq!(market.phase(STAKING_END).unwrap(), MarketPhase::Selection);
+    }
+
+    #[test]
+    fn phase_selection_after_staking_window() {
+        let market = test_market(Some(STAKING_END), None, false);
+        assert_eq!(market.phase(STAKING_END).unwrap(), MarketPhase::Selection);
+        assert_eq!(
+            market.phase(STAKING_END + 1).unwrap(),
+            MarketPhase::Selection
+        );
+        assert_eq!(market.phase(SELECTION_END).unwrap(), MarketPhase::Selection);
+    }
+
+    #[test]
+    fn phase_expired_after_selection_deadline() {
+        let market = test_market(Some(STAKING_END), None, false);
+        assert_eq!(
+            market.phase(SELECTION_END + 1).unwrap(),
+            MarketPhase::Expired
+        );
+    }
+
+    #[test]
+    fn phase_revealing_when_resolved_before_reveal_ends() {
+        let market = test_market(Some(STAKING_END), Some(STAKING_END + 1), false);
+        assert_eq!(
+            market.phase(STAKING_END + 1).unwrap(),
+            MarketPhase::Revealing
+        );
+        assert_eq!(market.phase(u64::MAX).unwrap(), MarketPhase::Revealing);
+    }
+
+    #[test]
+    fn phase_resolution_when_resolved_and_reveal_ended() {
+        let market = test_market(Some(STAKING_END), Some(STAKING_END + 1), true);
+        assert_eq!(
+            market.phase(STAKING_END + 1).unwrap(),
+            MarketPhase::Resolution
+        );
+    }
+
+    #[test]
+    fn resolved_market_ignores_calendar_selection_window() {
+        let market = test_market(Some(STAKING_END), Some(STAKING_END + 1), false);
+        assert_eq!(market.phase(0).unwrap(), MarketPhase::Revealing);
+    }
+
+    #[test]
+    fn require_phase_helpers_reject_mismatch() {
+        let market = test_market(Some(STAKING_END), None, false);
+        assert!(market
+            .require_phase(STAKING_END - 1, MarketPhase::Staking)
+            .is_ok());
+        assert!(market
+            .require_phase(STAKING_END, MarketPhase::Selection)
+            .is_ok());
+        assert!(market
+            .require_phase(STAKING_END, MarketPhase::Staking)
+            .is_err());
+        assert!(market
+            .require_phase(STAKING_END + 1, MarketPhase::Staking)
+            .is_err());
+        assert!(market
+            .require_phase_at_least(STAKING_END + 1, MarketPhase::Revealing)
+            .is_err());
+        assert!(market
+            .require_phase_at_most(STAKING_END - 1, MarketPhase::Staking)
+            .is_ok());
+        assert!(market
+            .require_phase_at_most(STAKING_END, MarketPhase::Staking)
+            .is_err());
+        assert!(market
+            .require_phase_at_most(STAKING_END + 1, MarketPhase::Staking)
+            .is_err());
+    }
+
+    #[test]
+    fn phase_errors_on_resolution_deadline_overflow() {
+        let mut market = test_market(Some(u64::MAX - 10), None, false);
+        market.market_resolution_deadline_seconds = 20;
+        assert!(market.phase(u64::MAX).is_err());
+    }
 }

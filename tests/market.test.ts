@@ -4,14 +4,12 @@ import { address, some, isNone, isSome, createSolanaRpc, createSolanaRpcSubscrip
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
 import {
-  OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
   OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED,
   OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
   OPPORTUNITY_MARKET_ERROR__STAKE_BELOW_MINIMUM,
-  OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED,
   OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS,
   OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
-  OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
+  OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
   OPPORTUNITY_MARKET_ERROR__LOCKED,
 } from "../js/src";
 
@@ -120,7 +118,7 @@ describe("Opportunity markets", () => {
     // Negative check: creator fees cannot be claimed before winners are selected
     await shouldThrowCustomError(
       () => platform.claimCreatorFees(),
-      OPPORTUNITY_MARKET_ERROR__MARKET_NOT_RESOLVED,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     // Market creator selects winning option
@@ -191,17 +189,22 @@ describe("Opportunity markets", () => {
       })
     );
 
-    // Closing option accounts before the reveal period ends fails.
+    // Options cannot be closed while the reveal period is still open.
     await shouldThrowCustomError(
       () => platform.closeOptionAccount(winningOptionIndex),
-      OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
+      OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED,
     );
     await shouldThrowCustomError(
       () => platform.closeOptionAccount(optionB),
-      OPPORTUNITY_MARKET_ERROR__REVEAL_PERIOD_NOT_OVER,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     await platform.endRevealPeriod();
+
+    // Losing option with no finalized tally can be closed after the reveal period ends.
+    await platform.closeOptionAccount(optionB);
+    const optionBAddress = await platform.getOptionAddress(optionB);
+    expect(await platform.accountExists(optionBAddress)).to.be.false;
 
     // After the reveal period ends, the market creator can claim the accumulated creator fees.
     const winnerIndices = stakes
@@ -335,9 +338,8 @@ describe("Opportunity markets", () => {
     const marketAfter = await platform.fetchMarket();
     expect(marketAfter.data.collectedPlatformFees).to.equal(0n, "Market collected platform fees should be 0 after claiming");
 
-    // Close every option account
+    // Close the remaining option account
     await platform.closeOptionAccount(winningOptionIndex);
-    await platform.closeOptionAccount(optionB);
 
     for (const optionId of [winningOptionIndex, optionB]) {
       const addr = await platform.getOptionAddress(optionId);
@@ -725,7 +727,7 @@ describe("Opportunity markets", () => {
     // Try to select option before stake period ends - should fail
     await shouldThrowCustomError(
       () => platform.selectSingleWinningOption(optionA),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     // Verify market is still unresolved
@@ -1195,7 +1197,7 @@ describe("Opportunity markets", () => {
     // Pre-open: the market has no stake window yet, so withdrawal is rejected.
     await shouldThrowCustomError(
       () => platform.withdrawReward(sponsorA),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     const stakeEnd = Number(await platform.openMarket());
@@ -1204,7 +1206,7 @@ describe("Opportunity markets", () => {
     // Resolution window: rewards stay locked until the resolution deadline passes.
     await shouldThrowCustomError(
       () => platform.withdrawReward(sponsorB),
-      OPPORTUNITY_MARKET_ERROR__TIME_WINDOW_MISMATCH,
+      OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
     // After expiry without resolution, both sponsors recover their deposits in full.
@@ -1333,15 +1335,17 @@ describe("Opportunity markets", () => {
   });
 
   it("winner takes all when fees sum up to 100%", async () => {
-    // The user's stake is wholly consumed by fees which grow the reward pool.
+    // Fees consume all but 1 bp of the stake; net remains so unstake can run.
     const platformFeeBp = 100;
     const creatorFeeBp = 100;
-    const rewardPoolFeeBp = 9800;
+    const rewardPoolFeeBp = 9799;
 
     const stakeAmount = 100_000_000_000n;
     const expectedPoolFee = stakeAmount * BigInt(rewardPoolFeeBp) / 10_000n;
     const expectedPlatformFee = stakeAmount * BigInt(platformFeeBp) / 10_000n;
     const expectedCreatorFee = stakeAmount * BigInt(creatorFeeBp) / 10_000n;
+    const expectedNetStake =
+      stakeAmount - expectedPlatformFee - expectedPoolFee - expectedCreatorFee;
 
     const observer = loadObserverKeypair();
 
@@ -1376,9 +1380,9 @@ describe("Opportunity markets", () => {
     expect(marketAfterStakes.data.collectedPlatformFees).to.equal(expectedPlatformFee * 2n);
     expect(marketAfterStakes.data.collectedCreatorFees).to.equal(expectedCreatorFee * 2n);
 
-    // Stake accounts record zero net.
-    expect((await platform.fetchStakeAccountData(staker1, sa1)).data.amount).to.equal(0n);
-    expect((await platform.fetchStakeAccountData(staker2, sa2)).data.amount).to.equal(0n);
+    // Stake accounts retain 1 bp net; the rest went to fees.
+    expect((await platform.fetchStakeAccountData(staker1, sa1)).data.amount).to.equal(expectedNetStake);
+    expect((await platform.fetchStakeAccountData(staker2, sa2)).data.amount).to.equal(expectedNetStake);
 
     // Resolve with option A as the sole winner.
     await platform.waitForStakeEnd();
@@ -1403,7 +1407,7 @@ describe("Opportunity markets", () => {
     expect(marketAfterFinalize.data.rewardAmount).to.equal(expectedPoolFee);
     expect(marketAfterFinalize.data.collectedCreatorFees).to.equal(expectedCreatorFee);
 
-    // Unstake returns 0, everything went to fees.
+    // Unstake returns the negligible net stake; the reward pool holds the rest.
     const rpc = platform.getRpc();
     const bal1BeforeUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker1))).data.amount;
     const bal2BeforeUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker2))).data.amount;
@@ -1413,8 +1417,8 @@ describe("Opportunity markets", () => {
     ]);
     const bal1AfterUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker1))).data.amount;
     const bal2AfterUnstake = (await fetchToken(rpc, platform.getUserTokenAccount(staker2))).data.amount;
-    expect(bal1AfterUnstake - bal1BeforeUnstake).to.equal(0n);
-    expect(bal2AfterUnstake - bal2BeforeUnstake).to.equal(0n);
+    expect(bal1AfterUnstake - bal1BeforeUnstake).to.equal(expectedNetStake);
+    expect(bal2AfterUnstake - bal2BeforeUnstake).to.equal(expectedNetStake);
 
     await platform.endRevealPeriod();
 

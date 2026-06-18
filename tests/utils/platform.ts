@@ -67,9 +67,9 @@ import { nonceToBytes } from "./nonce";
 import { getDeployerKeypair } from "./deployer";
 import { sleepUntilOnChainTimestamp } from "./sleep";
 
-// Buffer (seconds) added to on-chain timestamps before polling resumes; the
-// validator clock can lag wall-clock by a few seconds.
-const STAKE_END_BUFFER_SECONDS = 2;
+// Selection phase requires on-chain now >= staking_window_end; poll the validator
+// clock rather than wall time so phase guards see the post-staking window.
+const STAKE_END_BUFFER_SECONDS = 1;
 
 // ============================================================================
 // Types
@@ -1387,6 +1387,7 @@ export class Platform {
   async waitForStakeEnd(): Promise<void> {
     await sleepUntilOnChainTimestamp(
       Number(this.getStakeEndTimestamp()) + STAKE_END_BUFFER_SECONDS,
+      this.rpc,
     );
   }
 

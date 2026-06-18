@@ -4,7 +4,7 @@ use crate::constants::{OPTION_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RevealStakeFinalizedEvent};
 use crate::score::calculate_user_score;
-use crate::state::{OpportunityMarket, OpportunityMarketOption, StakeAccount};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, StakeAccount};
 
 #[derive(Accounts)]
 #[instruction(option_id: u64, stake_account_id: u32)]
@@ -44,16 +44,8 @@ pub fn finalize_reveal_stake(
 ) -> Result<()> {
     let market = &ctx.accounts.market;
 
-    // Check that we are within the reveal window
-    let staking_window_end = market.staking_window_end.ok_or(ErrorCode::MarketNotOpen)?;
-    let clock = Clock::get()?;
-    let current_time = clock.unix_timestamp as u64;
-
-    require!(
-        current_time >= staking_window_end,
-        ErrorCode::TimeWindowMismatch
-    );
-    require!(!market.reveal_ended, ErrorCode::RevealPeriodEnded);
+    let current_time = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(current_time, MarketPhase::Revealing)?;
 
     let revealed_option = ctx
         .accounts
@@ -76,7 +68,10 @@ pub fn finalize_reveal_stake(
     let staked_at_timestamp = stake_account
         .staked_at_timestamp
         .ok_or(ErrorCode::NoStake)?;
-    let user_staking_window_end = stake_account
+    let staking_window_end = market
+        .staking_window_end
+        .ok_or(ErrorCode::WrongMarketPhase)?;
+    let user_stake_end = stake_account
         .unstaked_at_timestamp
         .unwrap_or(staking_window_end);
 
@@ -87,7 +82,7 @@ pub fn finalize_reveal_stake(
         ctx.accounts.option.created_at,
         staking_window_end,
         staked_at_timestamp,
-        user_staking_window_end,
+        user_stake_end,
         stake_base_amount,
         market.earliness_cutoff_seconds,
         market.earliness_multiplier,

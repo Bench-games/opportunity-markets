@@ -334,6 +334,182 @@
       "args": []
     },
     {
+      "name": "claim_fee_reimbursement",
+      "discriminator": [
+        225,
+        134,
+        154,
+        72,
+        253,
+        147,
+        197,
+        233
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116,
+                  117,
+                  110,
+                  105,
+                  116,
+                  121,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.platform",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.index",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "stake_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "stake_account.id",
+                "account": "StakeAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "option"
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "claim_fees",
       "discriminator": [
         82,
@@ -911,73 +1087,6 @@
           }
         },
         {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "owner_token_account",
-          "writable": true
-        },
-        {
-          "name": "token_program"
-        },
-        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -1269,73 +1378,6 @@
               }
             ]
           }
-        },
-        {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "owner_token_account",
-          "writable": true
-        },
-        {
-          "name": "token_program"
         },
         {
           "name": "system_program",
@@ -3157,6 +3199,19 @@
       ]
     },
     {
+      "name": "FeeReimbursementClaimedEvent",
+      "discriminator": [
+        13,
+        240,
+        132,
+        165,
+        232,
+        200,
+        223,
+        84
+      ]
+    },
+    {
       "name": "FeesClaimedEvent",
       "discriminator": [
         69,
@@ -3534,6 +3589,16 @@
       "code": 6025,
       "name": "WrongMarketPhase",
       "msg": "Operation is not permitted in the current market phase"
+    },
+    {
+      "code": 6026,
+      "name": "FeesNotReimbursed",
+      "msg": "Stake fees have not been reimbursed yet"
+    },
+    {
+      "code": 6027,
+      "name": "FeesAlreadyReimbursed",
+      "msg": "Stake fees already reimbursed"
     }
   ],
   "types": [
@@ -4071,6 +4136,52 @@
           {
             "name": "creator_fee_bp",
             "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeReimbursementClaimedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "option_id",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "reward_pool_fee",
+            "type": "u64"
+          },
+          {
+            "name": "creator_fee",
+            "type": "u64"
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }
@@ -5282,6 +5393,13 @@
           },
           {
             "name": "rewards_claimed",
+            "type": "bool"
+          },
+          {
+            "name": "fees_reimbursed",
+            "docs": [
+              "Set by `claim_fee_reimbursement`; required before closing the stake account."
+            ],
             "type": "bool"
           },
           {

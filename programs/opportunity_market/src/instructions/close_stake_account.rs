@@ -5,7 +5,7 @@ use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED, STAKE_ACCOUNT_SEED}
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeAccountClosedEvent};
 use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, StakeAccount};
-use crate::utils::refund_stake_fees;
+use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
 pub struct CloseStakeAccount<'info> {
@@ -62,19 +62,56 @@ pub struct CloseStakeAccount<'info> {
 
 pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>) -> Result<()> {
     let market = &mut ctx.accounts.market;
+    let stake_account = &mut ctx.accounts.stake_account;
     let now = Clock::get()?.unix_timestamp as u64;
-    market.require_phase_at_least(now, MarketPhase::Resolution)?;
     let phase = market.phase(now)?;
+    require!(
+        phase == MarketPhase::Resolution || phase == MarketPhase::Expired,
+        ErrorCode::WrongMarketPhase
+    );
 
     let mut fee_refund = 0;
-    if phase == MarketPhase::Expired {
-        fee_refund = refund_stake_fees(
+    if phase == MarketPhase::Resolution {
+        if stake_account.rewards_claimed {
+            // If the stake account had any rewards claimed it means this was a winning option and we refund the fees
+            // No market changes required as the fees are already deducted in the finalize_reveal_stake instruction
+            fee_refund = stake_account
+                .collected_fees
+                .creator_fee
+                .checked_add(stake_account.collected_fees.reward_pool_fee)
+                .ok_or(ErrorCode::Overflow)?;
+        } else if market.winning_option_active_bp == 0 {
+            // If no winner revealed, we refund the reward pool fee as there will be no one claiming rewards
+            fee_refund = stake_account.collected_fees.reward_pool_fee;
+            market.reward_amount = market
+                .reward_amount
+                .checked_sub(fee_refund)
+                .ok_or(ErrorCode::Overflow)?;
+        }
+    } else if phase == MarketPhase::Expired {
+        let fees = stake_account.collected_fees;
+        market.reward_amount = market
+            .reward_amount
+            .checked_sub(fees.reward_pool_fee)
+            .ok_or(ErrorCode::Overflow)?;
+        market.collected_creator_fees = market
+            .collected_creator_fees
+            .checked_sub(fees.creator_fee)
+            .ok_or(ErrorCode::Overflow)?;
+        fee_refund = fees
+            .reward_pool_fee
+            .checked_add(fees.creator_fee)
+            .ok_or(ErrorCode::Overflow)?;
+    };
+
+    if fee_refund > 0 {
+        transfer_from_market(
             market,
-            &ctx.accounts.stake_account,
             &ctx.accounts.token_mint,
             &ctx.accounts.market_token_ata,
             &ctx.accounts.owner_token_account,
             &ctx.accounts.token_program,
+            fee_refund,
         )?;
     }
 
@@ -83,14 +120,11 @@ pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>)
     if !option_closed {
         let option = Account::<OpportunityMarketOption>::try_from(ctx.accounts.option.as_ref())?;
         require!(
-            option.reward_bp == 0
-                || ctx.accounts.stake_account.score.is_none()
-                || ctx.accounts.stake_account.rewards_claimed,
+            option.reward_bp == 0 || stake_account.score.is_none() || stake_account.rewards_claimed,
             ErrorCode::InvalidAccountState
         );
     }
 
-    let stake_account = &ctx.accounts.stake_account;
     emit_ts!(StakeAccountClosedEvent {
         owner: ctx.accounts.owner.key(),
         market: market.key(),

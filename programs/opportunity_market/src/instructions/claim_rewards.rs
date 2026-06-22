@@ -64,20 +64,20 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
     let stake_account = &mut ctx.accounts.stake_account;
     market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
 
-    let payout = compute_reward_payout(
+    let rewards = compute_reward_payout(
         stake_account.as_ref(),
         market.as_ref(),
         ctx.accounts.option.as_ref(),
     )?;
 
-    if payout > 0 {
+    if rewards > 0 {
         transfer_from_market(
             &ctx.accounts.market,
             &ctx.accounts.token_mint,
             &ctx.accounts.market_token_ata,
             &ctx.accounts.owner_token_account,
             &ctx.accounts.token_program,
-            payout,
+            rewards,
         )?;
     }
 
@@ -101,7 +101,7 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
         stake_account: ctx.accounts.stake_account.key(),
         stake_account_id: ctx.accounts.stake_account.id,
         option_id: ctx.accounts.stake_account.revealed_option.unwrap(),
-        reward_amount: payout,
+        reward_amount: rewards,
         score: ctx.accounts.stake_account.score.unwrap_or(0),
     });
 
@@ -113,23 +113,8 @@ fn compute_reward_payout(
     market: &OpportunityMarket,
     option: &OpportunityMarketOption,
 ) -> Result<u64> {
-    if option.reward_bp == 0 {
+    if option.reward_bp == 0 || option.total_score == 0 {
         return Ok(0);
-    }
-
-    if stake_account.score.is_none() {
-        return Ok(0);
-    }
-
-    let fees = stake_account.collected_fees;
-    let fees_refund = fees
-        .reward_pool_fee
-        .checked_add(fees.creator_fee)
-        .ok_or(ErrorCode::Overflow)?;
-
-    let total_score = option.total_score;
-    if total_score == 0 {
-        return Ok(fees_refund);
     }
 
     let active_bp = market.winning_option_active_bp;
@@ -143,15 +128,14 @@ fn compute_reward_payout(
         .checked_mul(option.reward_bp as u128)
         .ok_or(ErrorCode::Overflow)?
         .checked_div(
-            total_score
+            option
+                .total_score
                 .checked_mul(active_bp as u128)
                 .ok_or(ErrorCode::Overflow)?,
         )
         .ok_or(ErrorCode::Overflow)? as u64;
 
-    reward
-        .checked_add(fees_refund)
-        .ok_or(ErrorCode::Overflow.into())
+    Ok(reward)
 }
 
 #[cfg(test)]

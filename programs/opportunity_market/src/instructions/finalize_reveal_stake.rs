@@ -101,7 +101,7 @@ pub fn finalize_reveal_stake(
     }
 
     // Winning option means stake fees get refunded, so deduct from market account.
-    // Actual refund transfer happens in `claim_rewards` together with reward.
+    // Actual refund transfer happens in `close_stake_account`.
     if option.reward_bp > 0 {
         let fees = stake_account.collected_fees;
         market.deduct_stake_fees(&fees)?;

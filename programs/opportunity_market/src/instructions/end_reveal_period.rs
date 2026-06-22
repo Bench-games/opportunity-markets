@@ -7,10 +7,7 @@ use crate::state::{MarketPhase, OpportunityMarket, PlatformConfig};
 #[derive(Accounts)]
 pub struct EndRevealPeriod<'info> {
     pub signer: Signer<'info>,
-    #[account(
-        mut,
-        constraint = market.winning_option_active_bp > 0 @ ErrorCode::NoFinalizedWinningOption
-    )]
+    #[account(mut)]
     pub market: Account<'info, OpportunityMarket>,
 
     #[account(address = market.platform @ ErrorCode::Unauthorized)]

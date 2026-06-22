@@ -3,13 +3,11 @@ import { Program } from "@anchor-lang/core";
 import { address, some, createSolanaRpc, createSolanaRpcSubscriptions, sendAndConfirmTransactionFactory } from "@solana/kit";
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
-import { OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION } from "../js/src";
 import { OpportunityMarket } from "../target/types/opportunity_market";
 import { Platform } from "./utils/platform";
 import { initializeAllCompDefs } from "./utils/comp-defs";
 import { getWalletSecretKey } from "./utils/deployer";
 import { generateX25519Keypair } from "../js/src/x25519/keypair";
-import { shouldThrowCustomError } from "./utils/errors";
 
 const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 const WS_URL = RPC_URL.replace("http", "ws").replace(":8899", ":8900");
@@ -137,7 +135,7 @@ describe("Redistributes rewards in unstaked options", () => {
     expect(after - before).to.equal(1_000_000_000n);
   });
 
-  it("blocks end_reveal_period when no winning option is finalized", async () => {
+  it("ends reveal period when no winning option is finalized", async () => {
     const observer = generateX25519Keypair();
 
     const platform = await Platform.initialize(provider, programId, {
@@ -174,10 +172,12 @@ describe("Redistributes rewards in unstaked options", () => {
 
     expect((await platform.fetchMarket()).data.winningOptionActiveBp).to.equal(0);
 
-    await shouldThrowCustomError(
-      () => platform.endRevealPeriod(),
-      OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION,
-    );
+    await platform.endRevealPeriod();
+
+    expect((await platform.fetchMarket()).data.revealEnded).to.be.true;
+
+    await platform.unstake(user, sa);
+    await platform.closeStakeAccount(user, optStaked, sa);
   });
 
   it("clears a winner with reward_bp 0 and reassigns allocation", async () => {

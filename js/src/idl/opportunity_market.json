@@ -4642,7 +4642,7 @@
             "type": "u64"
           },
           {
-            "name": "unclaimed_stake",
+            "name": "unclaimed_gross_stake",
             "type": "u64"
           },
           {

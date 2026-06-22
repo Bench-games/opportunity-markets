@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn zero_total_score_returns_fee_refund_without_div_by_zero() {
+    fn zero_total_score_returns_zero_payout() {
         let fees = CollectedFees {
             platform_fee: 100,
             reward_pool_fee: 200,
@@ -223,7 +223,7 @@ mod tests {
         let option = test_option(0, 10_000);
 
         let payout = compute_reward_payout(&stake, &market, &option).unwrap();
-        assert_eq!(payout, 500);
+        assert_eq!(payout, 0);
     }
 
     #[test]
@@ -241,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn non_zero_total_score_pays_pro_rata_reward_plus_fees() {
+    fn non_zero_total_score_does_not_pay_rewards_plus_fees() {
         let fees = CollectedFees {
             platform_fee: 0,
             reward_pool_fee: 10,
@@ -252,6 +252,6 @@ mod tests {
         let option = test_option(1_000, 10_000);
 
         let payout = compute_reward_payout(&stake, &market, &option).unwrap();
-        assert_eq!(payout, 500_030);
+        assert_eq!(payout, 500_000);
     }
 }

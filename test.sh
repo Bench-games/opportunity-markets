@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Cleaning up ./artifacts and ./build directories..."
+rm -rfI ./artifacts ./build 
+
 # Free port 8899 before localnet setup (a stale validator blocks arcium).
 STALE_PID=$(lsof -ti :8899 || true)
 if [ -n "$STALE_PID" ]; then

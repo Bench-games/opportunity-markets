@@ -161,13 +161,13 @@ describe("Opportunity markets", () => {
       }))
     );
 
-    // Verify option tally equals sum of all stake on it
-    const totalWinningStaked = winnerStakeAccounts.reduce((sum, sa) => {
+    // Verify option tally equals sum of gross stake on it (net + collected fees)
+    const totalWinningGrossStaked = winnerStakeAccounts.reduce((sum, sa) => {
       const idx = stakes.findIndex(p => p.userId === winners[winnerStakeAccounts.indexOf(sa)]);
-      return sum + expectedNetPerUser[idx];
+      return sum + stakeAmounts[idx];
     }, 0n);
     const optionAccount = await platform.fetchOptionData(winningOptionIndex);
-    expect(optionAccount.data.unclaimedStake).to.equal(totalWinningStaked);
+    expect(optionAccount.data.unclaimedGrossStake).to.equal(totalWinningGrossStaked);
 
     // Reclaim staked tokens for winners
     await platform.unstakeBatch(
@@ -260,7 +260,7 @@ describe("Opportunity markets", () => {
 
     // All winning stake has been claimed.
     const optionAfterClaim = await platform.fetchOptionData(winningOptionIndex);
-    expect(optionAfterClaim.data.unclaimedStake).to.equal(0n);
+    expect(optionAfterClaim.data.unclaimedGrossStake).to.equal(0n);
 
     // Verify stake accounts were closed
     for (let i = 0; i < winners.length; i++) {

@@ -173,6 +173,7 @@ mod tests {
             id: 0,
             pending_stake_computation: None,
             pending_reveal_computation: None,
+            last_reveal_stake_at: 0,
         }
     }
 

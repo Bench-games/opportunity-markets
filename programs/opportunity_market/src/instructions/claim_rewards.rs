@@ -131,17 +131,21 @@ fn compute_reward_payout(
 
     let user_score = stake_account.score.ok_or(ErrorCode::NotRevealed)?;
 
-    let reward = (user_score as u128)
+    let score_weighted_reward = (user_score as u128)
         .checked_mul(market.reward_amount as u128)
-        .ok_or(ErrorCode::Overflow)?
+        .ok_or(ErrorCode::Overflow)?;
+
+    let pro_rata_pool_share = score_weighted_reward
+        .checked_div(total_score)
+        .ok_or(ErrorCode::Overflow)?;
+
+    let reward: u64 = pro_rata_pool_share
         .checked_mul(option.reward_bp as u128)
         .ok_or(ErrorCode::Overflow)?
-        .checked_div(
-            total_score
-                .checked_mul(active_bp as u128)
-                .ok_or(ErrorCode::Overflow)?,
-        )
-        .ok_or(ErrorCode::Overflow)? as u64;
+        .checked_div(active_bp as u128)
+        .ok_or(ErrorCode::Overflow)?
+        .try_into()
+        .map_err(|_| ErrorCode::Overflow)?;
 
     reward
         .checked_add(fees_refund)
@@ -248,6 +252,25 @@ mod tests {
         let option = test_option(0, 5_000);
 
         assert!(compute_reward_payout(&stake, &market, &option).is_ok());
+    }
+
+    #[test]
+    fn high_supply_sole_winner_does_not_overflow() {
+        let score = 200_000_000_000_000_000;
+        let reward_amount = 200_000_000_000_000_000;
+        let stake = test_stake_account(
+            Some(score),
+            CollectedFees {
+                platform_fee: 0,
+                reward_pool_fee: 0,
+                creator_fee: 0,
+            },
+        );
+        let market = test_market(reward_amount, 10_000);
+        let option = test_option(score as u128, 10_000);
+
+        let payout = compute_reward_payout(&stake, &market, &option).unwrap();
+        assert_eq!(payout, reward_amount);
     }
 
     #[test]

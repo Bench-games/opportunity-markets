@@ -42,28 +42,27 @@ pub fn finalize_reveal_stake(
     option_id: u64,
     _stake_account_id: u32,
 ) -> Result<()> {
-    let market = &ctx.accounts.market;
+    let market = &mut ctx.accounts.market;
+    let option = &mut ctx.accounts.option;
+    let stake_account = &mut ctx.accounts.stake_account;
 
     let current_time = Clock::get()?.unix_timestamp as u64;
     market.require_phase(current_time, MarketPhase::Revealing)?;
 
-    let revealed_option = ctx
-        .accounts
-        .stake_account
+    let revealed_option = stake_account
         .revealed_option
         .ok_or(ErrorCode::NotRevealed)?;
     require!(revealed_option == option_id, ErrorCode::InvalidOptionId);
 
-    let stake_amount = ctx.accounts.stake_account.amount;
-
-    ctx.accounts.option.unclaimed_stake = ctx
-        .accounts
-        .option
-        .unclaimed_stake
-        .checked_add(stake_amount)
+    let gross_stake_amount = stake_account
+        .amount
+        .checked_add(stake_account.collected_fees.total()?)
         .ok_or(ErrorCode::Overflow)?;
 
-    let stake_account = &ctx.accounts.stake_account;
+    option.unclaimed_gross_stake = option
+        .unclaimed_gross_stake
+        .checked_add(gross_stake_amount)
+        .ok_or(ErrorCode::Overflow)?;
 
     let staked_at_timestamp = stake_account
         .staked_at_timestamp
@@ -75,31 +74,23 @@ pub fn finalize_reveal_stake(
         .unstaked_at_timestamp
         .unwrap_or(staking_window_end);
 
-    let stake_base_amount = stake_amount
-        .checked_add(ctx.accounts.stake_account.collected_fees.total()?)
-        .ok_or(ErrorCode::Overflow)?;
     let user_score = calculate_user_score(
-        ctx.accounts.option.created_at,
+        option.created_at,
         staking_window_end,
         staked_at_timestamp,
         user_stake_end,
-        stake_base_amount,
+        gross_stake_amount,
         market.earliness_cutoff_seconds,
         market.earliness_multiplier,
     )?;
 
-    ctx.accounts.option.total_score = ctx
-        .accounts
-        .option
+    option.total_score = option
         .total_score
         .checked_add(user_score as u128)
         .ok_or(ErrorCode::Overflow)?;
 
     // Store the user's score in their stake account for reward calculation
-    ctx.accounts.stake_account.score = Some(user_score);
-
-    let option = &mut ctx.accounts.option;
-    let market = &mut ctx.accounts.market;
+    stake_account.score = Some(user_score);
 
     if option.reward_bp > 0 && !option.included_in_active_bp && option.total_score > 0 {
         market.winning_option_active_bp = market
@@ -112,21 +103,21 @@ pub fn finalize_reveal_stake(
     // Winning option means stake fees get refunded, so deduct from market account.
     // Actual refund transfer happens in `claim_rewards` together with reward.
     if option.reward_bp > 0 {
-        let fees = ctx.accounts.stake_account.collected_fees;
+        let fees = stake_account.collected_fees;
         market.deduct_stake_fees(&fees)?;
     }
 
     emit_ts!(RevealStakeFinalizedEvent {
         owner: ctx.accounts.owner.key(),
         market: ctx.accounts.market.key(),
-        stake_account: ctx.accounts.stake_account.key(),
-        stake_account_id: ctx.accounts.stake_account.id,
+        stake_account: stake_account.key(),
+        stake_account_id: stake_account.id,
         option_id: option_id,
-        user_stake: stake_amount,
+        user_stake: gross_stake_amount,
         user_score: user_score,
 
-        total_score: ctx.accounts.option.total_score,
-        total_stake: ctx.accounts.option.unclaimed_stake,
+        total_score: option.total_score,
+        total_stake: option.unclaimed_gross_stake,
     });
 
     Ok(())

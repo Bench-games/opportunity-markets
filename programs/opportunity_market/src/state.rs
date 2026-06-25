@@ -346,7 +346,7 @@ pub struct OpportunityMarketOption {
 
     pub created_at: u64,
 
-    pub unclaimed_stake: u64,
+    pub unclaimed_gross_stake: u64,
     pub total_score: u128,
 
     /// Non-zero iff this option is a winner; share of pool in basis points (0–10_000).

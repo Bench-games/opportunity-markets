@@ -61,7 +61,7 @@ export type OpportunityMarketOption = {
   id: bigint;
   creator: Address;
   createdAt: bigint;
-  unclaimedStake: bigint;
+  unclaimedGrossStake: bigint;
   totalScore: bigint;
   /** Non-zero iff this option is a winner; share of pool in basis points (0–10_000). */
   rewardBp: number;
@@ -74,7 +74,7 @@ export type OpportunityMarketOptionArgs = {
   id: number | bigint;
   creator: Address;
   createdAt: number | bigint;
-  unclaimedStake: number | bigint;
+  unclaimedGrossStake: number | bigint;
   totalScore: number | bigint;
   /** Non-zero iff this option is a winner; share of pool in basis points (0–10_000). */
   rewardBp: number;
@@ -90,7 +90,7 @@ export function getOpportunityMarketOptionEncoder(): FixedSizeEncoder<Opportunit
       ['id', getU64Encoder()],
       ['creator', getAddressEncoder()],
       ['createdAt', getU64Encoder()],
-      ['unclaimedStake', getU64Encoder()],
+      ['unclaimedGrossStake', getU64Encoder()],
       ['totalScore', getU128Encoder()],
       ['rewardBp', getU16Encoder()],
       ['includedInActiveBp', getBooleanEncoder()],
@@ -109,7 +109,7 @@ export function getOpportunityMarketOptionDecoder(): FixedSizeDecoder<Opportunit
     ['id', getU64Decoder()],
     ['creator', getAddressDecoder()],
     ['createdAt', getU64Decoder()],
-    ['unclaimedStake', getU64Decoder()],
+    ['unclaimedGrossStake', getU64Decoder()],
     ['totalScore', getU128Decoder()],
     ['rewardBp', getU16Decoder()],
     ['includedInActiveBp', getBooleanDecoder()],

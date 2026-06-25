@@ -61,11 +61,12 @@ pub struct ClaimRewards<'info> {
 
 pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
     let market = &mut ctx.accounts.market;
+    let stake_account = &mut ctx.accounts.stake_account;
     market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
 
     let payout = compute_reward_payout(
-        ctx.accounts.stake_account.as_ref(),
-        ctx.accounts.market.as_ref(),
+        stake_account.as_ref(),
+        market.as_ref(),
         ctx.accounts.option.as_ref(),
     )?;
 
@@ -80,13 +81,18 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
         )?;
     }
 
-    ctx.accounts.stake_account.rewards_claimed = true;
+    stake_account.rewards_claimed = true;
 
-    ctx.accounts.option.unclaimed_stake = ctx
+    let gross_stake_amount = stake_account
+        .amount
+        .checked_add(stake_account.collected_fees.total()?)
+        .ok_or(ErrorCode::Overflow)?;
+
+    ctx.accounts.option.unclaimed_gross_stake = ctx
         .accounts
         .option
-        .unclaimed_stake
-        .checked_sub(ctx.accounts.stake_account.amount)
+        .unclaimed_gross_stake
+        .checked_sub(gross_stake_amount)
         .ok_or(ErrorCode::Overflow)?;
 
     emit_ts!(RewardsClaimedEvent {
@@ -218,7 +224,7 @@ mod tests {
             id: 0,
             creator: Pubkey::default(),
             created_at: 0,
-            unclaimed_stake: 0,
+            unclaimed_gross_stake: 0,
             total_score,
             reward_bp,
             included_in_active_bp: false,

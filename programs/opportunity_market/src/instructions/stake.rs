@@ -114,8 +114,8 @@ pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
 
     let market = &ctx.accounts.market;
     let authorized_reader_pubkey = market.authorized_reader_pubkey;
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    market.require_phase(current_timestamp, MarketPhase::Staking)?;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(now, MarketPhase::Staking)?;
 
     let collected_fees = market.calculate_fees(params.amount)?;
     let net_amount = params
@@ -138,7 +138,7 @@ pub fn stake(ctx: Context<Stake>, params: StakeParameters) -> Result<()> {
     )?;
 
     // Set stake account fields
-    ctx.accounts.stake_account.staked_at_timestamp = Some(current_timestamp);
+    ctx.accounts.stake_account.staked_at_timestamp = Some(now);
     ctx.accounts.stake_account.amount = net_amount;
     ctx.accounts.stake_account.collected_fees = collected_fees;
     ctx.accounts.stake_account.user_pubkey = params.user_pubkey;

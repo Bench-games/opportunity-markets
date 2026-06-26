@@ -19,8 +19,8 @@ pub fn end_reveal_period(ctx: Context<EndRevealPeriod>) -> Result<()> {
 
     let market = &mut ctx.accounts.market;
     let clock = Clock::get()?;
-    let current_timestamp = clock.unix_timestamp as u64;
-    market.require_phase(current_timestamp, MarketPhase::Revealing)?;
+    let now = clock.unix_timestamp as u64;
+    market.require_phase(now, MarketPhase::Revealing)?;
 
     // Permissionless after snapshotted reveal_period_seconds; platform reveal_authority can end anytime.
     let resolved_at = market
@@ -29,7 +29,7 @@ pub fn end_reveal_period(ctx: Context<EndRevealPeriod>) -> Result<()> {
     let permissionless_at = resolved_at
         .checked_add(market.reveal_period_seconds)
         .ok_or(ErrorCode::Overflow)?;
-    if current_timestamp < permissionless_at {
+    if now < permissionless_at {
         require_keys_eq!(
             ctx.accounts.signer.key(),
             platform_config.reveal_authority,

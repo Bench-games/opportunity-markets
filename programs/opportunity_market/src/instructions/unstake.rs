@@ -59,13 +59,13 @@ pub struct Unstake<'info> {
 
 pub fn unstake(ctx: Context<Unstake>, _stake_account_id: u32) -> Result<()> {
     let market = &ctx.accounts.market;
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    let now = Clock::get()?.unix_timestamp as u64;
 
-    match market.phase(current_timestamp)? {
+    match market.phase(now)? {
         MarketPhase::NotOpen => return Err(ErrorCode::WrongMarketPhase.into()),
         MarketPhase::Staking => {
             require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
-            ctx.accounts.stake_account.unstaked_at_timestamp = Some(current_timestamp);
+            ctx.accounts.stake_account.unstaked_at_timestamp = Some(now);
         }
         _ => {
             let staking_window_end = market

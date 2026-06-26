@@ -41,7 +41,7 @@ pub fn close_option_account(ctx: Context<CloseOptionAccount>, option_id: u64) ->
 
     ctx.accounts
         .market
-        .require_phase_at_least(current_time, MarketPhase::Resolution)?;
+        .require_phase_at_least(current_time, MarketPhase::Settlement)?;
 
     emit_ts!(OptionClosedEvent {
         option: ctx.accounts.option.key(),

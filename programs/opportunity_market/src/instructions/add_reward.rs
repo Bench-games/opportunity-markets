@@ -54,8 +54,8 @@ pub fn add_reward(ctx: Context<AddReward>, amount: u64) -> Result<()> {
 
     let market = &ctx.accounts.market;
 
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    market.require_phase_at_most(current_timestamp, MarketPhase::Staking)?;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase_at_most(now, MarketPhase::Staking)?;
 
     let sponsor_account = &mut ctx.accounts.sponsor_account;
 

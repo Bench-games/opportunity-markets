@@ -44,7 +44,8 @@ pub struct ClaimCreatorFees<'info> {
 
 pub fn claim_creator_fees(ctx: Context<ClaimCreatorFees>) -> Result<()> {
     let market = &mut ctx.accounts.market;
-    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(now, MarketPhase::Settlement)?;
 
     let fees = ctx.accounts.market.collected_creator_fees;
 

@@ -165,7 +165,9 @@ pub enum MarketPhase {
     Staking,
     Selection,
     Revealing,
-    Resolution,
+    // i.e. market was resolved
+    // TODO: draw graph for the possible state transfer paths
+    Settlement,
     Expired,
 }
 
@@ -206,7 +208,7 @@ impl OpportunityMarket {
     pub fn phase(&self, now: u64) -> Result<MarketPhase> {
         if self.resolved_at_timestamp.is_some() {
             return Ok(if self.reveal_ended {
-                MarketPhase::Resolution
+                MarketPhase::Settlement
             } else {
                 MarketPhase::Revealing
             });
@@ -454,11 +456,11 @@ mod tests {
     }
 
     #[test]
-    fn phase_resolution_when_resolved_and_reveal_ended() {
+    fn phase_settlement_when_resolved_and_reveal_ended() {
         let market = test_market(Some(STAKING_END), Some(STAKING_END + 1), true);
         assert_eq!(
             market.phase(STAKING_END + 1).unwrap(),
-            MarketPhase::Resolution
+            MarketPhase::Settlement
         );
     }
 

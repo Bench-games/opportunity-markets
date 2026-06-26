@@ -66,12 +66,12 @@ pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>)
     let now = Clock::get()?.unix_timestamp as u64;
     let phase = market.phase(now)?;
     require!(
-        phase == MarketPhase::Resolution || phase == MarketPhase::Expired,
+        phase == MarketPhase::Settlement || phase == MarketPhase::Expired,
         ErrorCode::WrongMarketPhase
     );
 
     let mut fee_refund = 0;
-    if phase == MarketPhase::Resolution {
+    if phase == MarketPhase::Settlement {
         if stake_account.rewards_claimed {
             // If the stake account had any rewards claimed it means this was a winning option and we refund the fees
             // No market changes required as the fees are already deducted in the finalize_reveal_stake instruction

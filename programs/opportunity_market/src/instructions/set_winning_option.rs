@@ -35,9 +35,9 @@ pub fn set_winning_option(
     );
     require!(reward_bp <= 10_000, ErrorCode::InvalidParameters);
 
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
+    let now = Clock::get()?.unix_timestamp as u64;
     let market = &mut ctx.accounts.market;
-    market.require_phase(current_timestamp, MarketPhase::Selection)?;
+    market.require_phase(now, MarketPhase::Selection)?;
 
     let previous = ctx.accounts.option.reward_bp;
     let new_alloc = ctx

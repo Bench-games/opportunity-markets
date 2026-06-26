@@ -27,10 +27,10 @@ pub fn resolve_market(ctx: Context<ResolveMarket>) -> Result<()> {
         ErrorCode::InvalidParameters,
     );
 
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    market.require_phase(current_timestamp, MarketPhase::Selection)?;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(now, MarketPhase::Selection)?;
 
-    market.resolved_at_timestamp = Some(current_timestamp);
+    market.resolved_at_timestamp = Some(now);
 
     emit_ts!(MarketResolvedEvent {
         market: market.key(),

@@ -62,7 +62,8 @@ pub struct ClaimRewards<'info> {
 pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
     let market = &mut ctx.accounts.market;
     let stake_account = &mut ctx.accounts.stake_account;
-    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(now, MarketPhase::Settlement)?;
 
     let rewards = compute_reward_payout(
         stake_account.as_ref(),

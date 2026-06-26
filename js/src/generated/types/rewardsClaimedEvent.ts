@@ -27,8 +27,8 @@ import {
 export type RewardsClaimedEvent = {
   owner: Address;
   market: Address;
-  stakeAccount: Address;
-  stakeAccountId: number;
+  vouchAccount: Address;
+  vouchAccountId: number;
   optionId: bigint;
   rewardAmount: bigint;
   score: bigint;
@@ -38,8 +38,8 @@ export type RewardsClaimedEvent = {
 export type RewardsClaimedEventArgs = {
   owner: Address;
   market: Address;
-  stakeAccount: Address;
-  stakeAccountId: number;
+  vouchAccount: Address;
+  vouchAccountId: number;
   optionId: number | bigint;
   rewardAmount: number | bigint;
   score: number | bigint;
@@ -50,8 +50,8 @@ export function getRewardsClaimedEventEncoder(): FixedSizeEncoder<RewardsClaimed
   return getStructEncoder([
     ['owner', getAddressEncoder()],
     ['market', getAddressEncoder()],
-    ['stakeAccount', getAddressEncoder()],
-    ['stakeAccountId', getU32Encoder()],
+    ['vouchAccount', getAddressEncoder()],
+    ['vouchAccountId', getU32Encoder()],
     ['optionId', getU64Encoder()],
     ['rewardAmount', getU64Encoder()],
     ['score', getU64Encoder()],
@@ -63,8 +63,8 @@ export function getRewardsClaimedEventDecoder(): FixedSizeDecoder<RewardsClaimed
   return getStructDecoder([
     ['owner', getAddressDecoder()],
     ['market', getAddressDecoder()],
-    ['stakeAccount', getAddressDecoder()],
-    ['stakeAccountId', getU32Decoder()],
+    ['vouchAccount', getAddressDecoder()],
+    ['vouchAccountId', getU32Decoder()],
     ['optionId', getU64Decoder()],
     ['rewardAmount', getU64Decoder()],
     ['score', getU64Decoder()],

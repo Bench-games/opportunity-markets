@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::MAX_TIME_TO_STAKE_SECONDS;
+use crate::constants::MAX_TIME_TO_VOUCH_SECONDS;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, MarketOpenedEvent};
 use crate::state::{MarketPhase, OpportunityMarket, PlatformConfig};
@@ -19,7 +19,7 @@ pub struct OpenMarket<'info> {
     pub platform_config: Account<'info, PlatformConfig>,
 }
 
-pub fn open_market(ctx: Context<OpenMarket>, time_to_stake: u64) -> Result<()> {
+pub fn open_market(ctx: Context<OpenMarket>, time_to_vouch: u64) -> Result<()> {
     let market = &mut ctx.accounts.market;
     market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::NotOpen)?;
 
@@ -27,21 +27,21 @@ pub fn open_market(ctx: Context<OpenMarket>, time_to_stake: u64) -> Result<()> {
     let open_timestamp = clock.unix_timestamp as u64;
 
     require!(
-        time_to_stake >= ctx.accounts.platform_config.min_time_to_stake_seconds
-            && time_to_stake <= MAX_TIME_TO_STAKE_SECONDS,
+        time_to_vouch >= ctx.accounts.platform_config.min_time_to_vouch_seconds
+            && time_to_vouch <= MAX_TIME_TO_VOUCH_SECONDS,
         ErrorCode::InvalidParameters
     );
 
-    let staking_window_end = open_timestamp
-        .checked_add(time_to_stake)
+    let vouching_window_end = open_timestamp
+        .checked_add(time_to_vouch)
         .ok_or(ErrorCode::Overflow)?;
 
-    market.staking_window_end = Some(staking_window_end);
+    market.vouching_window_end = Some(vouching_window_end);
 
     emit_ts!(MarketOpenedEvent {
         market: market.key(),
         creator: market.creator,
-        staking_window_end: staking_window_end,
+        vouching_window_end: vouching_window_end,
     });
 
     Ok(())

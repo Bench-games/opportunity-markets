@@ -1,6 +1,6 @@
 # Opportunity Markets
 
-Opportunity Markets allow users to influence decision making by staking. Decision makers benefit from opportunity markets by getting access to high-quality signals, helping them make the best choice.
+Opportunity Markets allow users to influence decision making by vouching. Decision makers benefit from opportunity markets by getting access to high-quality signals, helping them make the best choice.
 
 Program address on Solana Devnet: `bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp`
 

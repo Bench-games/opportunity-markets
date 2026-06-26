@@ -33,7 +33,7 @@ pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Resul
     let market = &mut ctx.accounts.market;
 
     let now = Clock::get()?.unix_timestamp as u64;
-    market.require_phase(now, MarketPhase::Staking)?;
+    market.require_phase(now, MarketPhase::Vouching)?;
 
     // Increment total options
     market.total_options += 1;

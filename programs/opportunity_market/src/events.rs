@@ -26,7 +26,7 @@ pub struct MarketCreatedEvent {
     pub earliness_multiplier: u16,
     pub market_authority: Pubkey,
     pub authorized_reader_pubkey: [u8; 32],
-    pub min_stake_amount: u64,
+    pub min_vouch_amount: u64,
     pub fee_rates: FeeRates,
     pub creator_fee_claimer: Pubkey,
     pub market_resolution_deadline_seconds: u64,
@@ -44,36 +44,36 @@ pub struct MarketOptionCreatedEvent {
 }
 
 #[event]
-pub struct StakedEvent {
+pub struct VouchedEvent {
     pub user: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
-    pub stake_encrypted_option: [u8; 32],
-    pub stake_state_nonce: u128,
-    pub stake_encrypted_option_disclosure: [u8; 32],
-    pub stake_state_disclosure_nonce: u128,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
+    pub vouch_encrypted_option: [u8; 32],
+    pub vouch_state_nonce: u128,
+    pub vouch_encrypted_option_disclosure: [u8; 32],
+    pub vouch_state_disclosure_nonce: u128,
     pub amount: u64,
     pub timestamp: i64,
 }
 
 #[event]
-pub struct StakeRevealedEvent {
+pub struct VouchRevealedEvent {
     pub user: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
-    pub stake_amount: u64,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
+    pub vouch_amount: u64,
     pub selected_option: u64,
     pub timestamp: i64,
 }
 
 #[event]
-pub struct UnstakedEvent {
+pub struct UnvouchedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
     pub amount: u64,
     pub timestamp: i64,
 }
@@ -82,7 +82,7 @@ pub struct UnstakedEvent {
 pub struct MarketOpenedEvent {
     pub market: Pubkey,
     pub creator: Pubkey,
-    pub staking_window_end: u64,
+    pub vouching_window_end: u64,
     pub timestamp: i64,
 }
 
@@ -105,16 +105,16 @@ pub struct MarketResolvedEvent {
 }
 
 #[event]
-pub struct StakeAccountClosedEvent {
+pub struct VouchAccountClosedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
     pub option_id: Option<u64>,
-    pub stake_amount: u64,
+    pub vouch_amount: u64,
     pub fee_refund: u64,
-    pub staked_at_timestamp: u64,
-    pub staking_window_end: u64,
+    pub vouched_at_timestamp: u64,
+    pub vouching_window_end: u64,
     pub score: u64,
     pub timestamp: i64,
 }
@@ -123,8 +123,8 @@ pub struct StakeAccountClosedEvent {
 pub struct RewardsClaimedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
     pub option_id: u64,
     pub reward_amount: u64,
     pub score: u64,
@@ -132,17 +132,17 @@ pub struct RewardsClaimedEvent {
 }
 
 #[event]
-pub struct RevealStakeFinalizedEvent {
+pub struct RevealVouchFinalizedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
     pub option_id: u64,
-    pub user_stake: u64,
+    pub user_vouch: u64,
     pub user_score: u64,
 
     pub total_score: u128,
-    pub total_stake: u64,
+    pub total_vouch: u64,
 
     pub timestamp: i64,
 }
@@ -173,8 +173,8 @@ pub struct RevealPeriodEndedEvent {
 }
 
 #[event]
-pub struct StakeAccountInitializedEvent {
-    pub stake_account: Pubkey,
+pub struct VouchAccountInitializedEvent {
+    pub vouch_account: Pubkey,
     pub owner: Pubkey,
     pub market: Pubkey,
     pub account_id: u32,
@@ -200,11 +200,11 @@ pub struct AllowedMintInitializedEvent {
 }
 
 #[event]
-pub struct StuckStakeClosedEvent {
+pub struct StuckVouchClosedEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
-    pub stake_account: Pubkey,
-    pub stake_account_id: u32,
+    pub vouch_account: Pubkey,
+    pub vouch_account_id: u32,
     pub refunded_amount: u64,
     pub refunded_platform_fee: u64,
     pub refunded_reward_pool_fee: u64,

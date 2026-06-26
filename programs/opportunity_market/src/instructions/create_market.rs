@@ -4,7 +4,7 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::constants::{
     ALLOWED_MINT_SEED, MAX_EARLINESS_CUTOFF_SECONDS, MAX_EARLINESS_MULTIPLIER,
-    MIN_EARLINESS_CUTOFF_SECONDS, MIN_MIN_STAKE_AMOUNT, OPPORTUNITY_MARKET_SEED,
+    MIN_EARLINESS_CUTOFF_SECONDS, MIN_MIN_VOUCH_AMOUNT, OPPORTUNITY_MARKET_SEED,
 };
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, MarketCreatedEvent};
@@ -18,7 +18,7 @@ pub struct CreateMarketParameters {
     pub authorized_reader_pubkey: [u8; 32],
     pub earliness_cutoff_seconds: u64,
     pub earliness_multiplier: u16,
-    pub min_stake_amount: u64,
+    pub min_vouch_amount: u64,
     pub creator_fee_claimer: Pubkey,
 }
 #[derive(Accounts)]
@@ -40,7 +40,7 @@ pub struct CreateMarket<'info> {
     )]
     pub market: Box<Account<'info, OpportunityMarket>>,
 
-    /// This ATA holds all of the market's program-held tokens (stakes, rewards, fees).
+    /// This ATA holds all of the market's program-held tokens (vouches, rewards, fees).
     #[account(
         init_if_needed,
         payer = creator,
@@ -75,7 +75,7 @@ pub fn create_market(ctx: Context<CreateMarket>, params: CreateMarketParameters)
         ErrorCode::InvalidParameters
     );
     require!(
-        params.min_stake_amount >= MIN_MIN_STAKE_AMOUNT,
+        params.min_vouch_amount >= MIN_MIN_VOUCH_AMOUNT,
         ErrorCode::InvalidParameters
     );
 
@@ -101,7 +101,7 @@ pub fn create_market(ctx: Context<CreateMarket>, params: CreateMarketParameters)
     market.creator_fee_claimer = params.creator_fee_claimer;
     market.market_resolution_deadline_seconds = market_resolution_deadline_seconds;
     market.reveal_period_seconds = reveal_period_seconds;
-    market.min_stake_amount = params.min_stake_amount;
+    market.min_vouch_amount = params.min_vouch_amount;
 
     emit_ts!(MarketCreatedEvent {
         market: market.key(),
@@ -113,7 +113,7 @@ pub fn create_market(ctx: Context<CreateMarket>, params: CreateMarketParameters)
         authorized_reader_pubkey: params.authorized_reader_pubkey,
         earliness_cutoff_seconds: params.earliness_cutoff_seconds,
         earliness_multiplier: params.earliness_multiplier,
-        min_stake_amount: params.min_stake_amount,
+        min_vouch_amount: params.min_vouch_amount,
         fee_rates: ctx.accounts.platform_config.fee_rates,
         creator_fee_claimer: params.creator_fee_claimer,
         market_resolution_deadline_seconds: market_resolution_deadline_seconds,

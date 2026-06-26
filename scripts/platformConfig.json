@@ -5,7 +5,7 @@
   "creatorFeeBp": 50,
   "feeClaimAuthority": "GoaHvr9RwFqDHH7aqC8qWKTVgPkKApq5RhKzJvTVNKm5",
   "revealAuthority": "GoaHvr9RwFqDHH7aqC8qWKTVgPkKApq5RhKzJvTVNKm5",
-  "minTimeToStakeSeconds": 86400,
+  "minTimeToVouchSeconds": 86400,
   "revealPeriodSeconds": 2592000,
   "marketResolutionDeadlineSeconds": 604800
 }

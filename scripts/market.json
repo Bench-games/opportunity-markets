@@ -7,5 +7,5 @@
   "marketFeeClaimer": null,
   "earlinessCutoffSeconds": 7200,
   "earlinessMultiplier": 10000,
-  "minStakeAmount": 10
+  "minVouchAmount": 10
 }

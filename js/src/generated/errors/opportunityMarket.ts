@@ -24,41 +24,41 @@ export const OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_REWARD_FUNDING = 0x1772; // 
 export const OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS = 0x1773; // 6003
 /** InvalidOptionId: Invalid option ID */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_OPTION_ID = 0x1774; // 6004
-/** NoStake: Stake account has no recorded stake */
-export const OPPORTUNITY_MARKET_ERROR__NO_STAKE = 0x1775; // 6005
+/** NoVouch: Vouch account has no recorded vouch */
+export const OPPORTUNITY_MARKET_ERROR__NO_VOUCH = 0x1775; // 6005
 /** WinnerAlreadySelected: Market winner already selected */
 export const OPPORTUNITY_MARKET_ERROR__WINNER_ALREADY_SELECTED = 0x1776; // 6006
-/** AlreadyRevealed: Stake already revealed */
+/** AlreadyRevealed: Vouch already revealed */
 export const OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED = 0x1777; // 6007
-/** NotRevealed: Stake not yet revealed */
+/** NotRevealed: Vouch not yet revealed */
 export const OPPORTUNITY_MARKET_ERROR__NOT_REVEALED = 0x1778; // 6008
-/** TallyAlreadyIncremented: Tally already incremented for this stake account */
+/** TallyAlreadyIncremented: Tally already incremented for this vouch account */
 export const OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED = 0x1779; // 6009
 /** Overflow: Arithmetic overflow */
 export const OPPORTUNITY_MARKET_ERROR__OVERFLOW = 0x177a; // 6010
 /** InvalidMint: Token mint does not match account mint */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_MINT = 0x177b; // 6011
-/** AlreadyUnstaked: Already unstaked */
-export const OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED = 0x177c; // 6012
-/** AlreadyStaked: Already staked for this stake account */
-export const OPPORTUNITY_MARKET_ERROR__ALREADY_STAKED = 0x177d; // 6013
+/** AlreadyUnvouched: Already unvouched */
+export const OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED = 0x177c; // 6012
+/** AlreadyVouched: Already vouched for this vouch account */
+export const OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCHED = 0x177d; // 6013
 /** Locked: Account is locked */
 export const OPPORTUNITY_MARKET_ERROR__LOCKED = 0x177e; // 6014
 /** InvalidAccountState: Invalid account state */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_ACCOUNT_STATE = 0x177f; // 6015
 /** NoFeesToClaim: No fees to claim */
 export const OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM = 0x1780; // 6016
-/** StakeNotStuck: Stake account is not in a stuck or failed state */
-export const OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK = 0x1781; // 6017
-/** StakeBelowMinimum: Stake amount is below the market minimum */
-export const OPPORTUNITY_MARKET_ERROR__STAKE_BELOW_MINIMUM = 0x1782; // 6018
+/** VouchNotStuck: Vouch account is not in a stuck or failed state */
+export const OPPORTUNITY_MARKET_ERROR__VOUCH_NOT_STUCK = 0x1781; // 6017
+/** VouchBelowMinimum: Vouch amount is below the market minimum */
+export const OPPORTUNITY_MARKET_ERROR__VOUCH_BELOW_MINIMUM = 0x1782; // 6018
 /** InvalidFeeRates: Invalid fee rates */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_FEE_RATES = 0x1783; // 6019
 /** OptionStillNeeded: Option still needed */
 export const OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED = 0x1784; // 6020
 /** CreatorMismatch: Creator mismatch */
 export const OPPORTUNITY_MARKET_ERROR__CREATOR_MISMATCH = 0x1785; // 6021
-/** NoFinalizedWinningOption: No winning option has a finalized stake */
+/** NoFinalizedWinningOption: No winning option has a finalized vouch */
 export const OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION = 0x1786; // 6022
 /** NoRewardToClaim: No reward to claim */
 export const OPPORTUNITY_MARKET_ERROR__NO_REWARD_TO_CLAIM = 0x1787; // 6023
@@ -69,8 +69,8 @@ export const OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE = 0x1789; // 6025
 
 export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED
-  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_STAKED
-  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED
+  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED
+  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCHED
   | typeof OPPORTUNITY_MARKET_ERROR__CREATOR_MISMATCH
   | typeof OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_BALANCE
   | typeof OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_REWARD_FUNDING
@@ -83,15 +83,15 @@ export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM
   | typeof OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION
   | typeof OPPORTUNITY_MARKET_ERROR__NO_REWARD_TO_CLAIM
-  | typeof OPPORTUNITY_MARKET_ERROR__NO_STAKE
   | typeof OPPORTUNITY_MARKET_ERROR__NOT_REVEALED
+  | typeof OPPORTUNITY_MARKET_ERROR__NO_VOUCH
   | typeof OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED
   | typeof OPPORTUNITY_MARKET_ERROR__OVERFLOW
   | typeof OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_CLAIMED
-  | typeof OPPORTUNITY_MARKET_ERROR__STAKE_BELOW_MINIMUM
-  | typeof OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK
   | typeof OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED
   | typeof OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED
+  | typeof OPPORTUNITY_MARKET_ERROR__VOUCH_BELOW_MINIMUM
+  | typeof OPPORTUNITY_MARKET_ERROR__VOUCH_NOT_STUCK
   | typeof OPPORTUNITY_MARKET_ERROR__WINNER_ALREADY_SELECTED
   | typeof OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE;
 
@@ -100,9 +100,9 @@ let opportunityMarketErrorMessages:
   | undefined;
 if (process.env.NODE_ENV !== 'production') {
   opportunityMarketErrorMessages = {
-    [OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED]: `Stake already revealed`,
-    [OPPORTUNITY_MARKET_ERROR__ALREADY_STAKED]: `Already staked for this stake account`,
-    [OPPORTUNITY_MARKET_ERROR__ALREADY_UNSTAKED]: `Already unstaked`,
+    [OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED]: `Vouch already revealed`,
+    [OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED]: `Already unvouched`,
+    [OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCHED]: `Already vouched for this vouch account`,
     [OPPORTUNITY_MARKET_ERROR__CREATOR_MISMATCH]: `Creator mismatch`,
     [OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_BALANCE]: `Insufficient balance`,
     [OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_REWARD_FUNDING]: `Insufficient reward funding`,
@@ -113,17 +113,17 @@ if (process.env.NODE_ENV !== 'production') {
     [OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS]: `Invalid parameters`,
     [OPPORTUNITY_MARKET_ERROR__LOCKED]: `Account is locked`,
     [OPPORTUNITY_MARKET_ERROR__NO_FEES_TO_CLAIM]: `No fees to claim`,
-    [OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION]: `No winning option has a finalized stake`,
+    [OPPORTUNITY_MARKET_ERROR__NO_FINALIZED_WINNING_OPTION]: `No winning option has a finalized vouch`,
     [OPPORTUNITY_MARKET_ERROR__NO_REWARD_TO_CLAIM]: `No reward to claim`,
-    [OPPORTUNITY_MARKET_ERROR__NO_STAKE]: `Stake account has no recorded stake`,
-    [OPPORTUNITY_MARKET_ERROR__NOT_REVEALED]: `Stake not yet revealed`,
+    [OPPORTUNITY_MARKET_ERROR__NOT_REVEALED]: `Vouch not yet revealed`,
+    [OPPORTUNITY_MARKET_ERROR__NO_VOUCH]: `Vouch account has no recorded vouch`,
     [OPPORTUNITY_MARKET_ERROR__OPTION_STILL_NEEDED]: `Option still needed`,
     [OPPORTUNITY_MARKET_ERROR__OVERFLOW]: `Arithmetic overflow`,
     [OPPORTUNITY_MARKET_ERROR__REWARD_ALREADY_CLAIMED]: `Reward already claimed`,
-    [OPPORTUNITY_MARKET_ERROR__STAKE_BELOW_MINIMUM]: `Stake amount is below the market minimum`,
-    [OPPORTUNITY_MARKET_ERROR__STAKE_NOT_STUCK]: `Stake account is not in a stuck or failed state`,
-    [OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED]: `Tally already incremented for this stake account`,
+    [OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED]: `Tally already incremented for this vouch account`,
     [OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED]: `Unauthorized`,
+    [OPPORTUNITY_MARKET_ERROR__VOUCH_BELOW_MINIMUM]: `Vouch amount is below the market minimum`,
+    [OPPORTUNITY_MARKET_ERROR__VOUCH_NOT_STUCK]: `Vouch account is not in a stuck or failed state`,
     [OPPORTUNITY_MARKET_ERROR__WINNER_ALREADY_SELECTED]: `Market winner already selected`,
     [OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE]: `Operation is not permitted in the current market phase`,
   };

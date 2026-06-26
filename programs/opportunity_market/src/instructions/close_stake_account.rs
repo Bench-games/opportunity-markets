@@ -81,7 +81,7 @@ pub fn close_stake_account<'info>(ctx: Context<'info, CloseStakeAccount<'info>>)
                 .checked_add(stake_account.collected_fees.reward_pool_fee)
                 .ok_or(ErrorCode::Overflow)?;
         } else if market.winning_option_active_bp == 0 {
-            // If no winner revealed, we refund the reward pool fee as there will be no one claiming rewards
+            // If nobody revealed a stake on any of the winning options we refund the reward pool fee as there will be no one claiming rewards
             fee_refund = stake_account.collected_fees.reward_pool_fee;
             market.reward_amount = market
                 .reward_amount

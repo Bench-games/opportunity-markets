@@ -87,6 +87,8 @@ export type StakeAccount = {
   id: number;
   pendingStakeComputation: Option<Address>;
   pendingRevealComputation: Option<Address>;
+  /** Unix timestamp of the last successful `reveal_stake` queue; 0 if never queued. */
+  lastRevealStakeAt: bigint;
 };
 
 export type StakeAccountArgs = {
@@ -108,6 +110,8 @@ export type StakeAccountArgs = {
   id: number;
   pendingStakeComputation: OptionOrNullable<Address>;
   pendingRevealComputation: OptionOrNullable<Address>;
+  /** Unix timestamp of the last successful `reveal_stake` queue; 0 if never queued. */
+  lastRevealStakeAt: number | bigint;
 };
 
 export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
@@ -135,6 +139,7 @@ export function getStakeAccountEncoder(): Encoder<StakeAccountArgs> {
       ['id', getU32Encoder()],
       ['pendingStakeComputation', getOptionEncoder(getAddressEncoder())],
       ['pendingRevealComputation', getOptionEncoder(getAddressEncoder())],
+      ['lastRevealStakeAt', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: STAKE_ACCOUNT_DISCRIMINATOR })
   );
@@ -164,6 +169,7 @@ export function getStakeAccountDecoder(): Decoder<StakeAccount> {
     ['id', getU32Decoder()],
     ['pendingStakeComputation', getOptionDecoder(getAddressDecoder())],
     ['pendingRevealComputation', getOptionDecoder(getAddressDecoder())],
+    ['lastRevealStakeAt', getU64Decoder()],
   ]);
 }
 

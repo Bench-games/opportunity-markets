@@ -17,6 +17,9 @@ pub const MIN_TIME_TO_STAKE_FLOOR_SECONDS: u64 = 24 * 60 * 60;
 pub const MIN_REVEAL_PERIOD_SECONDS: u64 = 24 * 60 * 60; // 1 day
 pub const MAX_REVEAL_PERIOD_SECONDS: u64 = 60 * 24 * 60 * 60; // 60 days
 
+/// Minimum time between `reveal_stake` attempts on the same stake account.
+pub const REVEAL_STAKE_COOLDOWN_SECONDS: u64 = 5 * 60;
+
 // 2* PRECISION
 pub const MAX_EARLINESS_MULTIPLIER: u16 = 20_000;
 

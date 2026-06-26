@@ -5299,6 +5299,13 @@
             "type": {
               "option": "pubkey"
             }
+          },
+          {
+            "name": "last_reveal_stake_at",
+            "docs": [
+              "Unix timestamp of the last successful `reveal_stake` queue; 0 if never queued."
+            ],
+            "type": "u64"
           }
         ]
       }

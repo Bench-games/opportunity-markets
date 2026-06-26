@@ -337,6 +337,9 @@ pub struct StakeAccount {
     // Computation account pubkey of the in-flight reveal computation.
     // `Some` means a reveal computation is pending; None means no reveal is in flight.
     pub pending_reveal_computation: Option<Pubkey>,
+
+    /// Unix timestamp of the last successful `reveal_stake` queue; 0 if never queued.
+    pub last_reveal_stake_at: u64,
 }
 
 #[account]

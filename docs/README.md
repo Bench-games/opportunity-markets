@@ -130,6 +130,8 @@ This is permissionless and requires two transactions per stake account:
 
 **`reveal_stake`** - This invokes an Arcium encrypted computation that decrypts the user's option choice and returns it as plaintext to the callback.
 The callback then records the plaintext option ID to the stake account struct stored on chain.
+Each stake account enforces a 5-minute cooldown between queue attempts (`REVEAL_STAKE_COOLDOWN_SECONDS`), tracked via `last_reveal_stake_at`.
+This limits how often an in-flight reveal computation can be replaced while still allowing retries after a failed or stuck callback.
 
 **`finalize_reveal_stake`** - Now that the option ID is public, this instruction can be called to calculate the user's score and add that to the total score tally for the option for later reward distribution calculation. For stakes on winning options (`reward_bp > 0`), this also deducts the refundable creator and reward-pool fees from the market's accounting counters; the token transfer for those fees happens later in `close_stake_account`.
 

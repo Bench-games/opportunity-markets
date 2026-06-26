@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use arcium_anchor::prelude::*;
 use arcium_client::idl::arcium::types::CallbackAccount;
 
-use crate::constants::STAKE_ACCOUNT_SEED;
+use crate::constants::{REVEAL_STAKE_COOLDOWN_SECONDS, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeRevealedEvent};
 use crate::state::{MarketPhase, OpportunityMarket, StakeAccount};
@@ -74,9 +74,16 @@ pub fn reveal_stake(
     let current_time = Clock::get()?.unix_timestamp as u64;
     market.require_phase(current_time, MarketPhase::Revealing)?;
 
+    require!(
+        current_time
+            >= ctx.accounts.stake_account.last_reveal_stake_at + REVEAL_STAKE_COOLDOWN_SECONDS,
+        ErrorCode::Locked,
+    );
+
     let stake_account_key = ctx.accounts.stake_account.key();
     let stake_account_nonce = ctx.accounts.stake_account.state_nonce;
 
+    ctx.accounts.stake_account.last_reveal_stake_at = current_time;
     ctx.accounts.stake_account.pending_reveal_computation =
         Some(ctx.accounts.computation_account.key());
 
@@ -136,7 +143,7 @@ pub fn reveal_stake_callback(
     ctx: Context<RevealStakeCallback>,
     output: SignedComputationOutputs<RevealStakeOutput>,
 ) -> Result<()> {
-    // On failure, revert so pending_reveal_computation stays set, allowing retry.
+    // On failure, revert so pending_reveal_computation stays set; retry after cooldown.
     let revealed_option = match output.verify_output(
         &ctx.accounts.cluster_account,
         &ctx.accounts.computation_account,

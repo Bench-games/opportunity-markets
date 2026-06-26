@@ -58,7 +58,7 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
     let phase = market.phase(Clock::get()?.unix_timestamp as u64)?;
     require!(
         phase == MarketPhase::Expired
-            || (phase == MarketPhase::Resolution && market.winning_option_active_bp == 0),
+            || (phase == MarketPhase::Settlement && market.winning_option_active_bp == 0),
         ErrorCode::WrongMarketPhase
     );
 

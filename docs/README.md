@@ -63,7 +63,7 @@ This is done with the `add_market_option` instruction, which is **permissionless
 The market has a reward pool that at the end is distributed to those that staked on the winning options.
 
 A sponsor can fund the market with the `add_reward` instruction during the staking period or before it.
-Deposited rewards remain in the market pool until resolution. If the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. After resolution, sponsors can also reclaim deposits during the resolution phase if no winning stake earned a positive score (`winning_option_active_bp == 0`). More about this in the *Resolving the market* and *Claiming rewards* sections.
+Deposited rewards remain in the market pool until resolution. If the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. After resolution, sponsors can also reclaim deposits during the settlement phase if no winning stake earned a positive score (`winning_option_active_bp == 0`). More about this in the *Resolving the market* and *Claiming rewards* sections.
 
 #### Staking
 

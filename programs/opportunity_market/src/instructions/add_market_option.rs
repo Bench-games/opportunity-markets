@@ -32,8 +32,8 @@ pub struct AddMarketOption<'info> {
 pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Result<()> {
     let market = &mut ctx.accounts.market;
 
-    let current_timestamp = Clock::get()?.unix_timestamp as u64;
-    market.require_phase(current_timestamp, MarketPhase::Staking)?;
+    let now = Clock::get()?.unix_timestamp as u64;
+    market.require_phase(now, MarketPhase::Staking)?;
 
     // Increment total options
     market.total_options += 1;
@@ -42,7 +42,7 @@ pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Resul
     let option = &mut ctx.accounts.option;
     option.bump = ctx.bumps.option;
     option.id = option_id;
-    option.created_at = current_timestamp;
+    option.created_at = now;
     option.creator = ctx.accounts.signer.key();
 
     emit_ts!(MarketOptionCreatedEvent {

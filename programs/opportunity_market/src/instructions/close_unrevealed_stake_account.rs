@@ -60,12 +60,12 @@ pub fn close_unrevealed_stake_account<'info>(
     let now = Clock::get()?.unix_timestamp as u64;
     let phase = market.phase(now)?;
     require!(
-        phase == MarketPhase::Resolution || phase == MarketPhase::Expired,
+        phase == MarketPhase::Settlement || phase == MarketPhase::Expired,
         ErrorCode::WrongMarketPhase
     );
 
     let mut fee_refund = 0;
-    if phase == MarketPhase::Resolution {
+    if phase == MarketPhase::Settlement {
         if market.winning_option_active_bp == 0 {
             fee_refund = stake_account.collected_fees.reward_pool_fee;
             market.reward_amount = market

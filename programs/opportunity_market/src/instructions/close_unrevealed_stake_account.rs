@@ -5,7 +5,7 @@ use crate::constants::{OPPORTUNITY_MARKET_SEED, STAKE_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, StakeAccountClosedEvent};
 use crate::state::{MarketPhase, OpportunityMarket, StakeAccount};
-use crate::utils::refund_stake_fees;
+use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
 pub struct CloseUnrevealedStakeAccount<'info> {
@@ -56,23 +56,50 @@ pub fn close_unrevealed_stake_account<'info>(
     ctx: Context<'info, CloseUnrevealedStakeAccount<'info>>,
 ) -> Result<()> {
     let market = &mut ctx.accounts.market;
+    let stake_account = &ctx.accounts.stake_account;
     let now = Clock::get()?.unix_timestamp as u64;
-    market.require_phase_at_least(now, MarketPhase::Resolution)?;
     let phase = market.phase(now)?;
+    require!(
+        phase == MarketPhase::Resolution || phase == MarketPhase::Expired,
+        ErrorCode::WrongMarketPhase
+    );
 
     let mut fee_refund = 0;
-    if phase == MarketPhase::Expired {
-        fee_refund = refund_stake_fees(
+    if phase == MarketPhase::Resolution {
+        if market.winning_option_active_bp == 0 {
+            fee_refund = stake_account.collected_fees.reward_pool_fee;
+            market.reward_amount = market
+                .reward_amount
+                .checked_sub(fee_refund)
+                .ok_or(ErrorCode::Overflow)?;
+        }
+    } else if phase == MarketPhase::Expired {
+        let fees = stake_account.collected_fees;
+        market.reward_amount = market
+            .reward_amount
+            .checked_sub(fees.reward_pool_fee)
+            .ok_or(ErrorCode::Overflow)?;
+        market.collected_creator_fees = market
+            .collected_creator_fees
+            .checked_sub(fees.creator_fee)
+            .ok_or(ErrorCode::Overflow)?;
+        fee_refund = fees
+            .reward_pool_fee
+            .checked_add(fees.creator_fee)
+            .ok_or(ErrorCode::Overflow)?;
+    }
+
+    if fee_refund > 0 {
+        transfer_from_market(
             market,
-            &ctx.accounts.stake_account,
             &ctx.accounts.token_mint,
             &ctx.accounts.market_token_ata,
             &ctx.accounts.owner_token_account,
             &ctx.accounts.token_program,
+            fee_refund,
         )?;
     }
 
-    let stake_account = &ctx.accounts.stake_account;
     emit_ts!(StakeAccountClosedEvent {
         owner: ctx.accounts.owner.key(),
         market: market.key(),

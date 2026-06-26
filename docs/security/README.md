@@ -7,7 +7,7 @@ Users can deposit any amount of tokens in the program and should always be able 
 Users should never face the risk of loss-of-funds.
 Users should only ever get their initial stake deposit back OR additionally be rewarded fairly according to the rules of the protocol (see [protocol documentation](/docs/README.md)).
 
-Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit. If the market expires without resolution, sponsors can reclaim their deposit via `withdraw_reward`.
+Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit. If the market expires without resolution, sponsors can reclaim their deposit via `withdraw_reward`. After resolution, sponsors can also withdraw during the resolution phase when no winning stake earned a positive score (`winning_option_active_bp == 0`); stake fee refunds on close should be processed before sponsor withdrawal to avoid accounting underflow on concurrent settlement.
 
 We want to make sure that while an opportunity market is running, what option a given user staked on cannot be revealed by exploit. Likewise, total stake amounts per option while market is running should stay confidential.
 

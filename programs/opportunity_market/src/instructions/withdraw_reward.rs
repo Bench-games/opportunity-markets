@@ -55,7 +55,12 @@ pub fn withdraw_reward(ctx: Context<WithdrawReward>) -> Result<()> {
     let market = &ctx.accounts.market;
 
     // Rewards can be withdrawn if market was never resolved and expired.
-    market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Expired)?;
+    let phase = market.phase(Clock::get()?.unix_timestamp as u64)?;
+    require!(
+        phase == MarketPhase::Expired
+            || (phase == MarketPhase::Resolution && market.winning_option_active_bp == 0),
+        ErrorCode::WrongMarketPhase
+    );
 
     let reward_amount = sponsor_account.reward_deposited;
     require!(reward_amount > 0, ErrorCode::NoRewardToClaim);

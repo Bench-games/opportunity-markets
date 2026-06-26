@@ -4,29 +4,7 @@ use anchor_spl::token_interface::{
 };
 
 use crate::constants::OPPORTUNITY_MARKET_SEED;
-use crate::state::{OpportunityMarket, StakeAccount};
-
-pub fn refund_stake_fees<'info>(
-    market: &mut Account<'info, OpportunityMarket>,
-    stake_account: &StakeAccount,
-    token_mint: &InterfaceAccount<'info, Mint>,
-    market_token_ata: &InterfaceAccount<'info, TokenAccount>,
-    owner_token_account: &InterfaceAccount<'info, TokenAccount>,
-    token_program: &Interface<'info, TokenInterface>,
-) -> Result<u64> {
-    let fee_refund = market.deduct_stake_fees(&stake_account.collected_fees)?;
-    if fee_refund > 0 {
-        transfer_from_market(
-            market,
-            token_mint,
-            market_token_ata,
-            owner_token_account,
-            token_program,
-            fee_refund,
-        )?;
-    }
-    Ok(fee_refund)
-}
+use crate::state::OpportunityMarket;
 
 pub fn transfer_from_market<'info>(
     market: &Account<'info, OpportunityMarket>,

@@ -63,7 +63,7 @@ This is done with the `add_market_option` instruction, which is **permissionless
 The market has a reward pool that at the end is distributed to those that staked on the winning options.
 
 A sponsor can fund the market with the `add_reward` instruction during the staking period or before it.
-Deposited rewards remain in the market pool until resolution; if the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. More about this in the *Resolving the market* section.
+Deposited rewards remain in the market pool until resolution. If the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. After resolution, sponsors can also reclaim deposits during the resolution phase if no winning stake earned a positive score (`winning_option_active_bp == 0`). More about this in the *Resolving the market* and *Claiming rewards* sections.
 
 #### Staking
 
@@ -98,8 +98,8 @@ The `stake` instruction also collects fees, split into 3 configurable components
 3. Reward pool fee
     - Goes to the reward pool, allows reward pool to grow with market volume
 
-Creator fee and reward pool fee are refunded to the winners later together with their reward.
-The reason being that, with a large amount of stake on the winning option, it is possible the reward would get dilluted to the point where a winning stake's reward no longer covers the fees, and a winning staker ends up with a net-loss.
+Creator fee and reward pool fee are refunded to winners later when they close their stake account (after claiming any reward slice).
+The reason being that, with a large amount of stake on the winning option, it is possible the reward would get diluted to the point where a winning stake's reward no longer covers the fees, and a winning staker ends up with a net-loss.
 
 The reward pool fee can be set to a very high value. For example following configuration is possible:
 
@@ -119,11 +119,9 @@ They do this via the instruction `set_winning_option`. This can be called multip
 The instruction takes the option ID and the percentage of the reward pool that should be allocated to that option as arguments and marks the option account as one of the winning ones.
 The market creator finalizes their choices and resolves the market by calling `resolve_market`.
 
-If the market is not resolved in time, the market is considered expired and users can reclaim the fees they paid via `close_stake_account`.
-Sponsors also get to reclaim their deposited rewards via `withdraw_reward`.
+If the market is not resolved in time, the market is considered expired. Users can reclaim the reward-pool and creator fees they paid via `close_stake_account` (revealed stakes) or `close_unrevealed_stake_account` (never revealed). Sponsors also get to reclaim their deposited rewards via `withdraw_reward`.
 
-At this point, users can also claim their stake back without negatively impacting their potential reward amount.
-This is done via `reclaim_stake`.
+After resolution, users can unstake without negatively impacting their potential reward amount via `unstake`.
 
 #### Revealing stakes
 
@@ -133,7 +131,7 @@ This is permissionless and requires two transactions per stake account:
 **`reveal_stake`** - This invokes an Arcium encrypted computation that decrypts the user's option choice and returns it as plaintext to the callback.
 The callback then records the plaintext option ID to the stake account struct stored on chain.
 
-**`finalize_reveal_stake`** - Now that the option ID is public, this instruction can be called to calculate the user's score and add that to the total score tally for the option for later reward distribution calculation.
+**`finalize_reveal_stake`** - Now that the option ID is public, this instruction can be called to calculate the user's score and add that to the total score tally for the option for later reward distribution calculation. For stakes on winning options (`reward_bp > 0`), this also deducts the refundable creator and reward-pool fees from the market's accounting counters; the token transfer for those fees happens later in `close_stake_account`.
 
 There is a reveal period (configured per platform, snapshotted on the market at creation).
 Before that period elapses, only the platform's `reveal_authority` (read live from platform config) can close it via `end_reveal_period`.
@@ -143,7 +141,19 @@ After the market's snapshotted `reveal_period_seconds` have elapsed since resolu
 
 #### Claiming rewards
 
-After the reveal period has passsed, users that staked on one of the selected options can call `close_stake_account` to claim their slice of the reward pool and reclaim the refundable part of fees they paid. Non-winning stake accounts can also be closed via the same instruction to reclaim account rent.
+After the reveal period has passed (`end_reveal_period` has run), settlement proceeds as follows:
+
+1. **`unstake`** — return staked principal (required before closing the stake account).
+2. **`claim_rewards`** — for stakers on winning options with a recorded score: pays the pro-rata reward slice only and sets `rewards_claimed = true`. No fee refund in this step.
+3. **`close_stake_account`** — for winning stakers who claimed: refunds creator and reward-pool fees, closes the account, and returns rent. Non-winning stakers can close directly after unstake to reclaim rent.
+
+Winning stakers with a recorded score must call `claim_rewards` before `close_stake_account`. Stakers on non-winning options can close directly after unstake to reclaim account rent; their fees remain in the market for creator/platform collection.
+
+When no winning stake earned a positive score (`winning_option_active_bp == 0`), no reward slices are distributed. `claim_rewards` succeeds with a zero payout for eligible winning-option stakes; stakers recover reward-pool fees on close. Sponsors can reclaim their deposits via `withdraw_reward` in this case.
+
+Stakers who never revealed can close via `close_unrevealed_stake_account` after the reveal period ends. When `winning_option_active_bp == 0`, this refunds the reward-pool fee; otherwise unrevealed stakes forfeit reward eligibility and fee refunds on resolved markets.
+
+`end_reveal_period` can run even when `winning_option_active_bp == 0`, so markets are not stranded when every finalized winning stake has score zero.
 
 #### Reward calculation
 

@@ -64,20 +64,20 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
     let stake_account = &mut ctx.accounts.stake_account;
     market.require_phase(Clock::get()?.unix_timestamp as u64, MarketPhase::Resolution)?;
 
-    let payout = compute_reward_payout(
+    let rewards = compute_reward_payout(
         stake_account.as_ref(),
         market.as_ref(),
         ctx.accounts.option.as_ref(),
     )?;
 
-    if payout > 0 {
+    if rewards > 0 {
         transfer_from_market(
             &ctx.accounts.market,
             &ctx.accounts.token_mint,
             &ctx.accounts.market_token_ata,
             &ctx.accounts.owner_token_account,
             &ctx.accounts.token_program,
-            payout,
+            rewards,
         )?;
     }
 
@@ -101,7 +101,7 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
         stake_account: ctx.accounts.stake_account.key(),
         stake_account_id: ctx.accounts.stake_account.id,
         option_id: ctx.accounts.stake_account.revealed_option.unwrap(),
-        reward_amount: payout,
+        reward_amount: rewards,
         score: ctx.accounts.stake_account.score.unwrap_or(0),
     });
 
@@ -113,29 +113,15 @@ fn compute_reward_payout(
     market: &OpportunityMarket,
     option: &OpportunityMarketOption,
 ) -> Result<u64> {
-    if option.reward_bp == 0 {
+    if option.reward_bp == 0 || option.total_score == 0 {
         return Ok(0);
-    }
-
-    if stake_account.score.is_none() {
-        return Ok(0);
-    }
-
-    let fees = stake_account.collected_fees;
-    let fees_refund = fees
-        .reward_pool_fee
-        .checked_add(fees.creator_fee)
-        .ok_or(ErrorCode::Overflow)?;
-
-    let total_score = option.total_score;
-    if total_score == 0 {
-        return Ok(fees_refund);
     }
 
     let active_bp = market.winning_option_active_bp;
     require!(active_bp > 0, ErrorCode::NoFinalizedWinningOption);
 
     let user_score = stake_account.score.ok_or(ErrorCode::NotRevealed)?;
+    let total_score = option.total_score;
 
     let score_weighted_reward = (user_score as u128)
         .checked_mul(market.reward_amount as u128)
@@ -153,9 +139,7 @@ fn compute_reward_payout(
         .try_into()
         .map_err(|_| ErrorCode::Overflow)?;
 
-    reward
-        .checked_add(fees_refund)
-        .ok_or(ErrorCode::Overflow.into())
+    Ok(reward)
 }
 
 #[cfg(test)]
@@ -232,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn zero_total_score_returns_fee_refund_without_div_by_zero() {
+    fn zero_total_score_returns_zero_payout() {
         let fees = CollectedFees {
             platform_fee: 100,
             reward_pool_fee: 200,
@@ -243,7 +227,7 @@ mod tests {
         let option = test_option(0, 10_000);
 
         let payout = compute_reward_payout(&stake, &market, &option).unwrap();
-        assert_eq!(payout, 500);
+        assert_eq!(payout, 0);
     }
 
     #[test]
@@ -280,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn non_zero_total_score_pays_pro_rata_reward_plus_fees() {
+    fn non_zero_total_score_does_not_pay_rewards_plus_fees() {
         let fees = CollectedFees {
             platform_fee: 0,
             reward_pool_fee: 10,
@@ -291,6 +275,6 @@ mod tests {
         let option = test_option(1_000, 10_000);
 
         let payout = compute_reward_payout(&stake, &market, &option).unwrap();
-        assert_eq!(payout, 500_030);
+        assert_eq!(payout, 500_000);
     }
 }

@@ -1,6 +1,6 @@
 # Opportunity Markets
 
-Opportunity Markets markets aggregate capital backed insights into actionable signals.
+Opportunity Markets aggregate capital backed insights into actionable signals.
 
 In Opportunity Markets, users influence decision making by suggesting options and backing their choice with a withdrawable deposit of capital.
 Decision makers get exclusive access to high quality signals, secured by Aricum encryption, giving them first access to valuable opportunities.

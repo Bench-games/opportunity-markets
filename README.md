@@ -12,10 +12,15 @@ Program address on Solana Devnet: `bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp`
 ***Important documents for auditors and contributors:***
 
 
-
 [Detailed protocol description →](./docs/README.md)
 
 [Security statement for auditors →](./docs/security/README.md)
+
+## Admin CLI
+
+For convenience, an admin CLI is provided that you can use to manage markets and platform configurations.
+
+Run `bun admin help` for more details.
 
 ## Build & Test
 

@@ -1,0 +1,33 @@
+{
+  "name": "@bench.games/opportunity-markets-admin-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "platform": "tsx src/index.ts platform",
+    "mint": "tsx src/index.ts mint",
+    "market": "tsx src/index.ts market",
+    "comp-defs": "tsx src/index.ts comp-defs",
+    "arcium": "tsx src/index.ts arcium",
+    "vouch": "tsx src/index.ts vouch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@arcium-hq/client": "0.10.4",
+    "@inquirer/prompts": "^7.8.0",
+    "@solana-program/system": "^0.10.0",
+    "@solana-program/token": "^0.9.0",
+    "@solana/kit": "6.1.0",
+    "bn.js": "^5.2.1",
+    "chalk": "^5.4.1",
+    "commander": "^12.1.0",
+    "ora": "^8.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/node": "^22.0.0"
+  }
+}

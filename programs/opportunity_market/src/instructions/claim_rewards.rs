@@ -154,6 +154,7 @@ mod tests {
             state_nonce: 0,
             bump: 0,
             owner: Pubkey::default(),
+            rent_payer: Pubkey::default(),
             market: Pubkey::default(),
             user_pubkey: [0; 32],
             encrypted_option_disclosure: [0; 32],

@@ -798,6 +798,10 @@
           "signer": true
         },
         {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
           "name": "market",
           "pda": {
             "seeds": [
@@ -981,6 +985,10 @@
           "signer": true
         },
         {
+          "name": "rent_payer",
+          "writable": true
+        },
+        {
           "name": "market",
           "writable": true,
           "pda": {
@@ -1156,6 +1164,10 @@
           "name": "owner",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "rent_payer",
+          "writable": true
         },
         {
           "name": "market",
@@ -5390,6 +5402,10 @@
           },
           {
             "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "rent_payer",
             "type": "pubkey"
           },
           {

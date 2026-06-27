@@ -36,6 +36,7 @@ pub fn init_vouch_account(ctx: Context<InitVouchAccount>, vouch_account_id: u32)
 
     vouch_account.bump = ctx.bumps.vouch_account;
     vouch_account.owner = ctx.accounts.owner.key();
+    vouch_account.rent_payer = ctx.accounts.payer.key();
     vouch_account.market = ctx.accounts.market.key();
     vouch_account.id = vouch_account_id;
 

@@ -14,6 +14,13 @@ pub struct CloseUnrevealedVouchAccount<'info> {
 
     #[account(
         mut,
+        address = vouch_account.rent_payer,
+    )]
+    /// CHECK: receives the closed vouch account rent.
+    pub rent_payer: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
         bump = market.bump,
     )]
@@ -23,7 +30,7 @@ pub struct CloseUnrevealedVouchAccount<'info> {
         mut,
         seeds = [VOUCH_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &vouch_account.id.to_le_bytes()],
         bump = vouch_account.bump,
-        close = owner,
+        close = rent_payer,
         constraint = vouch_account.vouch_withdrawn_at_timestamp.is_some() @ ErrorCode::InvalidAccountState,
         constraint = vouch_account.revealed_option.is_none() @ ErrorCode::InvalidAccountState,
     )]

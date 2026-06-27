@@ -52,6 +52,7 @@ export function getCloseUnrevealedVouchAccountDiscriminatorBytes() {
 export type CloseUnrevealedVouchAccountInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountOwner extends string | AccountMeta<string> = string,
+  TAccountRentPayer extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TAccountVouchAccount extends string | AccountMeta<string> = string,
   TAccountTokenMint extends string | AccountMeta<string> = string,
@@ -69,6 +70,9 @@ export type CloseUnrevealedVouchAccountInstruction<
         ? WritableSignerAccount<TAccountOwner> &
             AccountSignerMeta<TAccountOwner>
         : TAccountOwner,
+      TAccountRentPayer extends string
+        ? WritableAccount<TAccountRentPayer>
+        : TAccountRentPayer,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
@@ -128,6 +132,7 @@ export function getCloseUnrevealedVouchAccountInstructionDataCodec(): FixedSizeC
 
 export type CloseUnrevealedVouchAccountAsyncInput<
   TAccountOwner extends string = string,
+  TAccountRentPayer extends string = string,
   TAccountMarket extends string = string,
   TAccountVouchAccount extends string = string,
   TAccountTokenMint extends string = string,
@@ -137,6 +142,7 @@ export type CloseUnrevealedVouchAccountAsyncInput<
   TAccountSystemProgram extends string = string,
 > = {
   owner: TransactionSigner<TAccountOwner>;
+  rentPayer: Address<TAccountRentPayer>;
   market: Address<TAccountMarket>;
   vouchAccount: Address<TAccountVouchAccount>;
   tokenMint: Address<TAccountTokenMint>;
@@ -148,6 +154,7 @@ export type CloseUnrevealedVouchAccountAsyncInput<
 
 export async function getCloseUnrevealedVouchAccountInstructionAsync<
   TAccountOwner extends string,
+  TAccountRentPayer extends string,
   TAccountMarket extends string,
   TAccountVouchAccount extends string,
   TAccountTokenMint extends string,
@@ -159,6 +166,7 @@ export async function getCloseUnrevealedVouchAccountInstructionAsync<
 >(
   input: CloseUnrevealedVouchAccountAsyncInput<
     TAccountOwner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -172,6 +180,7 @@ export async function getCloseUnrevealedVouchAccountInstructionAsync<
   CloseUnrevealedVouchAccountInstruction<
     TProgramAddress,
     TAccountOwner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -188,6 +197,7 @@ export async function getCloseUnrevealedVouchAccountInstructionAsync<
   // Original accounts.
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
+    rentPayer: { value: input.rentPayer ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
     vouchAccount: { value: input.vouchAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
@@ -225,6 +235,7 @@ export async function getCloseUnrevealedVouchAccountInstructionAsync<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.owner),
+      getAccountMeta(accounts.rentPayer),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.vouchAccount),
       getAccountMeta(accounts.tokenMint),
@@ -238,6 +249,7 @@ export async function getCloseUnrevealedVouchAccountInstructionAsync<
   } as CloseUnrevealedVouchAccountInstruction<
     TProgramAddress,
     TAccountOwner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -250,6 +262,7 @@ export async function getCloseUnrevealedVouchAccountInstructionAsync<
 
 export type CloseUnrevealedVouchAccountInput<
   TAccountOwner extends string = string,
+  TAccountRentPayer extends string = string,
   TAccountMarket extends string = string,
   TAccountVouchAccount extends string = string,
   TAccountTokenMint extends string = string,
@@ -259,6 +272,7 @@ export type CloseUnrevealedVouchAccountInput<
   TAccountSystemProgram extends string = string,
 > = {
   owner: TransactionSigner<TAccountOwner>;
+  rentPayer: Address<TAccountRentPayer>;
   market: Address<TAccountMarket>;
   vouchAccount: Address<TAccountVouchAccount>;
   tokenMint: Address<TAccountTokenMint>;
@@ -270,6 +284,7 @@ export type CloseUnrevealedVouchAccountInput<
 
 export function getCloseUnrevealedVouchAccountInstruction<
   TAccountOwner extends string,
+  TAccountRentPayer extends string,
   TAccountMarket extends string,
   TAccountVouchAccount extends string,
   TAccountTokenMint extends string,
@@ -281,6 +296,7 @@ export function getCloseUnrevealedVouchAccountInstruction<
 >(
   input: CloseUnrevealedVouchAccountInput<
     TAccountOwner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -293,6 +309,7 @@ export function getCloseUnrevealedVouchAccountInstruction<
 ): CloseUnrevealedVouchAccountInstruction<
   TProgramAddress,
   TAccountOwner,
+  TAccountRentPayer,
   TAccountMarket,
   TAccountVouchAccount,
   TAccountTokenMint,
@@ -308,6 +325,7 @@ export function getCloseUnrevealedVouchAccountInstruction<
   // Original accounts.
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
+    rentPayer: { value: input.rentPayer ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
     vouchAccount: { value: input.vouchAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
@@ -334,6 +352,7 @@ export function getCloseUnrevealedVouchAccountInstruction<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.owner),
+      getAccountMeta(accounts.rentPayer),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.vouchAccount),
       getAccountMeta(accounts.tokenMint),
@@ -347,6 +366,7 @@ export function getCloseUnrevealedVouchAccountInstruction<
   } as CloseUnrevealedVouchAccountInstruction<
     TProgramAddress,
     TAccountOwner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -364,13 +384,14 @@ export type ParsedCloseUnrevealedVouchAccountInstruction<
   programAddress: Address<TProgram>;
   accounts: {
     owner: TAccountMetas[0];
-    market: TAccountMetas[1];
-    vouchAccount: TAccountMetas[2];
-    tokenMint: TAccountMetas[3];
-    marketTokenAta: TAccountMetas[4];
-    ownerTokenAccount: TAccountMetas[5];
-    tokenProgram: TAccountMetas[6];
-    systemProgram: TAccountMetas[7];
+    rentPayer: TAccountMetas[1];
+    market: TAccountMetas[2];
+    vouchAccount: TAccountMetas[3];
+    tokenMint: TAccountMetas[4];
+    marketTokenAta: TAccountMetas[5];
+    ownerTokenAccount: TAccountMetas[6];
+    tokenProgram: TAccountMetas[7];
+    systemProgram: TAccountMetas[8];
   };
   data: CloseUnrevealedVouchAccountInstructionData;
 };
@@ -383,7 +404,7 @@ export function parseCloseUnrevealedVouchAccountInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedCloseUnrevealedVouchAccountInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 8) {
+  if (instruction.accounts.length < 9) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -397,6 +418,7 @@ export function parseCloseUnrevealedVouchAccountInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       owner: getNextAccount(),
+      rentPayer: getNextAccount(),
       market: getNextAccount(),
       vouchAccount: getNextAccount(),
       tokenMint: getNextAccount(),

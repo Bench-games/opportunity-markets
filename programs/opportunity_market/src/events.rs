@@ -69,7 +69,7 @@ pub struct VouchRevealedEvent {
 }
 
 #[event]
-pub struct UnvouchedEvent {
+pub struct VouchWithdrawnEvent {
     pub owner: Pubkey,
     pub market: Pubkey,
     pub vouch_account: Pubkey,

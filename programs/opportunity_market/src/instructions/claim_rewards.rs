@@ -159,7 +159,7 @@ mod tests {
             encrypted_option_disclosure: [0; 32],
             state_nonce_disclosure: 0,
             vouched_at_timestamp: None,
-            unvouched_at_timestamp: None,
+            vouch_withdrawn_at_timestamp: None,
             amount: 0,
             collected_fees: fees,
             revealed_option: Some(0),

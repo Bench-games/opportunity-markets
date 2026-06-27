@@ -38,8 +38,8 @@ export const OPPORTUNITY_MARKET_ERROR__TALLY_ALREADY_INCREMENTED = 0x1779; // 60
 export const OPPORTUNITY_MARKET_ERROR__OVERFLOW = 0x177a; // 6010
 /** InvalidMint: Token mint does not match account mint */
 export const OPPORTUNITY_MARKET_ERROR__INVALID_MINT = 0x177b; // 6011
-/** AlreadyUnvouched: Already unvouched */
-export const OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED = 0x177c; // 6012
+/** AlreadyVouchWithdrawn: Vouch already withdrawn */
+export const OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCH_WITHDRAWN = 0x177c; // 6012
 /** AlreadyVouched: Already vouched for this vouch account */
 export const OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCHED = 0x177d; // 6013
 /** Locked: Account is locked */
@@ -69,8 +69,8 @@ export const OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE = 0x1789; // 6025
 
 export type OpportunityMarketError =
   | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED
-  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED
   | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCHED
+  | typeof OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCH_WITHDRAWN
   | typeof OPPORTUNITY_MARKET_ERROR__CREATOR_MISMATCH
   | typeof OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_BALANCE
   | typeof OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_REWARD_FUNDING
@@ -101,8 +101,8 @@ let opportunityMarketErrorMessages:
 if (process.env.NODE_ENV !== 'production') {
   opportunityMarketErrorMessages = {
     [OPPORTUNITY_MARKET_ERROR__ALREADY_REVEALED]: `Vouch already revealed`,
-    [OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED]: `Already unvouched`,
     [OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCHED]: `Already vouched for this vouch account`,
+    [OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCH_WITHDRAWN]: `Vouch already withdrawn`,
     [OPPORTUNITY_MARKET_ERROR__CREATOR_MISMATCH]: `Creator mismatch`,
     [OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_BALANCE]: `Insufficient balance`,
     [OPPORTUNITY_MARKET_ERROR__INSUFFICIENT_REWARD_FUNDING]: `Insufficient reward funding`,

@@ -16,7 +16,7 @@ export * from "./closeVouchAccount";
 export * from "./closeUnrevealedVouchAccount";
 export * from "./closeStuckVouchAccount";
 export * from "./closeOptionAccount";
-export * from "./unvouch";
+export * from "./withdrawVouch";
 export * from "./finalizeRevealVouch";
 export * from "./createPlatformConfig";
 export * from "./updatePlatformConfig";

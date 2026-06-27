@@ -26,8 +26,8 @@ pub enum ErrorCode {
     Overflow,
     #[msg("Token mint does not match account mint")]
     InvalidMint,
-    #[msg("Already unvouched")]
-    AlreadyUnvouched,
+    #[msg("Vouch already withdrawn")]
+    AlreadyVouchWithdrawn,
     #[msg("Already vouched for this vouch account")]
     AlreadyVouched,
     #[msg("Account is locked")]

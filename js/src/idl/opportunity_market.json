@@ -2309,192 +2309,6 @@
       ]
     },
     {
-      "name": "unvouch",
-      "discriminator": [
-        196,
-        230,
-        161,
-        123,
-        235,
-        3,
-        34,
-        245
-      ],
-      "accounts": [
-        {
-          "name": "signer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "owner"
-        },
-        {
-          "name": "market",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  112,
-                  112,
-                  111,
-                  114,
-                  116,
-                  117,
-                  110,
-                  105,
-                  116,
-                  121,
-                  95,
-                  109,
-                  97,
-                  114,
-                  107,
-                  101,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "market.platform",
-                "account": "OpportunityMarket"
-              },
-              {
-                "kind": "account",
-                "path": "market.creator",
-                "account": "OpportunityMarket"
-              },
-              {
-                "kind": "account",
-                "path": "market.index",
-                "account": "OpportunityMarket"
-              }
-            ]
-          }
-        },
-        {
-          "name": "vouch_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  111,
-                  117,
-                  99,
-                  104,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "arg",
-                "path": "vouch_account_id"
-              }
-            ]
-          }
-        },
-        {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "owner_token_account",
-          "docs": [
-            "Owner's token account to receive vouched tokens"
-          ],
-          "writable": true
-        },
-        {
-          "name": "token_program"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "vouch_account_id",
-          "type": "u32"
-        }
-      ]
-    },
-    {
       "name": "update_platform_config",
       "discriminator": [
         195,
@@ -3021,6 +2835,192 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "withdraw_vouch",
+      "discriminator": [
+        201,
+        33,
+        64,
+        226,
+        252,
+        193,
+        27,
+        83
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "market",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116,
+                  117,
+                  110,
+                  105,
+                  116,
+                  121,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.platform",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.index",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vouch_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "arg",
+                "path": "vouch_account_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_token_account",
+          "docs": [
+            "Owner's token account to receive vouched tokens"
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vouch_account_id",
+          "type": "u32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -3313,19 +3313,6 @@
       ]
     },
     {
-      "name": "UnvouchedEvent",
-      "discriminator": [
-        184,
-        80,
-        174,
-        26,
-        199,
-        250,
-        159,
-        212
-      ]
-    },
-    {
       "name": "UpdateAuthorityChangedEvent",
       "discriminator": [
         25,
@@ -3375,6 +3362,19 @@
         24,
         15,
         180
+      ]
+    },
+    {
+      "name": "VouchWithdrawnEvent",
+      "discriminator": [
+        181,
+        15,
+        141,
+        116,
+        71,
+        39,
+        159,
+        216
       ]
     },
     {
@@ -3467,8 +3467,8 @@
     },
     {
       "code": 6012,
-      "name": "AlreadyUnvouched",
-      "msg": "Already unvouched"
+      "name": "AlreadyVouchWithdrawn",
+      "msg": "Vouch already withdrawn"
     },
     {
       "code": 6013,
@@ -5249,38 +5249,6 @@
       }
     },
     {
-      "name": "UnvouchedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "vouch_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "vouch_account_id",
-            "type": "u32"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
       "name": "UpdateAuthorityChangedEvent",
       "type": {
         "kind": "struct",
@@ -5457,7 +5425,7 @@
             }
           },
           {
-            "name": "unvouched_at_timestamp",
+            "name": "vouch_withdrawn_at_timestamp",
             "type": {
               "option": "u64"
             }
@@ -5731,6 +5699,38 @@
           },
           {
             "name": "selected_option",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchWithdrawnEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
             "type": "u64"
           },
           {

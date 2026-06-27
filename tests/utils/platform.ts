@@ -44,7 +44,7 @@ import {
   closeUnrevealedVouchAccount,
   closeOptionAccount,
   closeStuckVouchAccount as closeStuckVouchAccountIx,
-  unvouch as unvouchIx,
+  withdrawVouch as withdrawVouchIx,
   openMarket as openMarketIx,
   addReward as addRewardIx,
   withdrawReward as withdrawRewardIx,
@@ -131,7 +131,7 @@ export interface RevealRequest {
   vouchAccountId: number;
 }
 
-export interface UnvouchRequest {
+export interface WithdrawVouchRequest {
   userId: Address;
   vouchAccountId: number;
   signerId?: Address;
@@ -1142,10 +1142,10 @@ export class Platform {
   }
 
   /**
-   * Vouches, then unvouches and closes the stuck vouch account in the same transaction.
+   * Vouches, withdraws the vouch, and closes the stuck vouch account in the same transaction.
    * While the MPC callback is pending this was a double-withdraw vector (OM-007).
    */
-  async vouchUnvouchAndCloseStuck(
+  async vouchWithdrawAndCloseStuck(
     userId: Address,
     amount: bigint,
     optionId: number,
@@ -1197,7 +1197,7 @@ export class Platform {
       this.getArciumConfig(computationOffset),
     );
 
-    const unvouchInstruction = await unvouchIx({
+    const withdrawVouchInstruction = await withdrawVouchIx({
       signer: user.solanaKeypair,
       owner: user.solanaKeypair.address,
       market: this.marketAddress,
@@ -1220,17 +1220,17 @@ export class Platform {
       this.rpc,
       this.sendAndConfirm,
       user.solanaKeypair,
-      [vouchInstruction, unvouchInstruction, closeStuckIx],
-      { label: `Vouch + unvouch + close stuck vouch account` },
+      [vouchInstruction, withdrawVouchInstruction, closeStuckIx],
+      { label: `Vouch + withdraw vouch + close stuck vouch account` },
     );
   }
 
-  async unvouchBatch(requests: UnvouchRequest[]): Promise<void> {
+  async withdrawVouchBatch(requests: WithdrawVouchRequest[]): Promise<void> {
     for (const r of requests) {
       const owner = this.getUser(r.userId);
       const signer = r.signerId ? this.getUser(r.signerId) : owner;
 
-      const ix = await unvouchIx({
+      const ix = await withdrawVouchIx({
         signer: signer.solanaKeypair,
         owner: owner.solanaKeypair.address,
         market: this.marketAddress,
@@ -1241,13 +1241,13 @@ export class Platform {
       });
 
       await sendTransaction(this.rpc, this.sendAndConfirm, signer.solanaKeypair, [ix], {
-        label: `Unvouch`,
+        label: `Withdraw vouch`,
       });
     }
   }
 
-  async unvouch(userId: Address, vouchAccountId: number, signerId?: Address): Promise<void> {
-    await this.unvouchBatch([{ userId, vouchAccountId, signerId }]);
+  async withdrawVouch(userId: Address, vouchAccountId: number, signerId?: Address): Promise<void> {
+    await this.withdrawVouchBatch([{ userId, vouchAccountId, signerId }]);
   }
 
   // ============================================================================

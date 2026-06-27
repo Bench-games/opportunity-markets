@@ -21,7 +21,7 @@ pub mod set_fee_claim_authority;
 pub mod set_update_authority;
 pub mod set_winning_option;
 pub mod vouch;
-pub mod unvouch;
+pub mod withdraw_vouch;
 pub mod update_platform_config;
 pub mod withdraw_reward;
 
@@ -48,6 +48,6 @@ pub use set_fee_claim_authority::*;
 pub use set_update_authority::*;
 pub use set_winning_option::*;
 pub use vouch::*;
-pub use unvouch::*;
+pub use withdraw_vouch::*;
 pub use update_platform_config::*;
 pub use withdraw_reward::*;

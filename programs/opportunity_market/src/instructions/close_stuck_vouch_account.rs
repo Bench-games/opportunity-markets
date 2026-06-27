@@ -26,7 +26,7 @@ pub struct CloseStuckVouchAccount<'info> {
         seeds = [VOUCH_ACCOUNT_SEED, signer.key().as_ref(), market.key().as_ref(), &vouch_account_id.to_le_bytes()],
         bump = vouch_account.bump,
         constraint = vouch_account.owner == signer.key() @ ErrorCode::Unauthorized,
-        constraint = vouch_account.unvouched_at_timestamp.is_none() @ ErrorCode::AlreadyUnvouched,
+        constraint = vouch_account.vouch_withdrawn_at_timestamp.is_none() @ ErrorCode::AlreadyVouchWithdrawn,
     )]
     pub vouch_account: Box<Account<'info, VouchAccount>>,
 

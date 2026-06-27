@@ -1,11 +1,11 @@
 import { type TransactionSigner, type Address } from "@solana/kit";
 import {
-  getUnvouchInstructionAsync,
-  type UnvouchInstruction,
+  getWithdrawVouchInstructionAsync,
+  type WithdrawVouchInstruction,
 } from "../generated";
 import { type BaseInstructionParams } from "./instructionParams";
 
-export interface UnvouchParams extends BaseInstructionParams {
+export interface WithdrawVouchParams extends BaseInstructionParams {
   signer: TransactionSigner;
   owner: Address;
   market: Address;
@@ -15,12 +15,12 @@ export interface UnvouchParams extends BaseInstructionParams {
   vouchAccountId: number;
 }
 
-export async function unvouch(
-  input: UnvouchParams,
-): Promise<UnvouchInstruction<string>> {
+export async function withdrawVouch(
+  input: WithdrawVouchParams,
+): Promise<WithdrawVouchInstruction<string>> {
   const { programAddress, ...params } = input;
 
-  return getUnvouchInstructionAsync(
+  return getWithdrawVouchInstructionAsync(
     params,
     programAddress ? { programAddress } : undefined
   );

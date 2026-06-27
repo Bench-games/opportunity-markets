@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn peak_boost_when_vouching_at_market_open() {
-        // Vouching user enters at t=0, never unvouches early.
+        // Vouching user enters at t=0 and never withdraws their vouch early.
         let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let (time_pct, earliness) = calculate_user_score_components(
             MARKET_OPENED,
@@ -201,7 +201,7 @@ mod tests {
 
     #[test]
     fn realistic_full_score_with_1_5x_multiplier() {
-        // Vouch 1M tokens (9 decimals) at t=0 of a 1-week market, never unvouch.
+        // Vouch 1M tokens (9 decimals) at t=0 of a 1-week market, never withdraw.
         let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
@@ -234,8 +234,8 @@ mod tests {
     }
 
     #[test]
-    fn early_unvouch_pulls_time_pct_below_full() {
-        // User vouches at t=0, unvouches 1 day into a 1-week market.
+    fn early_vouch_withdrawal_pulls_time_pct_below_full() {
+        // User vouches at t=0, then withdraws the vouch 1 day into a 1-week market.
         let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let day = 24 * 60 * 60;
         let (time_pct, _) = calculate_user_score_components(
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn zero_vouch_duration_yields_zero_score() {
-        // Vouching user unvouches the same second they vouch.
+        // Vouching user withdraws the vouch the same second they vouch.
         let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let t = MARKET_OPENED + 60;
         let score = calculate_user_score(
@@ -343,7 +343,7 @@ mod tests {
             MARKET_OPENED,
             vouching_window_end,
             MARKET_OPENED + 100,
-            // unvouch before vouch
+            // withdraw before vouch
             MARKET_OPENED + 50,
             VOUCH,
             ONE_WEEK,

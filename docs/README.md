@@ -7,17 +7,17 @@ An Opportunity Market goes through the following stages:
 
 1. A decision maker creates an Opportunity Market and funds the reward pool (reward can also be deposited by a 3rd party)
     - For example, a VC firm can create an Opportunity Market titled *"Which companies should we invest in next quarter?"*
-2. Participants add new options into the market
-3. Participants vouch on their preferred options
+2. Users add new options into the market
+3. Users vouch on their preferred options
 4. The decision maker selects the winning option(s)
-5. All participants withdraw their vouch; those who backed the winning options split the reward
+5. All users withdraw their vouch; those who backed the winning options split the reward
 
 While the market is open, the following information is kept confidential:
 
 1. How much vouch each option has
 2. For which option(s) a given user vouched and with how much capital
 
-Keeping this information hidden from the public prevents herd behavior — participants vote based on their own judgment rather than following the crowd.
+Keeping this information hidden from the public prevents herd behavior — users vouch based on their own judgment rather than following the crowd.
 The decision maker **does** have access to this information the whole time and uses it to help their decision making.
 
 Basically, you can think of the Opportunity Markets protocol as something similar to a voting protocol with a couple key distinctions:
@@ -72,7 +72,7 @@ How long vouching is possible is dictated by the market account field `time_to_v
 
 A user vouches in a market by first initializing with `init_vouch_account` and then calling the `vouch` instruction. It accepts the following payload:
 
-- `amount` - vouch amount in base units of the market's token
+- `amount` - deposit amount in base units of the market's token
 - `selected_option_ciphertext` - encrypted ID of the option the user chose to vouch for
 - `input_nonce` - random nonce used in the encryption of `selected_option_ciphertext`
 - `authorized_reader_nonce` - random nonce used by Arcium encrypted computation invocation for selective disclosure of the option choice
@@ -85,7 +85,7 @@ This computation takes the user's encrypted option choice and re-encrypts it so 
 The vouch is finalized when the callback instruction (invoked by the Arcium network) runs.
 It is possible that the callback fails to run. In this case, the user can recover their stuck vouch with the `close_stuck_vouch_account`.
 
-A user can have multiple vouch accounts for the same option, but they cannot add vouch to an existing one. So if a user wishes to vouch more on a certain option, they can just create a new vouch account and vouch in it again.
+A user can have multiple vouch accounts for the same option, but they cannot add vouch to an existing one. So if a user wishes to vouch more on a certain option, they can just create a new vouch account and deposit in it again.
 
 #### Vouching fee structure
 
@@ -105,12 +105,12 @@ The reward pool fee can be set to a very high value. For example following confi
 
 Platform fee 1%, creator fee 1%, reward pool fee 98%
 
-This setup effectively turns the opportunity market into a speculative market à la prediction markets, with significant downside for the losers and great upside for the winners. If this kind of setup were to be used, early unvouching should be disabled in the market as the user of course has nothing to unvouch since their vouch goes to the reward pool.
+This setup effectively turns the opportunity market into a speculative market à la prediction markets, with significant downside for the losers and great upside for the winners. If this kind of setup were to be used, early vouch withdrawal should be disabled in the market as the user of course has no vouch to withdraw since their vouch goes to the reward pool.
 
-#### Unvouching
+#### Withdrawing Vouch
 
-If the market configuration allows, users can reclaim their vouch back at any time with the `unvouch` instruction. Longer vouch however results in a higher score and more potential yield.
-Otherwise, the user must wait until the vouching period ends before unvouching.
+If the market configuration allows, users can reclaim their vouch back at any time with the `withdraw_vouch` instruction. Longer vouch duration however results in a higher score and more potential yield.
+Otherwise, the user must wait until the vouching period ends before withdrawing a vouch.
 
 #### Resolving the market
 
@@ -121,7 +121,7 @@ The market creator finalizes their choices and resolves the market by calling `r
 
 If the market is not resolved in time, the market is considered expired. Users can reclaim the reward-pool and creator fees they paid via `close_vouch_account` (revealed vouches) or `close_unrevealed_vouch_account` (never revealed). Sponsors also get to reclaim their deposited rewards via `withdraw_reward`.
 
-After resolution, users can unvouch without negatively impacting their potential reward amount via `unvouch`.
+After resolution, users can withdraw a vouch without negatively impacting their potential reward amount via `withdraw_vouch`.
 
 #### Revealing vouches
 
@@ -139,27 +139,27 @@ There is a reveal period (configured per platform, snapshotted on the market at 
 Before that period elapses, only the platform's `reveal_authority` (read live from platform config) can close it via `end_reveal_period`.
 After the market's snapshotted `reveal_period_seconds` have elapsed since resolution, anyone can call the same instruction.
 
-**Early end (V1 design choice):** The reveal authority may end the reveal window at any time after resolution, without waiting for the full snapshotted period. This is intentional platform-operator control in V1 and may change in a future version. Once `end_reveal_period` runs, `reveal_vouch` and `finalize_reveal_vouch` are no longer callable; vouching users who have not revealed and finalized in time can reclaim their vouch via `close_unrevealed_vouch_account` but forfeit reward eligibility.
+**Early end (V1 design choice):** The reveal authority may end the reveal window at any time after resolution, without waiting for the full snapshotted period. This is intentional platform-operator control in V1 and may change in a future version. Once `end_reveal_period` runs, `reveal_vouch` and `finalize_reveal_vouch` are no longer callable; users who have not revealed and finalized in time can reclaim their vouch via `close_unrevealed_vouch_account` but forfeit reward eligibility.
 
 #### Claiming rewards
 
 After the reveal period has passed (`end_reveal_period` has run), settlement proceeds as follows:
 
-1. **`unvouch`** — return vouched principal (required before closing the vouch account).
-2. **`claim_rewards`** — for vouching users on winning options with a recorded score: pays the pro-rata reward slice only and sets `rewards_claimed = true`. No fee refund in this step.
-3. **`close_vouch_account`** — for winning vouching users who claimed: refunds creator and reward-pool fees, closes the account, and returns rent. Non-winning vouching users can close directly after unvouch to reclaim rent.
+1. **`withdraw_vouch`** — return vouched principal (required before closing the vouch account).
+2. **`claim_rewards`** — for users on winning options with a recorded score: pays the pro-rata reward slice only and sets `rewards_claimed = true`. No fee refund in this step.
+3. **`close_vouch_account`** — for winning users who claimed: refunds creator and reward-pool fees, closes the account, and returns rent. Non-winning users can close directly after withdrawing their vouch to reclaim rent.
 
-Winning vouching users with a recorded score must call `claim_rewards` before `close_vouch_account`. Vouching users on non-winning options can close directly after unvouch to reclaim account rent; their fees remain in the market for creator/platform collection.
+Winning users with a recorded score must call `claim_rewards` before `close_vouch_account`. Users on non-winning options can close directly after withdrawing their vouch to reclaim account rent; their fees remain in the market for creator/platform collection.
 
-When no winning vouch earned a positive score (`winning_option_active_bp == 0`), no reward slices are distributed. `claim_rewards` succeeds with a zero payout for eligible winning-option vouches; vouching users recover reward-pool fees on close. Sponsors can reclaim their deposits via `withdraw_reward` in this case.
+When no winning vouch earned a positive score (`winning_option_active_bp == 0`), no reward slices are distributed. `claim_rewards` succeeds with a zero payout for eligible winning-option vouches; users recover reward-pool fees on close. Sponsors can reclaim their deposits via `withdraw_reward` in this case.
 
-Vouching users who never revealed can close via `close_unrevealed_vouch_account` after the reveal period ends. When `winning_option_active_bp == 0`, this refunds the reward-pool fee; otherwise unrevealed vouches forfeit reward eligibility and fee refunds on resolved markets.
+Users who never revealed can close via `close_unrevealed_vouch_account` after the reveal period ends. When `winning_option_active_bp == 0`, this refunds the reward-pool fee; otherwise unrevealed vouches forfeit reward eligibility and fee refunds on resolved markets.
 
 `end_reveal_period` can run even when `winning_option_active_bp == 0`, so markets are not stranded when every finalized winning vouch has score zero.
 
 #### Reward calculation
 
-When the market is resolved, the reward pool is split among the winning options according to the percentages set by the market creator. Each option's slice is then distributed across its vouching users in proportion to their **score**.
+When the market is resolved, the reward pool is split among the winning options according to the percentages set by the market creator. Each option's slice is then distributed across its users in proportion to their **score**.
 
 A vouching user's score is the product of three factors:
 

@@ -37,12 +37,12 @@ import {
   type ParsedSetFeeClaimAuthorityInstruction,
   type ParsedSetUpdateAuthorityInstruction,
   type ParsedSetWinningOptionInstruction,
-  type ParsedUnvouchInstruction,
   type ParsedUpdatePlatformConfigInstruction,
   type ParsedVouchCallbackInstruction,
   type ParsedVouchCompDefInstruction,
   type ParsedVouchInstruction,
   type ParsedWithdrawRewardInstruction,
+  type ParsedWithdrawVouchInstruction,
 } from '../instructions';
 
 export const OPPORTUNITY_MARKET_PROGRAM_ADDRESS =
@@ -168,12 +168,12 @@ export enum OpportunityMarketInstruction {
   SetFeeClaimAuthority,
   SetUpdateAuthority,
   SetWinningOption,
-  Unvouch,
   UpdatePlatformConfig,
   Vouch,
   VouchCallback,
   VouchCompDef,
   WithdrawReward,
+  WithdrawVouch,
 }
 
 export function identifyOpportunityMarketInstruction(
@@ -437,17 +437,6 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([196, 230, 161, 123, 235, 3, 34, 245])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.Unvouch;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([195, 60, 76, 129, 146, 45, 67, 143])
       ),
       0
@@ -498,6 +487,17 @@ export function identifyOpportunityMarketInstruction(
     )
   ) {
     return OpportunityMarketInstruction.WithdrawReward;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([201, 33, 64, 226, 252, 193, 27, 83])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.WithdrawVouch;
   }
   throw new Error(
     'The provided instruction could not be identified as a opportunityMarket instruction.'
@@ -577,9 +577,6 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.SetWinningOption;
     } & ParsedSetWinningOptionInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.Unvouch;
-    } & ParsedUnvouchInstruction<TProgram>)
-  | ({
       instructionType: OpportunityMarketInstruction.UpdatePlatformConfig;
     } & ParsedUpdatePlatformConfigInstruction<TProgram>)
   | ({
@@ -593,4 +590,7 @@ export type ParsedOpportunityMarketInstruction<
     } & ParsedVouchCompDefInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.WithdrawReward;
-    } & ParsedWithdrawRewardInstruction<TProgram>);
+    } & ParsedWithdrawRewardInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.WithdrawVouch;
+    } & ParsedWithdrawVouchInstruction<TProgram>);

@@ -78,7 +78,7 @@ export type VouchAccount = {
   encryptedOptionDisclosure: Array<number>;
   stateNonceDisclosure: bigint;
   vouchedAtTimestamp: Option<bigint>;
-  unvouchedAtTimestamp: Option<bigint>;
+  vouchWithdrawnAtTimestamp: Option<bigint>;
   amount: bigint;
   collectedFees: CollectedFees;
   revealedOption: Option<bigint>;
@@ -101,7 +101,7 @@ export type VouchAccountArgs = {
   encryptedOptionDisclosure: Array<number>;
   stateNonceDisclosure: number | bigint;
   vouchedAtTimestamp: OptionOrNullable<number | bigint>;
-  unvouchedAtTimestamp: OptionOrNullable<number | bigint>;
+  vouchWithdrawnAtTimestamp: OptionOrNullable<number | bigint>;
   amount: number | bigint;
   collectedFees: CollectedFeesArgs;
   revealedOption: OptionOrNullable<number | bigint>;
@@ -130,7 +130,7 @@ export function getVouchAccountEncoder(): Encoder<VouchAccountArgs> {
       ],
       ['stateNonceDisclosure', getU128Encoder()],
       ['vouchedAtTimestamp', getOptionEncoder(getU64Encoder())],
-      ['unvouchedAtTimestamp', getOptionEncoder(getU64Encoder())],
+      ['vouchWithdrawnAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['amount', getU64Encoder()],
       ['collectedFees', getCollectedFeesEncoder()],
       ['revealedOption', getOptionEncoder(getU64Encoder())],
@@ -160,7 +160,7 @@ export function getVouchAccountDecoder(): Decoder<VouchAccount> {
     ],
     ['stateNonceDisclosure', getU128Decoder()],
     ['vouchedAtTimestamp', getOptionDecoder(getU64Decoder())],
-    ['unvouchedAtTimestamp', getOptionDecoder(getU64Decoder())],
+    ['vouchWithdrawnAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['amount', getU64Decoder()],
     ['collectedFees', getCollectedFeesDecoder()],
     ['revealedOption', getOptionDecoder(getU64Decoder())],

@@ -123,8 +123,8 @@ pub mod opportunity_market {
         instructions::close_option_account(ctx, option_id)
     }
 
-    pub fn unvouch(ctx: Context<Unvouch>, vouch_account_id: u32) -> Result<()> {
-        instructions::unvouch(ctx, vouch_account_id)
+    pub fn withdraw_vouch(ctx: Context<WithdrawVouch>, vouch_account_id: u32) -> Result<()> {
+        instructions::withdraw_vouch(ctx, vouch_account_id)
     }
 
     pub fn claim_fees(ctx: Context<ClaimFees>) -> Result<()> {

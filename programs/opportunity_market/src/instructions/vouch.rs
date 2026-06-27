@@ -44,7 +44,7 @@ pub struct Vouch<'info> {
         seeds = [VOUCH_ACCOUNT_SEED, vouch_account.owner.as_ref(), market.key().as_ref(), &params.vouch_account_id.to_le_bytes()],
         bump = vouch_account.bump,
         constraint = vouch_account.vouched_at_timestamp.is_none() @ ErrorCode::AlreadyVouched,
-        constraint = vouch_account.unvouched_at_timestamp.is_none() @ ErrorCode::AlreadyUnvouched,
+        constraint = vouch_account.vouch_withdrawn_at_timestamp.is_none() @ ErrorCode::AlreadyVouchWithdrawn,
         constraint = vouch_account.pending_vouch_computation.is_none() @ ErrorCode::Locked,
     )]
     pub vouch_account: Box<Account<'info, VouchAccount>>,

@@ -322,7 +322,7 @@ pub struct VouchAccount {
     pub encrypted_option_disclosure: [u8; 32],
     pub state_nonce_disclosure: u128,
     pub vouched_at_timestamp: Option<u64>,
-    pub unvouched_at_timestamp: Option<u64>,
+    pub vouch_withdrawn_at_timestamp: Option<u64>,
     pub amount: u64,                   // net vouch (after all fees)
     pub collected_fees: CollectedFees, // fees owed to the platform, reward pool, and creator
     pub revealed_option: Option<u64>,

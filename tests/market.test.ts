@@ -4,7 +4,7 @@ import { address, some, isNone, isSome, createSolanaRpc, createSolanaRpcSubscrip
 import { fetchToken } from "@solana-program/token";
 import { expect } from "chai";
 import {
-  OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED,
+  OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCH_WITHDRAWN,
   OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
   OPPORTUNITY_MARKET_ERROR__VOUCH_BELOW_MINIMUM,
   OPPORTUNITY_MARKET_ERROR__INVALID_PARAMETERS,
@@ -170,7 +170,7 @@ describe("Opportunity markets", () => {
     expect(optionAccount.data.unclaimedGrossVouch).to.equal(totalWinningGrossVouched);
 
     // Reclaim vouched tokens for winners
-    await platform.unvouchBatch(
+    await platform.withdrawVouchBatch(
       winners.map((userId, i) => ({
         userId,
         vouchAccountId: winnerVouchAccounts[i].id,
@@ -432,7 +432,7 @@ describe("Opportunity markets", () => {
     expect((await platform.fetchMarket()).data.winningOptionActiveBp).to.equal(10_000);
 
     // Reclaim vouched tokens for all accounts
-    await platform.unvouchBatch([
+    await platform.withdrawVouchBatch([
       ...u1VouchIds.map(sid => ({ userId: user1, vouchAccountId: sid })),
       ...u2VouchIds.map(sid => ({ userId: user2, vouchAccountId: sid })),
     ]);
@@ -585,7 +585,7 @@ describe("Opportunity markets", () => {
     );
 
     // Reclaim vouched tokens for all accounts
-    await platform.unvouchBatch(
+    await platform.withdrawVouchBatch(
       userVouchAccounts.map((sa) => ({ userId: user, vouchAccountId: sa.id }))
     );
 
@@ -783,7 +783,7 @@ describe("Opportunity markets", () => {
     expect(market.data.rewardAmount).to.equal(initialReward + additionalReward);
   });
 
-  it("early unvouching works as expected", async () => {
+  it("early vouch withdrawal works as expected", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const timeToVouch = 30n;
     const vouchAmount = 50_000_000n;
@@ -820,30 +820,30 @@ describe("Opportunity markets", () => {
     expect(balanceBeforeVouch - balanceAfterVouch).to.equal(vouchAmount);
 
     let vouchAccount = await platform.fetchVouchAccountData(vouchingUser, vouchAccountId);
-    expect(isNone(vouchAccount.data.unvouchedAtTimestamp)).to.be.true;
+    expect(isNone(vouchAccount.data.vouchWithdrawnAtTimestamp)).to.be.true;
 
-    // Unvouch during the vouching window.
-    await platform.unvouch(vouchingUser, vouchAccountId);
+    // Withdraw during the vouching window.
+    await platform.withdrawVouch(vouchingUser, vouchAccountId);
 
-    // Early unvouch records the shortened vouching window for scoring.
+    // Early vouch withdrawal records the shortened vouching window for scoring.
     vouchAccount = await platform.fetchVouchAccountData(vouchingUser, vouchAccountId);
-    expect(isSome(vouchAccount.data.unvouchedAtTimestamp)).to.be.true;
+    expect(isSome(vouchAccount.data.vouchWithdrawnAtTimestamp)).to.be.true;
 
     // Only the net vouch is refunded: 1% platform fee and the 1% creator fee are forfeit
-    const balanceAfterUnvouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser))).data.amount;
+    const balanceAfterWithdrawVouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser))).data.amount;
     const platformFee = vouchAmount * 100n / 10_000n;
     const creatorFee = vouchAmount * 100n / 10_000n;
     const expectedNet = vouchAmount - platformFee - creatorFee;
-    expect(balanceAfterUnvouch - balanceBeforeVouch + vouchAmount).to.equal(expectedNet);
+    expect(balanceAfterWithdrawVouch - balanceBeforeVouch + vouchAmount).to.equal(expectedNet);
 
     // The creator fee collected at vouch time stays with the market
-    const marketAfterUnvouch = await platform.fetchMarket();
-    expect(marketAfterUnvouch.data.collectedCreatorFees).to.equal(creatorFee);
+    const marketAfterWithdrawVouch = await platform.fetchMarket();
+    expect(marketAfterWithdrawVouch.data.collectedCreatorFees).to.equal(creatorFee);
 
-    // Double unvouch should fail.
+    // Double withdraw should fail.
     await shouldThrowCustomError(
-      () => platform.unvouch(vouchingUser, vouchAccountId),
-      OPPORTUNITY_MARKET_ERROR__ALREADY_UNVOUCHED,
+      () => platform.withdrawVouch(vouchingUser, vouchAccountId),
+      OPPORTUNITY_MARKET_ERROR__ALREADY_VOUCH_WITHDRAWN,
     );
 
     await sleepUntilOnChainTimestamp(Number(vouchEnd) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
@@ -882,21 +882,21 @@ describe("Opportunity markets", () => {
 
     const vouchAccountId = await platform.vouchOnOption(vouchingUser, vouchAmount, optionA);
 
-    // While vouch window is open, only the owner may unvouch
+    // While the vouch window is open, only the owner may withdraw.
     await shouldThrowCustomError(
-      () => platform.unvouch(vouchingUser, vouchAccountId, thirdParty),
+      () => platform.withdrawVouch(vouchingUser, vouchAccountId, thirdParty),
       OPPORTUNITY_MARKET_ERROR__UNAUTHORIZED,
     );
 
     let vouchAccount = await platform.fetchVouchAccountData(vouchingUser, vouchAccountId);
-    expect(isNone(vouchAccount.data.unvouchedAtTimestamp)).to.be.true;
+    expect(isNone(vouchAccount.data.vouchWithdrawnAtTimestamp)).to.be.true;
 
-    // Once vouch_end has passed, unvouch is permissionless
+    // Once the vouching window has passed, withdrawal is permissionless.
     await sleepUntilOnChainTimestamp(Number(vouchEnd) + ONCHAIN_TIMESTAMP_BUFFER_SECONDS);
-    await platform.unvouch(vouchingUser, vouchAccountId, thirdParty);
+    await platform.withdrawVouch(vouchingUser, vouchAccountId, thirdParty);
 
     vouchAccount = await platform.fetchVouchAccountData(vouchingUser, vouchAccountId);
-    expect(isSome(vouchAccount.data.unvouchedAtTimestamp)).to.be.true;
+    expect(isSome(vouchAccount.data.vouchWithdrawnAtTimestamp)).to.be.true;
   });
 
   it("can close a stuck vouch account and refund", async () => {
@@ -950,7 +950,7 @@ describe("Opportunity markets", () => {
       "Market collected_platform_fees should not have changed");
   });
 
-  it("rejects vouch + unvouch + close_stuck double withdraw (OM-007)", async () => {
+  it("rejects vouch + withdraw vouch + close_stuck double withdraw (OM-007)", async () => {
     const observer = loadObserverKeypair();
 
     const platform = await Platform.initialize(provider, programId, {
@@ -982,7 +982,7 @@ describe("Opportunity markets", () => {
       .data.amount;
 
     await shouldThrowCustomError(
-      () => platform.vouchUnvouchAndCloseStuck(attacker, attackerVouchAmount, optionId),
+      () => platform.vouchWithdrawAndCloseStuck(attacker, attackerVouchAmount, optionId),
       OPPORTUNITY_MARKET_ERROR__LOCKED,
     );
 
@@ -1057,7 +1057,7 @@ describe("Opportunity markets", () => {
 
     await platform.revealVouch(user, vouchAccountId);
     await platform.finalizeRevealVouch(user, optionId, vouchAccountId);
-    await platform.unvouch(user, vouchAccountId);
+    await platform.withdrawVouch(user, vouchAccountId);
     await platform.endRevealPeriod();
 
     // Platform fee → fee_claim_authority (= creator in default Platform setup).
@@ -1136,7 +1136,7 @@ describe("Opportunity markets", () => {
     await sleepUntilOnChainTimestamp(selectDeadline + ONCHAIN_TIMESTAMP_BUFFER_SECONDS, rpc);
 
     // Vouch reclaim returns the net vouched amount.
-    await platform.unvouch(user, vouchAccountId);
+    await platform.withdrawVouch(user, vouchAccountId);
 
     // Expired path: never revealed → close_unrevealed refunds reward_pool_fee + creator_fee.
     await platform.closeUnrevealedVouchAccount(user, vouchAccountId);
@@ -1335,7 +1335,7 @@ describe("Opportunity markets", () => {
   });
 
   it("winner takes all when fees sum up to 100%", async () => {
-    // Fees consume all but 1 bp of the vouch; net remains so unvouch can run.
+    // Fees consume all but 1 bp of the vouch; net remains so withdrawal can run.
     const platformFeeBp = 100;
     const creatorFeeBp = 100;
     const rewardPoolFeeBp = 9799;
@@ -1407,18 +1407,18 @@ describe("Opportunity markets", () => {
     expect(marketAfterFinalize.data.rewardAmount).to.equal(expectedPoolFee);
     expect(marketAfterFinalize.data.collectedCreatorFees).to.equal(expectedCreatorFee);
 
-    // Unvouch returns the negligible net vouch; the reward pool holds the rest.
+    // Withdrawing returns the negligible net vouch; the reward pool holds the rest.
     const rpc = platform.getRpc();
-    const bal1BeforeUnvouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser1))).data.amount;
-    const bal2BeforeUnvouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser2))).data.amount;
-    await platform.unvouchBatch([
+    const bal1BeforeWithdrawVouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser1))).data.amount;
+    const bal2BeforeWithdrawVouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser2))).data.amount;
+    await platform.withdrawVouchBatch([
       { userId: vouchingUser1, vouchAccountId: sa1 },
       { userId: vouchingUser2, vouchAccountId: sa2 },
     ]);
-    const bal1AfterUnvouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser1))).data.amount;
-    const bal2AfterUnvouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser2))).data.amount;
-    expect(bal1AfterUnvouch - bal1BeforeUnvouch).to.equal(expectedNetVouch);
-    expect(bal2AfterUnvouch - bal2BeforeUnvouch).to.equal(expectedNetVouch);
+    const bal1AfterWithdrawVouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser1))).data.amount;
+    const bal2AfterWithdrawVouch = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser2))).data.amount;
+    expect(bal1AfterWithdrawVouch - bal1BeforeWithdrawVouch).to.equal(expectedNetVouch);
+    expect(bal2AfterWithdrawVouch - bal2BeforeWithdrawVouch).to.equal(expectedNetVouch);
 
     await platform.endRevealPeriod();
 
@@ -1431,8 +1431,8 @@ describe("Opportunity markets", () => {
     const bal2AfterClose = (await fetchToken(rpc, platform.getUserTokenAccount(vouchingUser2))).data.amount;
 
     const expectedWinnerCloseGain = 2n * expectedPoolFee + expectedCreatorFee;
-    expect(bal1AfterClose - bal1AfterUnvouch).to.equal(expectedWinnerCloseGain);
-    expect(bal2AfterClose - bal2AfterUnvouch).to.equal(0n);
+    expect(bal1AfterClose - bal1AfterWithdrawVouch).to.equal(expectedWinnerCloseGain);
+    expect(bal2AfterClose - bal2AfterWithdrawVouch).to.equal(0n);
 
     expect(await platform.accountExists(await platform.getVouchAccountAddress(vouchingUser1, sa1))).to.be.false;
     expect(await platform.accountExists(await platform.getVouchAccountAddress(vouchingUser2, sa2))).to.be.false;

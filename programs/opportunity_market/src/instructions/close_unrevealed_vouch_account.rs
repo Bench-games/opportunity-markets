@@ -24,7 +24,7 @@ pub struct CloseUnrevealedVouchAccount<'info> {
         seeds = [VOUCH_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &vouch_account.id.to_le_bytes()],
         bump = vouch_account.bump,
         close = owner,
-        constraint = vouch_account.unvouched_at_timestamp.is_some() @ ErrorCode::InvalidAccountState,
+        constraint = vouch_account.vouch_withdrawn_at_timestamp.is_some() @ ErrorCode::InvalidAccountState,
         constraint = vouch_account.revealed_option.is_none() @ ErrorCode::InvalidAccountState,
     )]
     pub vouch_account: Box<Account<'info, VouchAccount>>,
@@ -109,7 +109,7 @@ pub fn close_unrevealed_vouch_account<'info>(
         vouch_amount: vouch_account.amount,
         fee_refund: fee_refund,
         vouched_at_timestamp: vouch_account.vouched_at_timestamp.unwrap_or(0),
-        vouching_window_end: vouch_account.unvouched_at_timestamp.unwrap_or(0),
+        vouching_window_end: vouch_account.vouch_withdrawn_at_timestamp.unwrap_or(0),
         score: vouch_account.score.unwrap_or(0),
     });
 

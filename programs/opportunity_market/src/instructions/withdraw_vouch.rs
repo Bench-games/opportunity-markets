@@ -3,17 +3,17 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::constants::{OPPORTUNITY_MARKET_SEED, VOUCH_ACCOUNT_SEED};
 use crate::error::ErrorCode;
-use crate::events::{emit_ts, UnvouchedEvent};
+use crate::events::{emit_ts, VouchWithdrawnEvent};
 use crate::state::{MarketPhase, OpportunityMarket, VouchAccount};
 use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
 #[instruction(vouch_account_id: u32)]
-pub struct Unvouch<'info> {
+pub struct WithdrawVouch<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
-    /// CHECK: Must sign when unvouching early.
+    /// CHECK: Must sign when withdrawing a vouch early.
     pub owner: UncheckedAccount<'info>,
 
     #[account(
@@ -26,7 +26,7 @@ pub struct Unvouch<'info> {
         mut,
         seeds = [VOUCH_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &vouch_account_id.to_le_bytes()],
         bump = vouch_account.bump,
-        constraint = vouch_account.unvouched_at_timestamp.is_none() @ ErrorCode::AlreadyUnvouched,
+        constraint = vouch_account.vouch_withdrawn_at_timestamp.is_none() @ ErrorCode::AlreadyVouchWithdrawn,
         constraint = vouch_account.vouched_at_timestamp.is_some() @ ErrorCode::NoVouch,
         constraint = vouch_account.pending_vouch_computation.is_none() @ ErrorCode::Locked,
     )]
@@ -57,7 +57,7 @@ pub struct Unvouch<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn unvouch(ctx: Context<Unvouch>, _vouch_account_id: u32) -> Result<()> {
+pub fn withdraw_vouch(ctx: Context<WithdrawVouch>, _vouch_account_id: u32) -> Result<()> {
     let market = &ctx.accounts.market;
     let now = Clock::get()?.unix_timestamp as u64;
 
@@ -65,13 +65,13 @@ pub fn unvouch(ctx: Context<Unvouch>, _vouch_account_id: u32) -> Result<()> {
         MarketPhase::NotOpen => return Err(ErrorCode::WrongMarketPhase.into()),
         MarketPhase::Vouching => {
             require!(ctx.accounts.owner.is_signer, ErrorCode::Unauthorized);
-            ctx.accounts.vouch_account.unvouched_at_timestamp = Some(now);
+            ctx.accounts.vouch_account.vouch_withdrawn_at_timestamp = Some(now);
         }
         _ => {
             let vouching_window_end = market
                 .vouching_window_end
                 .ok_or(ErrorCode::WrongMarketPhase)?;
-            ctx.accounts.vouch_account.unvouched_at_timestamp = Some(vouching_window_end);
+            ctx.accounts.vouch_account.vouch_withdrawn_at_timestamp = Some(vouching_window_end);
         }
     }
 
@@ -85,7 +85,7 @@ pub fn unvouch(ctx: Context<Unvouch>, _vouch_account_id: u32) -> Result<()> {
         amount,
     )?;
 
-    emit_ts!(UnvouchedEvent {
+    emit_ts!(VouchWithdrawnEvent {
         owner: ctx.accounts.vouch_account.owner,
         market: market.key(),
         vouch_account: ctx.accounts.vouch_account.key(),

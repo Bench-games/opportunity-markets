@@ -42,15 +42,17 @@ import {
   type ResolvedAccount,
 } from '../shared';
 
-export const UNVOUCH_DISCRIMINATOR = new Uint8Array([
-  196, 230, 161, 123, 235, 3, 34, 245,
+export const WITHDRAW_VOUCH_DISCRIMINATOR = new Uint8Array([
+  201, 33, 64, 226, 252, 193, 27, 83,
 ]);
 
-export function getUnvouchDiscriminatorBytes() {
-  return fixEncoderSize(getBytesEncoder(), 8).encode(UNVOUCH_DISCRIMINATOR);
+export function getWithdrawVouchDiscriminatorBytes() {
+  return fixEncoderSize(getBytesEncoder(), 8).encode(
+    WITHDRAW_VOUCH_DISCRIMINATOR
+  );
 }
 
-export type UnvouchInstruction<
+export type WithdrawVouchInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountSigner extends string | AccountMeta<string> = string,
   TAccountOwner extends string | AccountMeta<string> = string,
@@ -99,41 +101,41 @@ export type UnvouchInstruction<
     ]
   >;
 
-export type UnvouchInstructionData = {
+export type WithdrawVouchInstructionData = {
   discriminator: ReadonlyUint8Array;
   vouchAccountId: number;
 };
 
-export type UnvouchInstructionDataArgs = { vouchAccountId: number };
+export type WithdrawVouchInstructionDataArgs = { vouchAccountId: number };
 
-export function getUnvouchInstructionDataEncoder(): FixedSizeEncoder<UnvouchInstructionDataArgs> {
+export function getWithdrawVouchInstructionDataEncoder(): FixedSizeEncoder<WithdrawVouchInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['vouchAccountId', getU32Encoder()],
     ]),
-    (value) => ({ ...value, discriminator: UNVOUCH_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: WITHDRAW_VOUCH_DISCRIMINATOR })
   );
 }
 
-export function getUnvouchInstructionDataDecoder(): FixedSizeDecoder<UnvouchInstructionData> {
+export function getWithdrawVouchInstructionDataDecoder(): FixedSizeDecoder<WithdrawVouchInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['vouchAccountId', getU32Decoder()],
   ]);
 }
 
-export function getUnvouchInstructionDataCodec(): FixedSizeCodec<
-  UnvouchInstructionDataArgs,
-  UnvouchInstructionData
+export function getWithdrawVouchInstructionDataCodec(): FixedSizeCodec<
+  WithdrawVouchInstructionDataArgs,
+  WithdrawVouchInstructionData
 > {
   return combineCodec(
-    getUnvouchInstructionDataEncoder(),
-    getUnvouchInstructionDataDecoder()
+    getWithdrawVouchInstructionDataEncoder(),
+    getWithdrawVouchInstructionDataDecoder()
   );
 }
 
-export type UnvouchAsyncInput<
+export type WithdrawVouchAsyncInput<
   TAccountSigner extends string = string,
   TAccountOwner extends string = string,
   TAccountMarket extends string = string,
@@ -154,10 +156,10 @@ export type UnvouchAsyncInput<
   ownerTokenAccount: Address<TAccountOwnerTokenAccount>;
   tokenProgram: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  vouchAccountId: UnvouchInstructionDataArgs['vouchAccountId'];
+  vouchAccountId: WithdrawVouchInstructionDataArgs['vouchAccountId'];
 };
 
-export async function getUnvouchInstructionAsync<
+export async function getWithdrawVouchInstructionAsync<
   TAccountSigner extends string,
   TAccountOwner extends string,
   TAccountMarket extends string,
@@ -169,7 +171,7 @@ export async function getUnvouchInstructionAsync<
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: UnvouchAsyncInput<
+  input: WithdrawVouchAsyncInput<
     TAccountSigner,
     TAccountOwner,
     TAccountMarket,
@@ -182,7 +184,7 @@ export async function getUnvouchInstructionAsync<
   >,
   config?: { programAddress?: TProgramAddress }
 ): Promise<
-  UnvouchInstruction<
+  WithdrawVouchInstruction<
     TProgramAddress,
     TAccountSigner,
     TAccountOwner,
@@ -267,11 +269,11 @@ export async function getUnvouchInstructionAsync<
       getAccountMeta(accounts.tokenProgram),
       getAccountMeta(accounts.systemProgram),
     ],
-    data: getUnvouchInstructionDataEncoder().encode(
-      args as UnvouchInstructionDataArgs
+    data: getWithdrawVouchInstructionDataEncoder().encode(
+      args as WithdrawVouchInstructionDataArgs
     ),
     programAddress,
-  } as UnvouchInstruction<
+  } as WithdrawVouchInstruction<
     TProgramAddress,
     TAccountSigner,
     TAccountOwner,
@@ -285,7 +287,7 @@ export async function getUnvouchInstructionAsync<
   >);
 }
 
-export type UnvouchInput<
+export type WithdrawVouchInput<
   TAccountSigner extends string = string,
   TAccountOwner extends string = string,
   TAccountMarket extends string = string,
@@ -306,10 +308,10 @@ export type UnvouchInput<
   ownerTokenAccount: Address<TAccountOwnerTokenAccount>;
   tokenProgram: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
-  vouchAccountId: UnvouchInstructionDataArgs['vouchAccountId'];
+  vouchAccountId: WithdrawVouchInstructionDataArgs['vouchAccountId'];
 };
 
-export function getUnvouchInstruction<
+export function getWithdrawVouchInstruction<
   TAccountSigner extends string,
   TAccountOwner extends string,
   TAccountMarket extends string,
@@ -321,7 +323,7 @@ export function getUnvouchInstruction<
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
-  input: UnvouchInput<
+  input: WithdrawVouchInput<
     TAccountSigner,
     TAccountOwner,
     TAccountMarket,
@@ -333,7 +335,7 @@ export function getUnvouchInstruction<
     TAccountSystemProgram
   >,
   config?: { programAddress?: TProgramAddress }
-): UnvouchInstruction<
+): WithdrawVouchInstruction<
   TProgramAddress,
   TAccountSigner,
   TAccountOwner,
@@ -391,11 +393,11 @@ export function getUnvouchInstruction<
       getAccountMeta(accounts.tokenProgram),
       getAccountMeta(accounts.systemProgram),
     ],
-    data: getUnvouchInstructionDataEncoder().encode(
-      args as UnvouchInstructionDataArgs
+    data: getWithdrawVouchInstructionDataEncoder().encode(
+      args as WithdrawVouchInstructionDataArgs
     ),
     programAddress,
-  } as UnvouchInstruction<
+  } as WithdrawVouchInstruction<
     TProgramAddress,
     TAccountSigner,
     TAccountOwner,
@@ -409,7 +411,7 @@ export function getUnvouchInstruction<
   >);
 }
 
-export type ParsedUnvouchInstruction<
+export type ParsedWithdrawVouchInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
@@ -426,17 +428,17 @@ export type ParsedUnvouchInstruction<
     tokenProgram: TAccountMetas[7];
     systemProgram: TAccountMetas[8];
   };
-  data: UnvouchInstructionData;
+  data: WithdrawVouchInstructionData;
 };
 
-export function parseUnvouchInstruction<
+export function parseWithdrawVouchInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedUnvouchInstruction<TProgram, TAccountMetas> {
+): ParsedWithdrawVouchInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 9) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
@@ -460,6 +462,6 @@ export function parseUnvouchInstruction<
       tokenProgram: getNextAccount(),
       systemProgram: getNextAccount(),
     },
-    data: getUnvouchInstructionDataDecoder().decode(instruction.data),
+    data: getWithdrawVouchInstructionDataDecoder().decode(instruction.data),
   };
 }

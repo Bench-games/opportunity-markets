@@ -12,7 +12,7 @@ import { generateX25519Keypair } from "../js/src/x25519/keypair";
 const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 const WS_URL = RPC_URL.replace("http", "ws").replace(":8899", ":8900");
 
-describe("Redistributes rewards in unvouched options", () => {
+describe("Redistributes rewards in vouch-withdrawn options", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.OpportunityMarket as Program<OpportunityMarket>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
@@ -123,7 +123,7 @@ describe("Redistributes rewards in unvouched options", () => {
     expect(market.data.winningOptionActiveBp).to.equal(6000);
     expect((await platform.fetchOptionData(optC)).data.includedInActiveBp).to.be.false;
 
-    await platform.unvouch(user, saA);
+    await platform.withdrawVouch(user, saA);
     await platform.endRevealPeriod();
 
     const rpc = platform.getRpc();
@@ -176,7 +176,7 @@ describe("Redistributes rewards in unvouched options", () => {
 
     expect((await platform.fetchMarket()).data.revealEnded).to.be.true;
 
-    await platform.unvouch(user, sa);
+    await platform.withdrawVouch(user, sa);
     await platform.closeVouchAccount(user, optVouched, sa);
   });
 

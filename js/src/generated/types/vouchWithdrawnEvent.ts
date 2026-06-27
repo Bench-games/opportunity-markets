@@ -24,7 +24,7 @@ import {
   type FixedSizeEncoder,
 } from '@solana/kit';
 
-export type UnvouchedEvent = {
+export type VouchWithdrawnEvent = {
   owner: Address;
   market: Address;
   vouchAccount: Address;
@@ -33,7 +33,7 @@ export type UnvouchedEvent = {
   timestamp: bigint;
 };
 
-export type UnvouchedEventArgs = {
+export type VouchWithdrawnEventArgs = {
   owner: Address;
   market: Address;
   vouchAccount: Address;
@@ -42,7 +42,7 @@ export type UnvouchedEventArgs = {
   timestamp: number | bigint;
 };
 
-export function getUnvouchedEventEncoder(): FixedSizeEncoder<UnvouchedEventArgs> {
+export function getVouchWithdrawnEventEncoder(): FixedSizeEncoder<VouchWithdrawnEventArgs> {
   return getStructEncoder([
     ['owner', getAddressEncoder()],
     ['market', getAddressEncoder()],
@@ -53,7 +53,7 @@ export function getUnvouchedEventEncoder(): FixedSizeEncoder<UnvouchedEventArgs>
   ]);
 }
 
-export function getUnvouchedEventDecoder(): FixedSizeDecoder<UnvouchedEvent> {
+export function getVouchWithdrawnEventDecoder(): FixedSizeDecoder<VouchWithdrawnEvent> {
   return getStructDecoder([
     ['owner', getAddressDecoder()],
     ['market', getAddressDecoder()],
@@ -64,9 +64,12 @@ export function getUnvouchedEventDecoder(): FixedSizeDecoder<UnvouchedEvent> {
   ]);
 }
 
-export function getUnvouchedEventCodec(): FixedSizeCodec<
-  UnvouchedEventArgs,
-  UnvouchedEvent
+export function getVouchWithdrawnEventCodec(): FixedSizeCodec<
+  VouchWithdrawnEventArgs,
+  VouchWithdrawnEvent
 > {
-  return combineCodec(getUnvouchedEventEncoder(), getUnvouchedEventDecoder());
+  return combineCodec(
+    getVouchWithdrawnEventEncoder(),
+    getVouchWithdrawnEventDecoder()
+  );
 }

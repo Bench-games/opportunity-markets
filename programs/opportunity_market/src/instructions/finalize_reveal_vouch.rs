@@ -71,7 +71,7 @@ pub fn finalize_reveal_vouch(
         .vouching_window_end
         .ok_or(ErrorCode::WrongMarketPhase)?;
     let user_vouch_end = vouch_account
-        .unvouched_at_timestamp
+        .vouch_withdrawn_at_timestamp
         .unwrap_or(vouching_window_end);
 
     let user_score = calculate_user_score(

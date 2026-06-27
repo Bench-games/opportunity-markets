@@ -4,10 +4,9 @@
 
 Our contract is meant to secure a large amount of user capital in the form of deposited SPL tokens.
 Users "vouch" for an option by depositing any amount of tokens in the program and should always be able to withdraw their deposit later (excluding fees).
-Users should never face the risk of loss-of-funds.
-Users should only ever get their initial vouch deposit back OR additionally be rewarded fairly according to the rules of the protocol (see [protocol documentation](/docs/README.md)).
+Users should be rewarded fairly according to the rules of the protocol (see [protocol documentation](/docs/README.md)).
 
-Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit. If the market expires without resolution, sponsors can reclaim their deposit via `withdraw_reward`. After resolution, sponsors can also withdraw during the settlement phase when no winning vouch earned a positive score (`winning_option_active_bp == 0`); vouch fee refunds on close should be processed before sponsor withdrawal to avoid accounting underflow on concurrent settlement.
+Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit.
 
 We want to make sure that while an opportunity market is running, what option a given user vouched on cannot be revealed by exploit. Likewise, total vouch amounts per option while market is running should stay confidential.
 

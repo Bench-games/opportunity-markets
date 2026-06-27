@@ -424,7 +424,10 @@ mod tests {
     fn phase_vouching_ends_before_vouching_window_end() {
         let market = test_market(Some(VOUCHING_END), None, false);
         assert_eq!(market.phase(0).unwrap(), MarketPhase::Vouching);
-        assert_eq!(market.phase(VOUCHING_END - 1).unwrap(), MarketPhase::Vouching);
+        assert_eq!(
+            market.phase(VOUCHING_END - 1).unwrap(),
+            MarketPhase::Vouching
+        );
         assert_eq!(market.phase(VOUCHING_END).unwrap(), MarketPhase::Selection);
     }
 

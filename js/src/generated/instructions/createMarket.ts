@@ -156,7 +156,7 @@ export type CreateMarketAsyncInput<
   platformConfig: Address<TAccountPlatformConfig>;
   tokenMint: Address<TAccountTokenMint>;
   market: Address<TAccountMarket>;
-  /** This ATA holds all of the market's program-held tokens (stakes, rewards, fees). */
+  /** This ATA holds all of the market's program-held tokens (vouches, rewards, fees). */
   marketTokenAta?: Address<TAccountMarketTokenAta>;
   allowedMint?: Address<TAccountAllowedMint>;
   tokenProgram: Address<TAccountTokenProgram>;
@@ -313,7 +313,7 @@ export type CreateMarketInput<
   platformConfig: Address<TAccountPlatformConfig>;
   tokenMint: Address<TAccountTokenMint>;
   market: Address<TAccountMarket>;
-  /** This ATA holds all of the market's program-held tokens (stakes, rewards, fees). */
+  /** This ATA holds all of the market's program-held tokens (vouches, rewards, fees). */
   marketTokenAta: Address<TAccountMarketTokenAta>;
   allowedMint: Address<TAccountAllowedMint>;
   tokenProgram: Address<TAccountTokenProgram>;
@@ -436,7 +436,7 @@ export type ParsedCreateMarketInstruction<
     platformConfig: TAccountMetas[1];
     tokenMint: TAccountMetas[2];
     market: TAccountMetas[3];
-    /** This ATA holds all of the market's program-held tokens (stakes, rewards, fees). */
+    /** This ATA holds all of the market's program-held tokens (vouches, rewards, fees). */
     marketTokenAta: TAccountMetas[4];
     allowedMint: TAccountMetas[5];
     tokenProgram: TAccountMetas[6];

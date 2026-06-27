@@ -69,16 +69,16 @@ export type OpenMarketInstruction<
 
 export type OpenMarketInstructionData = {
   discriminator: ReadonlyUint8Array;
-  timeToStake: bigint;
+  timeToVouch: bigint;
 };
 
-export type OpenMarketInstructionDataArgs = { timeToStake: number | bigint };
+export type OpenMarketInstructionDataArgs = { timeToVouch: number | bigint };
 
 export function getOpenMarketInstructionDataEncoder(): FixedSizeEncoder<OpenMarketInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
-      ['timeToStake', getU64Encoder()],
+      ['timeToVouch', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: OPEN_MARKET_DISCRIMINATOR })
   );
@@ -87,7 +87,7 @@ export function getOpenMarketInstructionDataEncoder(): FixedSizeEncoder<OpenMark
 export function getOpenMarketInstructionDataDecoder(): FixedSizeDecoder<OpenMarketInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
-    ['timeToStake', getU64Decoder()],
+    ['timeToVouch', getU64Decoder()],
   ]);
 }
 
@@ -109,7 +109,7 @@ export type OpenMarketInput<
   marketAuthority: TransactionSigner<TAccountMarketAuthority>;
   market: Address<TAccountMarket>;
   platformConfig: Address<TAccountPlatformConfig>;
-  timeToStake: OpenMarketInstructionDataArgs['timeToStake'];
+  timeToVouch: OpenMarketInstructionDataArgs['timeToVouch'];
 };
 
 export function getOpenMarketInstruction<

@@ -7,9 +7,9 @@ use arcium_macros::circuit_hash;
 
 use crate::ID;
 
-#[init_computation_definition_accounts("stake", payer)]
+#[init_computation_definition_accounts("vouch", payer)]
 #[derive(Accounts)]
-pub struct StakeCompDef<'info> {
+pub struct VouchCompDef<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(mut, address = derive_mxe_pda!())]
@@ -27,14 +27,14 @@ pub struct StakeCompDef<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn stake_comp_def(ctx: Context<StakeCompDef>) -> Result<()> {
+pub fn vouch_comp_def(ctx: Context<VouchCompDef>) -> Result<()> {
     #[cfg(not(feature = "disable-prod-guardrails"))]
     {
         init_computation_def(
             ctx.accounts,
             Some(CircuitSource::OffChain(OffChainCircuitSource {
-                source: "https://blobs.bench.markets/stake.arcis".to_string(),
-                hash: circuit_hash!("stake"),
+                source: "https://blobs.bench.markets/vouch.arcis".to_string(),
+                hash: circuit_hash!("vouch"),
             })),
         )?;
     }
@@ -45,9 +45,9 @@ pub fn stake_comp_def(ctx: Context<StakeCompDef>) -> Result<()> {
     Ok(())
 }
 
-#[init_computation_definition_accounts("reveal_stake", payer)]
+#[init_computation_definition_accounts("reveal_vouch", payer)]
 #[derive(Accounts)]
-pub struct RevealStakeCompDef<'info> {
+pub struct RevealVouchCompDef<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(mut, address = derive_mxe_pda!())]
@@ -65,14 +65,14 @@ pub struct RevealStakeCompDef<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn reveal_stake_comp_def(ctx: Context<RevealStakeCompDef>) -> Result<()> {
+pub fn reveal_vouch_comp_def(ctx: Context<RevealVouchCompDef>) -> Result<()> {
     #[cfg(not(feature = "disable-prod-guardrails"))]
     {
         init_computation_def(
             ctx.accounts,
             Some(CircuitSource::OffChain(OffChainCircuitSource {
-                source: "https://blobs.bench.markets/reveal_stake.arcis".to_string(),
-                hash: circuit_hash!("reveal_stake"),
+                source: "https://blobs.bench.markets/reveal_vouch.arcis".to_string(),
+                hash: circuit_hash!("reveal_vouch"),
             })),
         )?;
     }

@@ -9,7 +9,7 @@ export interface OpenMarketParams extends BaseInstructionParams {
   marketAuthority: TransactionSigner;
   market: Address;
   platformConfig: Address;
-  timeToStake: bigint;
+  timeToVouch: bigint;
 }
 
 export function openMarket(

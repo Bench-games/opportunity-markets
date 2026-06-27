@@ -27,7 +27,7 @@ pub struct CloseOptionAccount<'info> {
         close = creator,
         seeds = [OPTION_SEED, market.key().as_ref(), &option_id.to_le_bytes()],
         bump = option.bump,
-        constraint = option.unclaimed_gross_stake == 0 || option.reward_bp == 0 @ ErrorCode::OptionStillNeeded,
+        constraint = option.unclaimed_gross_vouch == 0 || option.reward_bp == 0 @ ErrorCode::OptionStillNeeded,
         has_one = creator @ ErrorCode::CreatorMismatch,
     )]
     pub option: Account<'info, OpportunityMarketOption>,

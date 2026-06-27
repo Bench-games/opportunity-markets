@@ -2,14 +2,13 @@
 
 ### What we want to secure
 
-Our contract is meant to secure a large amount of user capital in the form of staked SPL tokens.
-Users can deposit any amount of tokens in the program and should always be able to withdraw their stake later.
-Users should never face the risk of loss-of-funds.
-Users should only ever get their initial stake deposit back OR additionally be rewarded fairly according to the rules of the protocol (see [protocol documentation](/docs/README.md)).
+Our contract is meant to secure a large amount of user capital in the form of deposited SPL tokens.
+Users "vouch" for an option by depositing any amount of tokens in the program and should always be able to withdraw their deposit later (excluding fees).
+Users should be rewarded fairly according to the rules of the protocol (see [protocol documentation](/docs/README.md)).
 
-Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit. If the market expires without resolution, sponsors can reclaim their deposit via `withdraw_reward`. After resolution, sponsors can also withdraw during the settlement phase when no winning stake earned a positive score (`winning_option_active_bp == 0`); stake fee refunds on close should be processed before sponsor withdrawal to avoid accounting underflow on concurrent settlement.
+Market sponsors should be able to deposit a market reward and trust that after the market is resolved, the reward is split according to the rules of the protocol and cannot be stolen by exploit.
 
-We want to make sure that while an opportunity market is running, what option a given user staked on cannot be revealed by exploit. Likewise, total stake amounts per option while market is running should stay confidential.
+We want to make sure that while an opportunity market is running, what option a given user vouched on cannot be revealed by exploit. Likewise, total vouch amounts per option while market is running should stay confidential.
 
 We are looking to go live on Solana mainnet as soon as possible, so a security audit is critical to ensure the safety of our users' funds and correctness of the protocol.
 
@@ -29,10 +28,10 @@ We operate under the assumption that invoking an Arcium computation does not gua
 If the callback never comes, and the operation in question is never finalized, there must be some escape hatch from this in-between state.
 We assume that the callback will not continue to fail forever after some number of retries by calling the instruction that invokes it.
 
-Example of this escape hatch implementation is the `close_stuck_stake_account` instruction for the case that the callback of the `stake` instruction fails to run.
+Example of this escape hatch implementation is the `close_stuck_vouch_account` instruction for the case that the callback of the `vouch` instruction fails to run.
 
-There is no separate escape hatch instruction for the `reveal_stake` instruction.
-If the callback never comes or fails verification, `reveal_stake` can be called again after a per-stake cooldown (`REVEAL_STAKE_COOLDOWN_SECONDS`, currently 5 minutes).
+There is no separate escape hatch instruction for the `reveal_vouch` instruction.
+If the callback never comes or fails verification, `reveal_vouch` can be called again after a per-vouch cooldown (`REVEAL_VOUCH_COOLDOWN_SECONDS`, currently 5 minutes).
 The cooldown prevents third parties from repeatedly overwriting an in-flight reveal computation before its callback lands; stale callbacks are rejected via `pending_reveal_computation`.
 
-The platform `reveal_authority` can end the reveal window before the market's snapshotted `reveal_period_seconds` elapse (`end_reveal_period`). This is accepted trusted-operator behavior in V1: stakers who have not completed reveal and finalize by then forfeit rewards but can still reclaim stake via `close_unrevealed_stake_account`. See [protocol documentation](/docs/README.md#revealing-stakes).
+The platform `reveal_authority` can end the reveal window before the market's snapshotted `reveal_period_seconds` elapse (`end_reveal_period`). This is accepted trusted-operator behavior in V1: vouching users who have not completed reveal and finalize by then forfeit rewards but can still reclaim vouch via `close_unrevealed_vouch_account`. See [protocol documentation](/docs/README.md#revealing-vouches).

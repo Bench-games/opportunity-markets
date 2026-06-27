@@ -69,7 +69,7 @@ export type PlatformConfig = {
   feeClaimAuthority: Address;
   feeRates: FeeRates;
   marketResolutionDeadlineSeconds: bigint;
-  minTimeToStakeSeconds: bigint;
+  minTimeToVouchSeconds: bigint;
   revealAuthority: Address;
   revealPeriodSeconds: bigint;
 };
@@ -81,7 +81,7 @@ export type PlatformConfigArgs = {
   feeClaimAuthority: Address;
   feeRates: FeeRatesArgs;
   marketResolutionDeadlineSeconds: number | bigint;
-  minTimeToStakeSeconds: number | bigint;
+  minTimeToVouchSeconds: number | bigint;
   revealAuthority: Address;
   revealPeriodSeconds: number | bigint;
 };
@@ -96,7 +96,7 @@ export function getPlatformConfigEncoder(): Encoder<PlatformConfigArgs> {
       ['feeClaimAuthority', getAddressEncoder()],
       ['feeRates', getFeeRatesEncoder()],
       ['marketResolutionDeadlineSeconds', getU64Encoder()],
-      ['minTimeToStakeSeconds', getU64Encoder()],
+      ['minTimeToVouchSeconds', getU64Encoder()],
       ['revealAuthority', getAddressEncoder()],
       ['revealPeriodSeconds', getU64Encoder()],
     ]),
@@ -113,7 +113,7 @@ export function getPlatformConfigDecoder(): Decoder<PlatformConfig> {
     ['feeClaimAuthority', getAddressDecoder()],
     ['feeRates', getFeeRatesDecoder()],
     ['marketResolutionDeadlineSeconds', getU64Decoder()],
-    ['minTimeToStakeSeconds', getU64Decoder()],
+    ['minTimeToVouchSeconds', getU64Decoder()],
     ['revealAuthority', getAddressDecoder()],
     ['revealPeriodSeconds', getU64Decoder()],
   ]);

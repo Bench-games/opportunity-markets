@@ -20,29 +20,29 @@ import {
   type ParsedClaimFeesInstruction,
   type ParsedClaimRewardsInstruction,
   type ParsedCloseOptionAccountInstruction,
-  type ParsedCloseStakeAccountInstruction,
-  type ParsedCloseStuckStakeAccountInstruction,
-  type ParsedCloseUnrevealedStakeAccountInstruction,
+  type ParsedCloseStuckVouchAccountInstruction,
+  type ParsedCloseUnrevealedVouchAccountInstruction,
+  type ParsedCloseVouchAccountInstruction,
   type ParsedCreateMarketInstruction,
   type ParsedEndRevealPeriodInstruction,
-  type ParsedFinalizeRevealStakeInstruction,
+  type ParsedFinalizeRevealVouchInstruction,
   type ParsedInitAllowedMintInstruction,
   type ParsedInitPlatformConfigInstruction,
-  type ParsedInitStakeAccountInstruction,
+  type ParsedInitVouchAccountInstruction,
   type ParsedOpenMarketInstruction,
   type ParsedResolveMarketInstruction,
-  type ParsedRevealStakeCallbackInstruction,
-  type ParsedRevealStakeCompDefInstruction,
-  type ParsedRevealStakeInstruction,
+  type ParsedRevealVouchCallbackInstruction,
+  type ParsedRevealVouchCompDefInstruction,
+  type ParsedRevealVouchInstruction,
   type ParsedSetFeeClaimAuthorityInstruction,
   type ParsedSetUpdateAuthorityInstruction,
   type ParsedSetWinningOptionInstruction,
-  type ParsedStakeCallbackInstruction,
-  type ParsedStakeCompDefInstruction,
-  type ParsedStakeInstruction,
-  type ParsedUnstakeInstruction,
   type ParsedUpdatePlatformConfigInstruction,
+  type ParsedVouchCallbackInstruction,
+  type ParsedVouchCompDefInstruction,
+  type ParsedVouchInstruction,
   type ParsedWithdrawRewardInstruction,
+  type ParsedWithdrawVouchInstruction,
 } from '../instructions';
 
 export const OPPORTUNITY_MARKET_PROGRAM_ADDRESS =
@@ -55,7 +55,7 @@ export enum OpportunityMarketAccount {
   OpportunityMarketOption,
   OpportunityMarketSponsor,
   PlatformConfig,
-  StakeAccount,
+  VouchAccount,
 }
 
 export function identifyOpportunityMarketAccount(
@@ -132,12 +132,12 @@ export function identifyOpportunityMarketAccount(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([80, 158, 67, 124, 50, 189, 192, 255])
+        new Uint8Array([165, 230, 131, 136, 184, 203, 66, 136])
       ),
       0
     )
   ) {
-    return OpportunityMarketAccount.StakeAccount;
+    return OpportunityMarketAccount.VouchAccount;
   }
   throw new Error(
     'The provided account could not be identified as a opportunityMarket account.'
@@ -151,29 +151,29 @@ export enum OpportunityMarketInstruction {
   ClaimFees,
   ClaimRewards,
   CloseOptionAccount,
-  CloseStakeAccount,
-  CloseStuckStakeAccount,
-  CloseUnrevealedStakeAccount,
+  CloseStuckVouchAccount,
+  CloseUnrevealedVouchAccount,
+  CloseVouchAccount,
   CreateMarket,
   EndRevealPeriod,
-  FinalizeRevealStake,
+  FinalizeRevealVouch,
   InitAllowedMint,
   InitPlatformConfig,
-  InitStakeAccount,
+  InitVouchAccount,
   OpenMarket,
   ResolveMarket,
-  RevealStake,
-  RevealStakeCallback,
-  RevealStakeCompDef,
+  RevealVouch,
+  RevealVouchCallback,
+  RevealVouchCompDef,
   SetFeeClaimAuthority,
   SetUpdateAuthority,
   SetWinningOption,
-  Stake,
-  StakeCallback,
-  StakeCompDef,
-  Unstake,
   UpdatePlatformConfig,
+  Vouch,
+  VouchCallback,
+  VouchCompDef,
   WithdrawReward,
+  WithdrawVouch,
 }
 
 export function identifyOpportunityMarketInstruction(
@@ -250,34 +250,34 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([246, 236, 59, 167, 115, 135, 122, 12])
+        new Uint8Array([27, 238, 197, 24, 57, 59, 252, 18])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.CloseStakeAccount;
+    return OpportunityMarketInstruction.CloseStuckVouchAccount;
   }
   if (
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([41, 239, 108, 203, 185, 230, 165, 181])
+        new Uint8Array([192, 236, 224, 245, 5, 49, 188, 11])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.CloseStuckStakeAccount;
+    return OpportunityMarketInstruction.CloseUnrevealedVouchAccount;
   }
   if (
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([171, 229, 236, 216, 122, 118, 188, 103])
+        new Uint8Array([107, 196, 52, 68, 9, 214, 207, 109])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.CloseUnrevealedStakeAccount;
+    return OpportunityMarketInstruction.CloseVouchAccount;
   }
   if (
     containsBytes(
@@ -305,12 +305,12 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([92, 201, 94, 219, 117, 53, 255, 230])
+        new Uint8Array([1, 34, 40, 131, 236, 85, 1, 25])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.FinalizeRevealStake;
+    return OpportunityMarketInstruction.FinalizeRevealVouch;
   }
   if (
     containsBytes(
@@ -338,12 +338,12 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([132, 171, 255, 149, 163, 37, 220, 45])
+        new Uint8Array([170, 190, 149, 246, 116, 216, 171, 230])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.InitStakeAccount;
+    return OpportunityMarketInstruction.InitVouchAccount;
   }
   if (
     containsBytes(
@@ -371,34 +371,34 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([107, 229, 210, 77, 126, 255, 243, 188])
+        new Uint8Array([137, 238, 214, 30, 51, 142, 141, 105])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.RevealStake;
+    return OpportunityMarketInstruction.RevealVouch;
   }
   if (
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([79, 19, 120, 162, 232, 39, 206, 116])
+        new Uint8Array([251, 246, 6, 118, 139, 46, 136, 190])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.RevealStakeCallback;
+    return OpportunityMarketInstruction.RevealVouchCallback;
   }
   if (
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([197, 20, 216, 132, 43, 99, 64, 0])
+        new Uint8Array([176, 228, 5, 47, 19, 6, 243, 236])
       ),
       0
     )
   ) {
-    return OpportunityMarketInstruction.RevealStakeCompDef;
+    return OpportunityMarketInstruction.RevealVouchCompDef;
   }
   if (
     containsBytes(
@@ -437,50 +437,6 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([206, 176, 202, 18, 200, 209, 179, 108])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.Stake;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([40, 220, 36, 47, 6, 116, 132, 89])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.StakeCallback;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([156, 5, 60, 126, 142, 149, 1, 130])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.StakeCompDef;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([90, 95, 107, 42, 205, 124, 50, 225])
-      ),
-      0
-    )
-  ) {
-    return OpportunityMarketInstruction.Unstake;
-  }
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([195, 60, 76, 129, 146, 45, 67, 143])
       ),
       0
@@ -492,12 +448,56 @@ export function identifyOpportunityMarketInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([87, 240, 8, 21, 219, 179, 242, 177])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.Vouch;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([10, 0, 52, 15, 179, 148, 194, 135])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.VouchCallback;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([138, 27, 95, 181, 9, 219, 232, 219])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.VouchCompDef;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([191, 187, 176, 137, 9, 25, 187, 244])
       ),
       0
     )
   ) {
     return OpportunityMarketInstruction.WithdrawReward;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([201, 33, 64, 226, 252, 193, 27, 83])
+      ),
+      0
+    )
+  ) {
+    return OpportunityMarketInstruction.WithdrawVouch;
   }
   throw new Error(
     'The provided instruction could not be identified as a opportunityMarket instruction.'
@@ -526,14 +526,14 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.CloseOptionAccount;
     } & ParsedCloseOptionAccountInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.CloseStakeAccount;
-    } & ParsedCloseStakeAccountInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.CloseStuckVouchAccount;
+    } & ParsedCloseStuckVouchAccountInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.CloseStuckStakeAccount;
-    } & ParsedCloseStuckStakeAccountInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.CloseUnrevealedVouchAccount;
+    } & ParsedCloseUnrevealedVouchAccountInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.CloseUnrevealedStakeAccount;
-    } & ParsedCloseUnrevealedStakeAccountInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.CloseVouchAccount;
+    } & ParsedCloseVouchAccountInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.CreateMarket;
     } & ParsedCreateMarketInstruction<TProgram>)
@@ -541,8 +541,8 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.EndRevealPeriod;
     } & ParsedEndRevealPeriodInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.FinalizeRevealStake;
-    } & ParsedFinalizeRevealStakeInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.FinalizeRevealVouch;
+    } & ParsedFinalizeRevealVouchInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.InitAllowedMint;
     } & ParsedInitAllowedMintInstruction<TProgram>)
@@ -550,8 +550,8 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.InitPlatformConfig;
     } & ParsedInitPlatformConfigInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.InitStakeAccount;
-    } & ParsedInitStakeAccountInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.InitVouchAccount;
+    } & ParsedInitVouchAccountInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.OpenMarket;
     } & ParsedOpenMarketInstruction<TProgram>)
@@ -559,14 +559,14 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.ResolveMarket;
     } & ParsedResolveMarketInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.RevealStake;
-    } & ParsedRevealStakeInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.RevealVouch;
+    } & ParsedRevealVouchInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.RevealStakeCallback;
-    } & ParsedRevealStakeCallbackInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.RevealVouchCallback;
+    } & ParsedRevealVouchCallbackInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.RevealStakeCompDef;
-    } & ParsedRevealStakeCompDefInstruction<TProgram>)
+      instructionType: OpportunityMarketInstruction.RevealVouchCompDef;
+    } & ParsedRevealVouchCompDefInstruction<TProgram>)
   | ({
       instructionType: OpportunityMarketInstruction.SetFeeClaimAuthority;
     } & ParsedSetFeeClaimAuthorityInstruction<TProgram>)
@@ -577,20 +577,20 @@ export type ParsedOpportunityMarketInstruction<
       instructionType: OpportunityMarketInstruction.SetWinningOption;
     } & ParsedSetWinningOptionInstruction<TProgram>)
   | ({
-      instructionType: OpportunityMarketInstruction.Stake;
-    } & ParsedStakeInstruction<TProgram>)
-  | ({
-      instructionType: OpportunityMarketInstruction.StakeCallback;
-    } & ParsedStakeCallbackInstruction<TProgram>)
-  | ({
-      instructionType: OpportunityMarketInstruction.StakeCompDef;
-    } & ParsedStakeCompDefInstruction<TProgram>)
-  | ({
-      instructionType: OpportunityMarketInstruction.Unstake;
-    } & ParsedUnstakeInstruction<TProgram>)
-  | ({
       instructionType: OpportunityMarketInstruction.UpdatePlatformConfig;
     } & ParsedUpdatePlatformConfigInstruction<TProgram>)
   | ({
+      instructionType: OpportunityMarketInstruction.Vouch;
+    } & ParsedVouchInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.VouchCallback;
+    } & ParsedVouchCallbackInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.VouchCompDef;
+    } & ParsedVouchCompDefInstruction<TProgram>)
+  | ({
       instructionType: OpportunityMarketInstruction.WithdrawReward;
-    } & ParsedWithdrawRewardInstruction<TProgram>);
+    } & ParsedWithdrawRewardInstruction<TProgram>)
+  | ({
+      instructionType: OpportunityMarketInstruction.WithdrawVouch;
+    } & ParsedWithdrawVouchInstruction<TProgram>);

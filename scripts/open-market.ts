@@ -25,9 +25,9 @@ const PROGRAM_ID = address(process.env.PROGRAM_ID);
 const RPC_URL = process.env.RPC_URL;
 
 const MARKET_ADDRESS = process.argv[2];
-const TIME_TO_STAKE = process.argv[3];
-if (!MARKET_ADDRESS || !TIME_TO_STAKE) {
-  console.error("Usage: npx tsx scripts/open-market.ts <MARKET_ADDRESS> <TIME_TO_STAKE_SECONDS>");
+const TIME_TO_VOUCH = process.argv[3];
+if (!MARKET_ADDRESS || !TIME_TO_VOUCH) {
+  console.error("Usage: npx tsx scripts/open-market.ts <MARKET_ADDRESS> <TIME_TO_VOUCH_SECONDS>");
   process.exit(1);
 }
 
@@ -65,7 +65,7 @@ async function main() {
   const rpc = createSolanaRpc(RPC_URL);
 
   const marketAddress = address(MARKET_ADDRESS);
-  const timeToStake = BigInt(TIME_TO_STAKE);
+  const timeToVouch = BigInt(TIME_TO_VOUCH);
 
   const marketAccount = await fetchOpportunityMarket(rpc, marketAddress);
 
@@ -73,13 +73,13 @@ async function main() {
   console.log(`Payer:          ${payer.address}`);
   console.log(`Market:         ${marketAddress}`);
   console.log(`Platform cfg:   ${marketAccount.data.platform}`);
-  console.log(`Time to stake:  ${timeToStake}s`);
+  console.log(`Time to vouch:  ${timeToVouch}s`);
 
   const ix = openMarket({
     marketAuthority: payer,
     market: marketAddress,
     platformConfig: marketAccount.data.platform,
-    timeToStake,
+    timeToVouch,
     programAddress: PROGRAM_ID,
   });
 

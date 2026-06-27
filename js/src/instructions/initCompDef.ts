@@ -16,8 +16,8 @@ import {
 } from "@arcium-hq/client";
 import { PublicKey } from "@solana/web3.js";
 import {
-  getStakeCompDefInstruction,
-  getRevealStakeCompDefInstruction,
+  getVouchCompDefInstruction,
+  getRevealVouchCompDefInstruction,
   OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   getMXEAccountDecoder,
 } from "../generated";
@@ -25,12 +25,12 @@ import { BN } from "bn.js";
 import { type BaseInstructionParams } from "./instructionParams";
 
 export type CompDefCircuitName =
-  | "stake"
-  | "reveal_stake";
+  | "vouch"
+  | "reveal_vouch";
 
 export const ALL_COMP_DEF_CIRCUITS: CompDefCircuitName[] = [
-  "stake",
-  "reveal_stake",
+  "vouch",
+  "reveal_vouch",
 ];
 
 
@@ -90,11 +90,11 @@ export async function getInitCompDefInstruction(
   };
 
   switch (circuitName) {
-    case "stake":
-      return getStakeCompDefInstruction(baseInput, { programAddress: programId });
+    case "vouch":
+      return getVouchCompDefInstruction(baseInput, { programAddress: programId });
 
-    case "reveal_stake":
-      return getRevealStakeCompDefInstruction(baseInput, { programAddress: programId });
+    case "reveal_vouch":
+      return getRevealVouchCompDefInstruction(baseInput, { programAddress: programId });
 
     default:
       throw new Error(`Unknown circuit: ${circuitName}`);

@@ -18,7 +18,7 @@ export interface CreateMarketParams extends BaseInstructionParams {
   authorizedReaderPubkey: ByteArray;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
-  minStakeAmount: bigint;
+  minVouchAmount: bigint;
   creatorFeeClaimer: Address;
 }
 
@@ -36,7 +36,7 @@ export async function createMarket(
     authorizedReaderPubkey,
     earlinessCutoffSeconds,
     earlinessMultiplier,
-    minStakeAmount,
+    minVouchAmount,
     creatorFeeClaimer,
   } = input;
 
@@ -61,7 +61,7 @@ export async function createMarket(
         authorizedReaderPubkey: toNumberArray(authorizedReaderPubkey),
         earlinessCutoffSeconds,
         earlinessMultiplier,
-        minStakeAmount,
+        minVouchAmount,
         creatorFeeClaimer,
       },
     },

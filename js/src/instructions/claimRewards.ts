@@ -8,7 +8,7 @@ import { type BaseInstructionParams } from "./instructionParams";
 export interface ClaimRewardsParams extends BaseInstructionParams {
   owner: TransactionSigner;
   market: Address;
-  stakeAccount: Address;
+  vouchAccount: Address;
   option: Address;
   tokenMint: Address;
   ownerTokenAccount: Address;

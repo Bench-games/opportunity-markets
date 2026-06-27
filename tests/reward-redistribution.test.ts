@@ -12,7 +12,7 @@ import { generateX25519Keypair } from "../js/src/x25519/keypair";
 const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "http://127.0.0.1:8899";
 const WS_URL = RPC_URL.replace("http", "ws").replace(":8899", ":8900");
 
-describe("Redistributes rewards in unstaked options", () => {
+describe("Redistributes rewards in vouch-withdrawn options", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.OpportunityMarket as Program<OpportunityMarket>;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
@@ -36,7 +36,7 @@ describe("Redistributes rewards in unstaked options", () => {
       initialTokenAmount: 2_000_000_000n,
       marketConfig: {
         rewardAmount: 1_000_000n,
-        timeToStake: 8n,
+        timeToVouch: 8n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -46,38 +46,38 @@ describe("Redistributes rewards in unstaked options", () => {
     const { optionId: optA } = await platform.addOption();
     const { optionId: optB } = await platform.addOption();
 
-    const [saA1, saA2, saB] = await platform.stakeOnOptionBatch([
+    const [saA1, saA2, saB] = await platform.vouchOnOptionBatch([
       { userId: user, amount: 1000n, optionId: optA },
       { userId: user, amount: 2000n, optionId: optA },
       { userId: user, amount: 3000n, optionId: optB },
     ]);
 
-    await platform.waitForStakeEnd();
+    await platform.waitForVouchEnd();
     await platform.selectWinningOptions([
       { optionId: optA, rewardBp: 6000 },
       { optionId: optB, rewardBp: 4000 },
     ]);
 
-    await platform.revealStakeBatch([
-      { userId: user, stakeAccountId: saA1 },
-      { userId: user, stakeAccountId: saA2 },
-      { userId: user, stakeAccountId: saB },
+    await platform.revealVouchBatch([
+      { userId: user, vouchAccountId: saA1 },
+      { userId: user, vouchAccountId: saA2 },
+      { userId: user, vouchAccountId: saB },
     ]);
 
     let market = await platform.fetchMarket();
     expect(market.data.winningOptionActiveBp).to.equal(0);
 
-    await platform.finalizeRevealStake(user, optA, saA1);
+    await platform.finalizeRevealVouch(user, optA, saA1);
     market = await platform.fetchMarket();
     expect(market.data.winningOptionActiveBp).to.equal(6000);
     const optAData = await platform.fetchOptionData(optA);
     expect(optAData.data.includedInActiveBp).to.be.true;
 
-    await platform.finalizeRevealStake(user, optA, saA2);
+    await platform.finalizeRevealVouch(user, optA, saA2);
     market = await platform.fetchMarket();
     expect(market.data.winningOptionActiveBp).to.equal(6000);
 
-    await platform.finalizeRevealStake(user, optB, saB);
+    await platform.finalizeRevealVouch(user, optB, saB);
     market = await platform.fetchMarket();
     expect(market.data.winningOptionActiveBp).to.equal(10_000);
     expect((await platform.fetchOptionData(optB)).data.includedInActiveBp).to.be.true;
@@ -98,7 +98,7 @@ describe("Redistributes rewards in unstaked options", () => {
       rewardPoolFeeBp: 0,
       marketConfig: {
         rewardAmount,
-        timeToStake: 8n,
+        timeToVouch: 8n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -108,27 +108,27 @@ describe("Redistributes rewards in unstaked options", () => {
     const { optionId: optA } = await platform.addOption();
     const { optionId: optC } = await platform.addOption();
 
-    const saA = await platform.stakeOnOption(user, 50_000_000n, optA);
+    const saA = await platform.vouchOnOption(user, 50_000_000n, optA);
 
-    await platform.waitForStakeEnd();
+    await platform.waitForVouchEnd();
     await platform.selectWinningOptions([
       { optionId: optA, rewardBp: 6000 },
       { optionId: optC, rewardBp: 4000 },
     ]);
 
-    await platform.revealStake(user, saA);
-    await platform.finalizeRevealStake(user, optA, saA);
+    await platform.revealVouch(user, saA);
+    await platform.finalizeRevealVouch(user, optA, saA);
 
     const market = await platform.fetchMarket();
     expect(market.data.winningOptionActiveBp).to.equal(6000);
     expect((await platform.fetchOptionData(optC)).data.includedInActiveBp).to.be.false;
 
-    await platform.unstake(user, saA);
+    await platform.withdrawVouch(user, saA);
     await platform.endRevealPeriod();
 
     const rpc = platform.getRpc();
     const before = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
-    await platform.closeStakeAccount(user, optA, saA);
+    await platform.closeVouchAccount(user, optA, saA);
     const after = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
 
     // A=60% / C=40% winners; only A finalized → active_bp=6000 → full 1B pool (not 600M).
@@ -146,7 +146,7 @@ describe("Redistributes rewards in unstaked options", () => {
       initialTokenAmount: 2_000_000_000n,
       marketConfig: {
         rewardAmount: 1_000_000n,
-        timeToStake: 5n,
+        timeToVouch: 5n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -155,20 +155,20 @@ describe("Redistributes rewards in unstaked options", () => {
     await platform.openMarket();
     const { optionId: optWinnerA } = await platform.addOption();
     const { optionId: optWinnerB } = await platform.addOption();
-    const { optionId: optStaked } = await platform.addOption();
+    const { optionId: optVouched } = await platform.addOption();
 
-    await platform.stakeOnOption(user, 1000n, optStaked);
+    await platform.vouchOnOption(user, 1000n, optVouched);
 
-    await platform.waitForStakeEnd();
+    await platform.waitForVouchEnd();
     await platform.selectWinningOptions([
       { optionId: optWinnerA, rewardBp: 5000 },
       { optionId: optWinnerB, rewardBp: 5000 },
     ]);
 
-    const sa = platform.getUserStakeAccountsForOption(user, optStaked)[0].id;
-    await platform.revealStake(user, sa);
+    const sa = platform.getUserVouchAccountsForOption(user, optVouched)[0].id;
+    await platform.revealVouch(user, sa);
     // Finalize on non-winner does not bump active_bp
-    await platform.finalizeRevealStake(user, optStaked, sa);
+    await platform.finalizeRevealVouch(user, optVouched, sa);
 
     expect((await platform.fetchMarket()).data.winningOptionActiveBp).to.equal(0);
 
@@ -176,8 +176,8 @@ describe("Redistributes rewards in unstaked options", () => {
 
     expect((await platform.fetchMarket()).data.revealEnded).to.be.true;
 
-    await platform.unstake(user, sa);
-    await platform.closeStakeAccount(user, optStaked, sa);
+    await platform.withdrawVouch(user, sa);
+    await platform.closeVouchAccount(user, optVouched, sa);
   });
 
   it("clears a winner with reward_bp 0 and reassigns allocation", async () => {
@@ -190,7 +190,7 @@ describe("Redistributes rewards in unstaked options", () => {
       initialTokenAmount: 2_000_000_000n,
       marketConfig: {
         rewardAmount: 0n,
-        timeToStake: 5n,
+        timeToVouch: 5n,
         authorizedReaderPubkey: observer.publicKey,
       },
     });
@@ -199,7 +199,7 @@ describe("Redistributes rewards in unstaked options", () => {
     const { optionId: optA } = await platform.addOption();
     const { optionId: optB } = await platform.addOption();
 
-    await platform.waitForStakeEnd();
+    await platform.waitForVouchEnd();
     await platform.setWinningOption(optA, 10_000);
     let market = await platform.fetchMarket();
     expect(market.data.winningOptionAllocation).to.equal(10_000);

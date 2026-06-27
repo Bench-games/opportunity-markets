@@ -32,27 +32,27 @@ import {
   randomComputationOffset,
   createPlatformConfig,
   addMarketOption,
-  initStakeAccount,
+  initVouchAccount,
   initAllowedMint,
-  stake as stakeIx,
+  vouch as vouchIx,
   setWinningOption as setWinningOptionIx,
   resolveMarket as resolveMarketIx,
-  revealStake,
-  finalizeRevealStake,
+  revealVouch,
+  finalizeRevealVouch,
   claimRewards,
-  closeStakeAccount,
-  closeUnrevealedStakeAccount,
+  closeVouchAccount,
+  closeUnrevealedVouchAccount,
   closeOptionAccount,
-  closeStuckStakeAccount as closeStuckStakeAccountIx,
-  unstake as unstakeIx,
+  closeStuckVouchAccount as closeStuckVouchAccountIx,
+  withdrawVouch as withdrawVouchIx,
   openMarket as openMarketIx,
   addReward as addRewardIx,
   withdrawReward as withdrawRewardIx,
   endRevealPeriod as endRevealPeriodIx,
-  awaitStakeFinalization,
-  awaitRevealStakeFinalization,
-  getStakeAccountAddress as getStakeAccountAddressPda,
-  fetchStakeAccount,
+  awaitVouchFinalization,
+  awaitRevealVouchFinalization,
+  getVouchAccountAddress as getVouchAccountAddressPda,
+  fetchVouchAccount,
   getOpportunityMarketOptionAddress,
   fetchOpportunityMarketOption,
   getOpportunityMarketAddress,
@@ -67,15 +67,15 @@ import { nonceToBytes } from "./nonce";
 import { getDeployerKeypair } from "./deployer";
 import { sleepUntilOnChainTimestamp } from "./sleep";
 
-// Selection phase requires on-chain now >= staking_window_end; poll the validator
-// clock rather than wall time so phase guards see the post-staking window.
-const STAKE_END_BUFFER_SECONDS = 1;
+// Selection phase requires on-chain now >= vouching_window_end; poll the validator
+// clock rather than wall time so phase guards see the post-vouching window.
+const VOUCH_END_BUFFER_SECONDS = 1;
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface StakeAccountInfo {
+export interface VouchAccountInfo {
   id: number;
   amount: bigint;
   optionId: number;
@@ -89,17 +89,17 @@ interface TestUser {
   solanaKeypair: KeyPairSigner;
   x25519Keypair: X25519Keypair;
   tokenAccount: Address;
-  stakeAccounts: StakeAccountInfo[];
-  nextStakeAccountId: number;
+  vouchAccounts: VouchAccountInfo[];
+  nextVouchAccountId: number;
 }
 
 interface MarketConfig {
   rewardAmount: bigint;
-  timeToStake: bigint;
+  timeToVouch: bigint;
   authorizedReaderPubkey: Uint8Array;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
-  minStakeAmount: bigint;
+  minVouchAmount: bigint;
   marketFeeClaimer?: Address;
 }
 
@@ -120,7 +120,7 @@ export interface PlatformConfigArgs {
 }
 
 // Batch input types
-export interface StakePurchase {
+export interface VouchPurchase {
   userId: Address;
   amount: bigint;
   optionId: number;
@@ -128,25 +128,25 @@ export interface StakePurchase {
 
 export interface RevealRequest {
   userId: Address;
-  stakeAccountId: number;
+  vouchAccountId: number;
 }
 
-export interface UnstakeRequest {
+export interface WithdrawVouchRequest {
   userId: Address;
-  stakeAccountId: number;
+  vouchAccountId: number;
   signerId?: Address;
 }
 
 export interface TallyIncrement {
   userId: Address;
   optionId: number;
-  stakeAccountId: number;
+  vouchAccountId: number;
 }
 
 export interface CloseRequest {
   userId: Address;
   optionId: number;
-  stakeAccountId: number;
+  vouchAccountId: number;
 }
 
 // ============================================================================
@@ -169,11 +169,11 @@ const DEFAULT_CONFIG: Required<Omit<PlatformConfigArgs, "name">> = {
   revealAuthority: undefined as unknown as Address,
   marketConfig: {
     rewardAmount: 1_000_000_000n,
-    // Short by design so tests can wait through the stake window quickly.
-    timeToStake: 10n,
+    // Short by design so tests can wait through the vouch window quickly.
+    timeToVouch: 10n,
     earlinessCutoffSeconds: 60n,
     earlinessMultiplier: 10_000,
-    minStakeAmount: 1n,
+    minVouchAmount: 1n,
   },
 };
 
@@ -233,7 +233,7 @@ export class Platform {
   private marketCreator: TestUser;
   private marketConfig: MarketConfig;
   private usedOptionIds: Set<number>;
-  private stakeEndTimestamp: bigint | null = null;
+  private vouchEndTimestamp: bigint | null = null;
 
   // Users: Map<address string, TestUser>
   private users: Map<string, TestUser>;
@@ -338,7 +338,7 @@ export class Platform {
       creatorFeeBp,
       feeClaimAuthority: creatorAccountBase.keypair.address,
       revealAuthority: resolvedRevealAuthority,
-      minTimeToStakeSeconds: 1n,
+      minTimeToVouchSeconds: 1n,
       revealPeriodSeconds,
       marketResolutionDeadlineSeconds,
     });
@@ -403,8 +403,8 @@ export class Platform {
         solanaKeypair: acc.keypair,
         x25519Keypair: acc.x25519Keypair,
         tokenAccount: acc.tokenAccount,
-        stakeAccounts: [],
-        nextStakeAccountId: 0,
+        vouchAccounts: [],
+        nextVouchAccountId: 0,
       };
       runner.users.set(acc.keypair.address.toString(), user);
     }
@@ -415,8 +415,8 @@ export class Platform {
       solanaKeypair: creatorAcc.keypair,
       x25519Keypair: creatorAcc.x25519Keypair,
       tokenAccount: creatorAcc.tokenAccount,
-      stakeAccounts: [],
-      nextStakeAccountId: 0,
+      vouchAccounts: [],
+      nextVouchAccountId: 0,
     };
     // Also add creator to users map so they can be looked up
     runner.users.set(creatorAcc.keypair.address.toString(), runner.marketCreator);
@@ -435,7 +435,7 @@ export class Platform {
       authorizedReaderPubkey: marketConfig.authorizedReaderPubkey,
       earlinessCutoffSeconds: marketConfig.earlinessCutoffSeconds,
       earlinessMultiplier: marketConfig.earlinessMultiplier,
-      minStakeAmount: marketConfig.minStakeAmount,
+      minVouchAmount: marketConfig.minVouchAmount,
       creatorFeeClaimer:
         marketConfig.marketFeeClaimer ?? runner.marketCreator.solanaKeypair.address,
     });
@@ -504,12 +504,12 @@ export class Platform {
     };
   }
 
-  private getNextStakeAccountId(user: TestUser): number {
-    return user.nextStakeAccountId++;
+  private getNextVouchAccountId(user: TestUser): number {
+    return user.nextVouchAccountId++;
   }
 
-  private addStakeAccount(user: TestUser, info: StakeAccountInfo): void {
-    user.stakeAccounts.push(info);
+  private addVouchAccount(user: TestUser, info: VouchAccountInfo): void {
+    user.vouchAccounts.push(info);
   }
 
   // ============================================================================
@@ -542,7 +542,7 @@ export class Platform {
       marketAuthority: this.marketCreator.solanaKeypair,
       market: this.marketAddress,
       platformConfig: this.platformConfigAddress,
-      timeToStake: this.marketConfig.timeToStake,
+      timeToVouch: this.marketConfig.timeToVouch,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, this.marketCreator.solanaKeypair, [ix], {
@@ -550,12 +550,12 @@ export class Platform {
     });
 
     const market = await this.fetchMarket();
-    const stakeEnd = unwrapOption(market.data.stakingWindowEnd);
-    if (stakeEnd === null) {
-      throw new Error("Market did not record stake_end_timestamp after open_market");
+    const vouchEnd = unwrapOption(market.data.vouchingWindowEnd);
+    if (vouchEnd === null) {
+      throw new Error("Market did not record vouch_end_timestamp after open_market");
     }
-    this.stakeEndTimestamp = stakeEnd;
-    return stakeEnd;
+    this.vouchEndTimestamp = vouchEnd;
+    return vouchEnd;
   }
 
   async selectWinningOptions(
@@ -692,13 +692,13 @@ export class Platform {
   }
 
   // ============================================================================
-  // Stake Operations
+  // Vouch Operations
   // ============================================================================
 
-  async stakeOnOptionBatch(
-    purchases: StakePurchase[]
+  async vouchOnOptionBatch(
+    purchases: VouchPurchase[]
   ): Promise<number[]> {
-    const purchasesByUser = new Map<string, { purchase: StakePurchase; originalIndex: number }[]>();
+    const purchasesByUser = new Map<string, { purchase: VouchPurchase; originalIndex: number }[]>();
     for (let i = 0; i < purchases.length; i++) {
       const p = purchases[i];
       const key = p.userId.toString();
@@ -708,54 +708,54 @@ export class Platform {
       purchasesByUser.get(key)!.push({ purchase: p, originalIndex: i });
     }
 
-    const results: { stakeAccountId: number; originalIndex: number }[] = [];
+    const results: { vouchAccountId: number; originalIndex: number }[] = [];
 
-    // Queue all stake txs while the on-chain staking window is open, then await MPC
-    // callbacks in parallel. Sequential await-per-stake can exceed short timeToStake values.
+    // Queue all vouch txs while the on-chain vouching window is open, then await MPC
+    // callbacks in parallel. Sequential await-per-vouch can exceed short timeToVouch values.
     await Promise.all(
       Array.from(purchasesByUser.entries()).map(async ([_userId, userPurchases]) => {
-        type PendingStake = {
+        type PendingVouch = {
           user: ReturnType<Platform["getUser"]>;
-          purchase: StakePurchase;
+          purchase: VouchPurchase;
           originalIndex: number;
-          stakeAccountId: number;
-          stakeAccountAddress: Awaited<ReturnType<typeof getStakeAccountAddressPda>>[0];
+          vouchAccountId: number;
+          vouchAccountAddress: Awaited<ReturnType<typeof getVouchAccountAddressPda>>[0];
           computationOffset: bigint;
           invocationSignature: Signature;
         };
-        const pending: PendingStake[] = [];
+        const pending: PendingVouch[] = [];
 
         for (const { purchase: p, originalIndex } of userPurchases) {
           const user = this.getUser(p.userId);
 
           const cipher = createCipher(user.x25519Keypair.secretKey, this.mxePublicKey);
-          const stakeAccountId = this.getNextStakeAccountId(user);
-          const stakeAccountNonce = deserializeLE(randomBytes(16));
+          const vouchAccountId = this.getNextVouchAccountId(user);
+          const vouchAccountNonce = deserializeLE(randomBytes(16));
 
-          const [stakeAccountAddress] = await getStakeAccountAddressPda(
+          const [vouchAccountAddress] = await getVouchAccountAddressPda(
             p.userId,
             this.marketAddress,
-            stakeAccountId,
+            vouchAccountId,
           );
 
-          const initIx = await initStakeAccount({
+          const initIx = await initVouchAccount({
             payer: user.solanaKeypair,
             owner: user.solanaKeypair.address,
             market: this.marketAddress,
-            stakeAccountId,
+            vouchAccountId,
           });
 
           const inputNonce = randomBytes(16);
           const optionCiphertext = cipher.encrypt([BigInt(p.optionId)], inputNonce);
           const computationOffset = randomComputationOffset();
 
-          const stakeInstruction = await stakeIx(
+          const vouchInstruction = await vouchIx(
             {
               signer: user.solanaKeypair,
               payer: user.solanaKeypair,
               market: this.marketAddress,
-              stakeAccount: stakeAccountAddress,
-              stakeAccountId,
+              vouchAccount: vouchAccountAddress,
+              vouchAccountId,
               tokenMint: this.mint.address,
               signerTokenAccount: user.tokenAccount,
               tokenProgram: TOKEN_PROGRAM_ADDRESS,
@@ -764,7 +764,7 @@ export class Platform {
               inputNonce: deserializeLE(inputNonce),
               authorizedReaderNonce: deserializeLE(randomBytes(16)),
               userPubkey: user.x25519Keypair.publicKey,
-              stateNonce: stakeAccountNonce,
+              stateNonce: vouchAccountNonce,
             },
             this.getArciumConfig(computationOffset),
           );
@@ -773,16 +773,16 @@ export class Platform {
             this.rpc,
             this.sendAndConfirm,
             user.solanaKeypair,
-            [initIx, stakeInstruction],
-            { label: "Stake on option" },
+            [initIx, vouchInstruction],
+            { label: "Vouch on option" },
           );
 
           pending.push({
             user,
             purchase: p,
             originalIndex,
-            stakeAccountId,
-            stakeAccountAddress,
+            vouchAccountId,
+            vouchAccountAddress,
             computationOffset,
             invocationSignature,
           });
@@ -790,29 +790,29 @@ export class Platform {
 
         await Promise.all(
           pending.map(async (entry) => {
-            await awaitStakeFinalization(
+            await awaitVouchFinalization(
               this.rpc,
               entry.invocationSignature,
               this.getArciumConfig(entry.computationOffset),
             );
 
-            const stakeAccountData = await fetchStakeAccount(
+            const vouchAccountData = await fetchVouchAccount(
               this.rpc,
-              entry.stakeAccountAddress,
+              entry.vouchAccountAddress,
             );
 
-            this.addStakeAccount(entry.user, {
-              id: entry.stakeAccountId,
+            this.addVouchAccount(entry.user, {
+              id: entry.vouchAccountId,
               amount: entry.purchase.amount,
               optionId: entry.purchase.optionId,
-              encryptedOption: stakeAccountData.data.encryptedOption,
-              stateNonce: stakeAccountData.data.stateNonce,
-              encryptedOptionDisclosure: stakeAccountData.data.encryptedOptionDisclosure,
-              stateNonceDisclosure: stakeAccountData.data.stateNonceDisclosure,
+              encryptedOption: vouchAccountData.data.encryptedOption,
+              stateNonce: vouchAccountData.data.stateNonce,
+              encryptedOptionDisclosure: vouchAccountData.data.encryptedOptionDisclosure,
+              stateNonceDisclosure: vouchAccountData.data.stateNonceDisclosure,
             });
 
             results.push({
-              stakeAccountId: entry.stakeAccountId,
+              vouchAccountId: entry.vouchAccountId,
               originalIndex: entry.originalIndex,
             });
           }),
@@ -821,38 +821,38 @@ export class Platform {
     );
 
     results.sort((a, b) => a.originalIndex - b.originalIndex);
-    return results.map((r) => r.stakeAccountId);
+    return results.map((r) => r.vouchAccountId);
   }
 
-  async stakeOnOption(
+  async vouchOnOption(
     userId: Address,
     amount: bigint,
     optionId: number
   ): Promise<number> {
-    const [stakeAccountId] = await this.stakeOnOptionBatch([{ userId, amount, optionId }]);
-    return stakeAccountId;
+    const [vouchAccountId] = await this.vouchOnOptionBatch([{ userId, amount, optionId }]);
+    return vouchAccountId;
   }
 
-  async revealStakeBatch(reveals: RevealRequest[]): Promise<void> {
+  async revealVouchBatch(reveals: RevealRequest[]): Promise<void> {
     for (const r of reveals) {
       const user = this.getUser(r.userId);
       const computationOffset = randomComputationOffset();
 
-      const ix = await revealStake(
+      const ix = await revealVouch(
         {
           signer: user.solanaKeypair,
           owner: user.solanaKeypair.address,
           market: this.marketAddress,
-          stakeAccountId: r.stakeAccountId,
+          vouchAccountId: r.vouchAccountId,
         },
         this.getArciumConfig(computationOffset)
       );
 
       const { signature } = await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
-        label: `Reveal stake`,
+        label: `Reveal vouch`,
       });
 
-      await awaitRevealStakeFinalization(
+      await awaitRevealVouchFinalization(
         this.rpc,
         signature,
         this.getArciumConfig(computationOffset),
@@ -860,20 +860,20 @@ export class Platform {
     }
   }
 
-  async revealStake(userId: Address, stakeAccountId: number): Promise<void> {
-    await this.revealStakeBatch([{ userId, stakeAccountId }]);
+  async revealVouch(userId: Address, vouchAccountId: number): Promise<void> {
+    await this.revealVouchBatch([{ userId, vouchAccountId }]);
   }
 
-  async finalizeRevealStakeBatch(increments: TallyIncrement[]): Promise<void> {
+  async finalizeRevealVouchBatch(increments: TallyIncrement[]): Promise<void> {
     const instructions = await Promise.all(
       increments.map(async (inc) => {
         const user = this.getUser(inc.userId);
-        const ix = await finalizeRevealStake({
+        const ix = await finalizeRevealVouch({
           signer: user.solanaKeypair,
           owner: user.solanaKeypair.address,
           market: this.marketAddress,
           optionId: inc.optionId,
-          stakeAccountId: inc.stakeAccountId,
+          vouchAccountId: inc.vouchAccountId,
         });
         return { user, ix };
       })
@@ -881,57 +881,57 @@ export class Platform {
 
     for (const data of instructions) {
       await sendTransaction(this.rpc, this.sendAndConfirm, data.user.solanaKeypair, [data.ix], {
-        label: `Finalize reveal stake`,
+        label: `Finalize reveal vouch`,
       });
     }
   }
 
-  async finalizeRevealStake(userId: Address, optionId: number, stakeAccountId: number): Promise<void> {
-    await this.finalizeRevealStakeBatch([{ userId, optionId, stakeAccountId }]);
+  async finalizeRevealVouch(userId: Address, optionId: number, vouchAccountId: number): Promise<void> {
+    await this.finalizeRevealVouchBatch([{ userId, optionId, vouchAccountId }]);
   }
 
-  private async getStakeSettlementAccounts(
+  private async getVouchSettlementAccounts(
     userId: Address,
     optionId: number,
-    stakeAccountId: number
+    vouchAccountId: number
   ): Promise<{
     user: TestUser;
-    stakeAccount: Awaited<ReturnType<typeof getStakeAccountAddressPda>>[0];
+    vouchAccount: Awaited<ReturnType<typeof getVouchAccountAddressPda>>[0];
     option: Awaited<ReturnType<typeof getOpportunityMarketOptionAddress>>[0];
   }> {
     const user = this.getUser(userId);
-    const [stakeAccount] = await getStakeAccountAddressPda(
+    const [vouchAccount] = await getVouchAccountAddressPda(
       userId,
       this.marketAddress,
-      stakeAccountId
+      vouchAccountId
     );
     const [option] = await getOpportunityMarketOptionAddress(this.marketAddress, optionId);
-    return { user, stakeAccount, option };
+    return { user, vouchAccount, option };
   }
 
-  private stakeNeedsRewardClaim(
-    stake: Awaited<ReturnType<typeof fetchStakeAccount>>,
+  private vouchNeedsRewardClaim(
+    vouch: Awaited<ReturnType<typeof fetchVouchAccount>>,
     option: Awaited<ReturnType<typeof fetchOpportunityMarketOption>>
   ): boolean {
     return (
       option.data.rewardBp > 0 &&
-      !isNone(stake.data.score) &&
-      !stake.data.rewardsClaimed
+      !isNone(vouch.data.score) &&
+      !vouch.data.rewardsClaimed
     );
   }
 
   async claimRewardsBatch(claims: CloseRequest[]): Promise<void> {
     const instructions = await Promise.all(
       claims.map(async (claim) => {
-        const { user, stakeAccount, option } = await this.getStakeSettlementAccounts(
+        const { user, vouchAccount, option } = await this.getVouchSettlementAccounts(
           claim.userId,
           claim.optionId,
-          claim.stakeAccountId
+          claim.vouchAccountId
         );
         const ix = await claimRewards({
           owner: user.solanaKeypair,
           market: this.marketAddress,
-          stakeAccount,
+          vouchAccount,
           option,
           tokenMint: this.mint.address,
           ownerTokenAccount: user.tokenAccount,
@@ -948,22 +948,22 @@ export class Platform {
     }
   }
 
-  async claimRewards(userId: Address, optionId: number, stakeAccountId: number): Promise<void> {
-    await this.claimRewardsBatch([{ userId, optionId, stakeAccountId }]);
+  async claimRewards(userId: Address, optionId: number, vouchAccountId: number): Promise<void> {
+    await this.claimRewardsBatch([{ userId, optionId, vouchAccountId }]);
   }
 
-  async closeRevealedStakeAccountBatch(closes: CloseRequest[]): Promise<void> {
+  async closeRevealedVouchAccountBatch(closes: CloseRequest[]): Promise<void> {
     const instructions = await Promise.all(
       closes.map(async (close) => {
-        const { user, stakeAccount, option } = await this.getStakeSettlementAccounts(
+        const { user, vouchAccount, option } = await this.getVouchSettlementAccounts(
           close.userId,
           close.optionId,
-          close.stakeAccountId
+          close.vouchAccountId
         );
-        const ix = await closeStakeAccount({
+        const ix = await closeVouchAccount({
           owner: user.solanaKeypair,
           market: this.marketAddress,
-          stakeAccount,
+          vouchAccount,
           option,
           tokenMint: this.mint.address,
           ownerTokenAccount: user.tokenAccount,
@@ -975,24 +975,24 @@ export class Platform {
 
     for (const data of instructions) {
       await sendTransaction(this.rpc, this.sendAndConfirm, data.user.solanaKeypair, [data.ix], {
-        label: `Close stake account`,
+        label: `Close vouch account`,
       });
     }
   }
 
-  async closeUnrevealedStakeAccountBatch(closes: Array<{ userId: Address; stakeAccountId: number }>): Promise<void> {
+  async closeUnrevealedVouchAccountBatch(closes: Array<{ userId: Address; vouchAccountId: number }>): Promise<void> {
     const instructions = await Promise.all(
       closes.map(async (close) => {
         const user = this.getUser(close.userId);
-        const [stakeAccount] = await getStakeAccountAddressPda(
+        const [vouchAccount] = await getVouchAccountAddressPda(
           close.userId,
           this.marketAddress,
-          close.stakeAccountId
+          close.vouchAccountId
         );
-        const ix = await closeUnrevealedStakeAccount({
+        const ix = await closeUnrevealedVouchAccount({
           owner: user.solanaKeypair,
           market: this.marketAddress,
-          stakeAccount,
+          vouchAccount,
           tokenMint: this.mint.address,
           ownerTokenAccount: user.tokenAccount,
           tokenProgram: TOKEN_PROGRAM_ADDRESS,
@@ -1003,37 +1003,37 @@ export class Platform {
 
     for (const data of instructions) {
       await sendTransaction(this.rpc, this.sendAndConfirm, data.user.solanaKeypair, [data.ix], {
-        label: `Close unrevealed stake account`,
+        label: `Close unrevealed vouch account`,
       });
     }
   }
 
-  async closeUnrevealedStakeAccount(userId: Address, stakeAccountId: number): Promise<void> {
-    await this.closeUnrevealedStakeAccountBatch([{ userId, stakeAccountId }]);
+  async closeUnrevealedVouchAccount(userId: Address, vouchAccountId: number): Promise<void> {
+    await this.closeUnrevealedVouchAccountBatch([{ userId, vouchAccountId }]);
   }
 
   /**
-   * Claims rewards for winning finalized stakes when needed, then closes the account.
-   * Routes never-revealed stakes to `close_unrevealed_stake_account`.
+   * Claims rewards for winning finalized vouches when needed, then closes the account.
+   * Routes never-revealed vouches to `close_unrevealed_vouch_account`.
    */
-  async closeStakeAccountBatch(closes: CloseRequest[]): Promise<void> {
+  async closeVouchAccountBatch(closes: CloseRequest[]): Promise<void> {
     const claims: CloseRequest[] = [];
     const revealedCloses: CloseRequest[] = [];
-    const unrevealedCloses: Array<{ userId: Address; stakeAccountId: number }> = [];
+    const unrevealedCloses: Array<{ userId: Address; vouchAccountId: number }> = [];
 
     for (const close of closes) {
-      const stake = await this.fetchStakeAccountData(close.userId, close.stakeAccountId);
-      if (isNone(stake.data.revealedOption)) {
+      const vouch = await this.fetchVouchAccountData(close.userId, close.vouchAccountId);
+      if (isNone(vouch.data.revealedOption)) {
         unrevealedCloses.push({
           userId: close.userId,
-          stakeAccountId: close.stakeAccountId,
+          vouchAccountId: close.vouchAccountId,
         });
         continue;
       }
 
       const optionId = close.optionId;
       const option = await this.fetchOptionData(optionId);
-      if (this.stakeNeedsRewardClaim(stake, option)) {
+      if (this.vouchNeedsRewardClaim(vouch, option)) {
         claims.push(close);
       }
       revealedCloses.push(close);
@@ -1043,15 +1043,15 @@ export class Platform {
       await this.claimRewardsBatch(claims);
     }
     if (unrevealedCloses.length > 0) {
-      await this.closeUnrevealedStakeAccountBatch(unrevealedCloses);
+      await this.closeUnrevealedVouchAccountBatch(unrevealedCloses);
     }
     if (revealedCloses.length > 0) {
-      await this.closeRevealedStakeAccountBatch(revealedCloses);
+      await this.closeRevealedVouchAccountBatch(revealedCloses);
     }
   }
 
-  async closeStakeAccount(userId: Address, optionId: number, stakeAccountId: number): Promise<void> {
-    await this.closeStakeAccountBatch([{ userId, optionId, stakeAccountId }]);
+  async closeVouchAccount(userId: Address, optionId: number, vouchAccountId: number): Promise<void> {
+    await this.closeVouchAccountBatch([{ userId, optionId, vouchAccountId }]);
   }
 
   async closeOptionAccount(optionId: number): Promise<void> {
@@ -1068,12 +1068,12 @@ export class Platform {
   }
 
   /**
-   * Stakes and immediately closes the stuck stake account in the same transaction.
-   * Since the MPC callback hasn't fired yet, the account is in pending_stake=true state,
-   * which makes it eligible for close_stuck_stake_account.
-   * Returns the stakeAccountId used.
+   * Vouches and immediately closes the stuck vouch account in the same transaction.
+   * Since the MPC callback hasn't fired yet, the account is in pending_vouch=true state,
+   * which makes it eligible for close_stuck_vouch_account.
+   * Returns the vouchAccountId used.
    */
-  async stakeAndCloseStuck(
+  async vouchAndCloseStuck(
     userId: Address,
     amount: bigint,
     optionId: number
@@ -1081,35 +1081,35 @@ export class Platform {
     const user = this.getUser(userId);
 
     const cipher = createCipher(user.x25519Keypair.secretKey, this.mxePublicKey);
-    const stakeAccountId = this.getNextStakeAccountId(user);
-    const stakeAccountNonce = deserializeLE(randomBytes(16));
+    const vouchAccountId = this.getNextVouchAccountId(user);
+    const vouchAccountNonce = deserializeLE(randomBytes(16));
 
-    // Init stake account
-    const initIx = await initStakeAccount({
+    // Init vouch account
+    const initIx = await initVouchAccount({
       payer: user.solanaKeypair,
       owner: user.solanaKeypair.address,
       market: this.marketAddress,
-      stakeAccountId,
+      vouchAccountId,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [initIx], {
-      label: `Init stake account`,
+      label: `Init vouch account`,
     });
 
-    const [stakeAccountAddress] = await getStakeAccountAddressPda(userId, this.marketAddress, stakeAccountId);
+    const [vouchAccountAddress] = await getVouchAccountAddressPda(userId, this.marketAddress, vouchAccountId);
 
-    // Build stake instruction
+    // Build vouch instruction
     const inputNonce = randomBytes(16);
     const optionCiphertext = cipher.encrypt([BigInt(optionId)], inputNonce);
     const computationOffset = randomComputationOffset();
 
-    const stakeInstruction = await stakeIx(
+    const vouchInstruction = await vouchIx(
       {
         signer: user.solanaKeypair,
         payer: user.solanaKeypair,
         market: this.marketAddress,
-        stakeAccount: stakeAccountAddress,
-        stakeAccountId,
+        vouchAccount: vouchAccountAddress,
+        vouchAccountId,
         tokenMint: this.mint.address,
         signerTokenAccount: user.tokenAccount,
         tokenProgram: TOKEN_PROGRAM_ADDRESS,
@@ -1118,34 +1118,34 @@ export class Platform {
         inputNonce: deserializeLE(inputNonce),
         authorizedReaderNonce: deserializeLE(randomBytes(16)),
         userPubkey: user.x25519Keypair.publicKey,
-        stateNonce: stakeAccountNonce,
+        stateNonce: vouchAccountNonce,
       },
       this.getArciumConfig(computationOffset)
     );
 
     // Build close stuck instruction (codama auto-derives tokenVault/tokenVaultAta from tokenMint)
-    const closeStuckIx = await closeStuckStakeAccountIx({
+    const closeStuckIx = await closeStuckVouchAccountIx({
       signer: user.solanaKeypair,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       signerTokenAccount: user.tokenAccount,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      stakeAccountId,
+      vouchAccountId,
     });
 
     // Send both in the same transaction
-    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [stakeInstruction, closeStuckIx], {
-      label: `Stake + close stuck stake account`,
+    await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [vouchInstruction, closeStuckIx], {
+      label: `Vouch + close stuck vouch account`,
     });
 
-    return stakeAccountId;
+    return vouchAccountId;
   }
 
   /**
-   * Stakes, then unstakes and closes the stuck stake account in the same transaction.
+   * Vouches, withdraws the vouch, and closes the stuck vouch account in the same transaction.
    * While the MPC callback is pending this was a double-withdraw vector (OM-007).
    */
-  async stakeUnstakeAndCloseStuck(
+  async vouchWithdrawAndCloseStuck(
     userId: Address,
     amount: bigint,
     optionId: number,
@@ -1153,37 +1153,37 @@ export class Platform {
     const user = this.getUser(userId);
 
     const cipher = createCipher(user.x25519Keypair.secretKey, this.mxePublicKey);
-    const stakeAccountId = this.getNextStakeAccountId(user);
-    const stakeAccountNonce = deserializeLE(randomBytes(16));
+    const vouchAccountId = this.getNextVouchAccountId(user);
+    const vouchAccountNonce = deserializeLE(randomBytes(16));
 
-    const initIx = await initStakeAccount({
+    const initIx = await initVouchAccount({
       payer: user.solanaKeypair,
       owner: user.solanaKeypair.address,
       market: this.marketAddress,
-      stakeAccountId,
+      vouchAccountId,
     });
 
     await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [initIx], {
-      label: `Init stake account`,
+      label: `Init vouch account`,
     });
 
-    const [stakeAccountAddress] = await getStakeAccountAddressPda(
+    const [vouchAccountAddress] = await getVouchAccountAddressPda(
       userId,
       this.marketAddress,
-      stakeAccountId,
+      vouchAccountId,
     );
 
     const inputNonce = randomBytes(16);
     const optionCiphertext = cipher.encrypt([BigInt(optionId)], inputNonce);
     const computationOffset = randomComputationOffset();
 
-    const stakeInstruction = await stakeIx(
+    const vouchInstruction = await vouchIx(
       {
         signer: user.solanaKeypair,
         payer: user.solanaKeypair,
         market: this.marketAddress,
-        stakeAccount: stakeAccountAddress,
-        stakeAccountId,
+        vouchAccount: vouchAccountAddress,
+        vouchAccountId,
         tokenMint: this.mint.address,
         signerTokenAccount: user.tokenAccount,
         tokenProgram: TOKEN_PROGRAM_ADDRESS,
@@ -1192,62 +1192,62 @@ export class Platform {
         inputNonce: deserializeLE(inputNonce),
         authorizedReaderNonce: deserializeLE(randomBytes(16)),
         userPubkey: user.x25519Keypair.publicKey,
-        stateNonce: stakeAccountNonce,
+        stateNonce: vouchAccountNonce,
       },
       this.getArciumConfig(computationOffset),
     );
 
-    const unstakeInstruction = await unstakeIx({
+    const withdrawVouchInstruction = await withdrawVouchIx({
       signer: user.solanaKeypair,
       owner: user.solanaKeypair.address,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       ownerTokenAccount: user.tokenAccount,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      stakeAccountId,
+      vouchAccountId,
     });
 
-    const closeStuckIx = await closeStuckStakeAccountIx({
+    const closeStuckIx = await closeStuckVouchAccountIx({
       signer: user.solanaKeypair,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       signerTokenAccount: user.tokenAccount,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      stakeAccountId,
+      vouchAccountId,
     });
 
     await sendTransaction(
       this.rpc,
       this.sendAndConfirm,
       user.solanaKeypair,
-      [stakeInstruction, unstakeInstruction, closeStuckIx],
-      { label: `Stake + unstake + close stuck stake account` },
+      [vouchInstruction, withdrawVouchInstruction, closeStuckIx],
+      { label: `Vouch + withdraw vouch + close stuck vouch account` },
     );
   }
 
-  async unstakeBatch(requests: UnstakeRequest[]): Promise<void> {
+  async withdrawVouchBatch(requests: WithdrawVouchRequest[]): Promise<void> {
     for (const r of requests) {
       const owner = this.getUser(r.userId);
       const signer = r.signerId ? this.getUser(r.signerId) : owner;
 
-      const ix = await unstakeIx({
+      const ix = await withdrawVouchIx({
         signer: signer.solanaKeypair,
         owner: owner.solanaKeypair.address,
         market: this.marketAddress,
         tokenMint: this.mint.address,
         ownerTokenAccount: owner.tokenAccount,
         tokenProgram: TOKEN_PROGRAM_ADDRESS,
-        stakeAccountId: r.stakeAccountId,
+        vouchAccountId: r.vouchAccountId,
       });
 
       await sendTransaction(this.rpc, this.sendAndConfirm, signer.solanaKeypair, [ix], {
-        label: `Unstake`,
+        label: `Withdraw vouch`,
       });
     }
   }
 
-  async unstake(userId: Address, stakeAccountId: number, signerId?: Address): Promise<void> {
-    await this.unstakeBatch([{ userId, stakeAccountId, signerId }]);
+  async withdrawVouch(userId: Address, vouchAccountId: number, signerId?: Address): Promise<void> {
+    await this.withdrawVouchBatch([{ userId, vouchAccountId, signerId }]);
   }
 
   // ============================================================================
@@ -1331,68 +1331,68 @@ export class Platform {
     return this.getUser(userId).tokenAccount;
   }
 
-  getUserStakeAccounts(userId: Address): StakeAccountInfo[] {
-    return this.getUser(userId).stakeAccounts;
+  getUserVouchAccounts(userId: Address): VouchAccountInfo[] {
+    return this.getUser(userId).vouchAccounts;
   }
 
-  getUserStakeAccountsForOption(userId: Address, optionId: number): StakeAccountInfo[] {
-    return this.getUser(userId).stakeAccounts.filter((sa) => sa.optionId === optionId);
+  getUserVouchAccountsForOption(userId: Address, optionId: number): VouchAccountInfo[] {
+    return this.getUser(userId).vouchAccounts.filter((sa) => sa.optionId === optionId);
   }
 
-  getStakeAccountInfo(userId: Address, stakeAccountId: number): StakeAccountInfo {
+  getVouchAccountInfo(userId: Address, vouchAccountId: number): VouchAccountInfo {
     const user = this.getUser(userId);
-    const stakeAccount = user.stakeAccounts.find((sa) => sa.id === stakeAccountId);
-    if (!stakeAccount) {
-      throw new Error(`Stake account ${stakeAccountId} not found for user ${userId}`);
+    const vouchAccount = user.vouchAccounts.find((sa) => sa.id === vouchAccountId);
+    if (!vouchAccount) {
+      throw new Error(`Vouch account ${vouchAccountId} not found for user ${userId}`);
     }
-    return stakeAccount;
+    return vouchAccount;
   }
 
-  decryptStakeOption(userId: Address, stakeAccountId: number): { optionId: bigint } {
+  decryptVouchOption(userId: Address, vouchAccountId: number): { optionId: bigint } {
     const user = this.getUser(userId);
-    const stakeAccount = this.getStakeAccountInfo(userId, stakeAccountId);
+    const vouchAccount = this.getVouchAccountInfo(userId, vouchAccountId);
 
     const cipher = createCipher(user.x25519Keypair.secretKey, this.mxePublicKey);
-    const nonceBytes = nonceToBytes(stakeAccount.stateNonce);
-    const decrypted = cipher.decrypt([stakeAccount.encryptedOption], nonceBytes);
+    const nonceBytes = nonceToBytes(vouchAccount.stateNonce);
+    const decrypted = cipher.decrypt([vouchAccount.encryptedOption], nonceBytes);
 
     return {
       optionId: decrypted[0],
     };
   }
 
-  decryptDisclosedStakeOption(
+  decryptDisclosedVouchOption(
     userId: Address,
-    stakeAccountId: number,
+    vouchAccountId: number,
     readerKeypair: X25519Keypair
   ): { optionId: bigint } {
-    const stakeAccount = this.getStakeAccountInfo(userId, stakeAccountId);
+    const vouchAccount = this.getVouchAccountInfo(userId, vouchAccountId);
 
     const cipher = createCipher(readerKeypair.secretKey, this.mxePublicKey);
-    const nonceBytes = nonceToBytes(stakeAccount.stateNonceDisclosure);
-    const decrypted = cipher.decrypt([stakeAccount.encryptedOptionDisclosure], nonceBytes);
+    const nonceBytes = nonceToBytes(vouchAccount.stateNonceDisclosure);
+    const decrypted = cipher.decrypt([vouchAccount.encryptedOptionDisclosure], nonceBytes);
 
     return {
       optionId: decrypted[0],
     };
   }
 
-  getStakeEndTimestamp(): bigint {
-    if (this.stakeEndTimestamp === null) {
+  getVouchEndTimestamp(): bigint {
+    if (this.vouchEndTimestamp === null) {
       throw new Error("Market not opened yet. Call openMarket() first.");
     }
-    return this.stakeEndTimestamp;
+    return this.vouchEndTimestamp;
   }
 
-  async waitForStakeEnd(): Promise<void> {
+  async waitForVouchEnd(): Promise<void> {
     await sleepUntilOnChainTimestamp(
-      Number(this.getStakeEndTimestamp()) + STAKE_END_BUFFER_SECONDS,
+      Number(this.getVouchEndTimestamp()) + VOUCH_END_BUFFER_SECONDS,
       this.rpc,
     );
   }
 
-  getTimeToStake(): bigint {
-    return this.marketConfig.timeToStake;
+  getTimeToVouch(): bigint {
+    return this.marketConfig.timeToVouch;
   }
 
   getRewardAmount(): bigint {
@@ -1408,14 +1408,14 @@ export class Platform {
     return ata;
   }
 
-  async getStakeAccountAddress(userId: Address, stakeAccountId: number): Promise<Address> {
-    const [address] = await getStakeAccountAddressPda(userId, this.marketAddress, stakeAccountId);
+  async getVouchAccountAddress(userId: Address, vouchAccountId: number): Promise<Address> {
+    const [address] = await getVouchAccountAddressPda(userId, this.marketAddress, vouchAccountId);
     return address;
   }
 
-  async fetchStakeAccountData(userId: Address, stakeAccountId: number) {
-    const address = await this.getStakeAccountAddress(userId, stakeAccountId);
-    return fetchStakeAccount(this.rpc, address);
+  async fetchVouchAccountData(userId: Address, vouchAccountId: number) {
+    const address = await this.getVouchAccountAddress(userId, vouchAccountId);
+    return fetchVouchAccount(this.rpc, address);
   }
 
   async getOptionAddress(optionId: number): Promise<Address> {

@@ -1,6 +1,9 @@
 # Opportunity Markets
 
-Opportunity Markets allow users to influence decision making by staking. Decision makers benefit from opportunity markets by getting access to high-quality signals, helping them make the best choice.
+Opportunity Markets markets aggregate capital backed insights into actionable signals.
+
+In Opportunity Markets, users influence decision making by suggesting options and backing their choice with a withdrawable deposit of capital.
+Decision makers get exclusive access to high quality signals, secured by Aricum encryption, giving them first access to valuable opportunities.
 
 Program address on Solana Devnet: `bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp`
 

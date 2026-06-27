@@ -72,7 +72,7 @@ export type OpportunityMarket = {
   index: bigint;
   totalOptions: bigint;
   platform: Address;
-  stakingWindowEnd: Option<bigint>;
+  vouchingWindowEnd: Option<bigint>;
   resolvedAtTimestamp: Option<bigint>;
   winningOptionAllocation: number;
   winningOptionActiveBp: number;
@@ -89,7 +89,7 @@ export type OpportunityMarket = {
   marketResolutionDeadlineSeconds: bigint;
   revealPeriodSeconds: bigint;
   revealEnded: boolean;
-  minStakeAmount: bigint;
+  minVouchAmount: bigint;
 };
 
 export type OpportunityMarketArgs = {
@@ -98,7 +98,7 @@ export type OpportunityMarketArgs = {
   index: number | bigint;
   totalOptions: number | bigint;
   platform: Address;
-  stakingWindowEnd: OptionOrNullable<number | bigint>;
+  vouchingWindowEnd: OptionOrNullable<number | bigint>;
   resolvedAtTimestamp: OptionOrNullable<number | bigint>;
   winningOptionAllocation: number;
   winningOptionActiveBp: number;
@@ -115,7 +115,7 @@ export type OpportunityMarketArgs = {
   marketResolutionDeadlineSeconds: number | bigint;
   revealPeriodSeconds: number | bigint;
   revealEnded: boolean;
-  minStakeAmount: number | bigint;
+  minVouchAmount: number | bigint;
 };
 
 export function getOpportunityMarketEncoder(): Encoder<OpportunityMarketArgs> {
@@ -127,7 +127,7 @@ export function getOpportunityMarketEncoder(): Encoder<OpportunityMarketArgs> {
       ['index', getU64Encoder()],
       ['totalOptions', getU64Encoder()],
       ['platform', getAddressEncoder()],
-      ['stakingWindowEnd', getOptionEncoder(getU64Encoder())],
+      ['vouchingWindowEnd', getOptionEncoder(getU64Encoder())],
       ['resolvedAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['winningOptionAllocation', getU16Encoder()],
       ['winningOptionActiveBp', getU16Encoder()],
@@ -144,7 +144,7 @@ export function getOpportunityMarketEncoder(): Encoder<OpportunityMarketArgs> {
       ['marketResolutionDeadlineSeconds', getU64Encoder()],
       ['revealPeriodSeconds', getU64Encoder()],
       ['revealEnded', getBooleanEncoder()],
-      ['minStakeAmount', getU64Encoder()],
+      ['minVouchAmount', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: OPPORTUNITY_MARKET_DISCRIMINATOR })
   );
@@ -158,7 +158,7 @@ export function getOpportunityMarketDecoder(): Decoder<OpportunityMarket> {
     ['index', getU64Decoder()],
     ['totalOptions', getU64Decoder()],
     ['platform', getAddressDecoder()],
-    ['stakingWindowEnd', getOptionDecoder(getU64Decoder())],
+    ['vouchingWindowEnd', getOptionDecoder(getU64Decoder())],
     ['resolvedAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['winningOptionAllocation', getU16Decoder()],
     ['winningOptionActiveBp', getU16Decoder()],
@@ -175,7 +175,7 @@ export function getOpportunityMarketDecoder(): Decoder<OpportunityMarket> {
     ['marketResolutionDeadlineSeconds', getU64Decoder()],
     ['revealPeriodSeconds', getU64Decoder()],
     ['revealEnded', getBooleanDecoder()],
-    ['minStakeAmount', getU64Decoder()],
+    ['minVouchAmount', getU64Decoder()],
   ]);
 }
 

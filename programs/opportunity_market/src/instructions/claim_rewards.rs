@@ -1,10 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
-use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED, STAKE_ACCOUNT_SEED};
+use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED, VOUCH_ACCOUNT_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, RewardsClaimedEvent};
-use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, StakeAccount};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, VouchAccount};
 use crate::utils::transfer_from_market;
 
 #[derive(Accounts)]
@@ -21,17 +21,17 @@ pub struct ClaimRewards<'info> {
 
     #[account(
         mut,
-        seeds = [STAKE_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &stake_account.id.to_le_bytes()],
-        bump = stake_account.bump,
-        constraint = !stake_account.rewards_claimed @ ErrorCode::RewardAlreadyClaimed,
-        constraint = stake_account.revealed_option.is_some() @ ErrorCode::InvalidOptionId,
-        constraint = stake_account.score.is_some() @ ErrorCode::NotRevealed,
+        seeds = [VOUCH_ACCOUNT_SEED, owner.key().as_ref(), market.key().as_ref(), &vouch_account.id.to_le_bytes()],
+        bump = vouch_account.bump,
+        constraint = !vouch_account.rewards_claimed @ ErrorCode::RewardAlreadyClaimed,
+        constraint = vouch_account.revealed_option.is_some() @ ErrorCode::InvalidOptionId,
+        constraint = vouch_account.score.is_some() @ ErrorCode::NotRevealed,
     )]
-    pub stake_account: Box<Account<'info, StakeAccount>>,
+    pub vouch_account: Box<Account<'info, VouchAccount>>,
 
     #[account(
         mut,
-        seeds = [OPTION_SEED, market.key().as_ref(), &stake_account.revealed_option.unwrap().to_le_bytes()],
+        seeds = [OPTION_SEED, market.key().as_ref(), &vouch_account.revealed_option.unwrap().to_le_bytes()],
         bump,
         constraint = option.reward_bp > 0 @ ErrorCode::NoRewardToClaim,
     )]
@@ -61,12 +61,12 @@ pub struct ClaimRewards<'info> {
 
 pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<()> {
     let market = &mut ctx.accounts.market;
-    let stake_account = &mut ctx.accounts.stake_account;
+    let vouch_account = &mut ctx.accounts.vouch_account;
     let now = Clock::get()?.unix_timestamp as u64;
     market.require_phase(now, MarketPhase::Settlement)?;
 
     let rewards = compute_reward_payout(
-        stake_account.as_ref(),
+        vouch_account.as_ref(),
         market.as_ref(),
         ctx.accounts.option.as_ref(),
     )?;
@@ -82,35 +82,35 @@ pub fn claim_rewards<'info>(ctx: Context<'info, ClaimRewards<'info>>) -> Result<
         )?;
     }
 
-    stake_account.rewards_claimed = true;
+    vouch_account.rewards_claimed = true;
 
-    let gross_stake_amount = stake_account
+    let gross_vouch_amount = vouch_account
         .amount
-        .checked_add(stake_account.collected_fees.total()?)
+        .checked_add(vouch_account.collected_fees.total()?)
         .ok_or(ErrorCode::Overflow)?;
 
-    ctx.accounts.option.unclaimed_gross_stake = ctx
+    ctx.accounts.option.unclaimed_gross_vouch = ctx
         .accounts
         .option
-        .unclaimed_gross_stake
-        .checked_sub(gross_stake_amount)
+        .unclaimed_gross_vouch
+        .checked_sub(gross_vouch_amount)
         .ok_or(ErrorCode::Overflow)?;
 
     emit_ts!(RewardsClaimedEvent {
         owner: ctx.accounts.owner.key(),
         market: ctx.accounts.market.key(),
-        stake_account: ctx.accounts.stake_account.key(),
-        stake_account_id: ctx.accounts.stake_account.id,
-        option_id: ctx.accounts.stake_account.revealed_option.unwrap(),
+        vouch_account: ctx.accounts.vouch_account.key(),
+        vouch_account_id: ctx.accounts.vouch_account.id,
+        option_id: ctx.accounts.vouch_account.revealed_option.unwrap(),
         reward_amount: rewards,
-        score: ctx.accounts.stake_account.score.unwrap_or(0),
+        score: ctx.accounts.vouch_account.score.unwrap_or(0),
     });
 
     Ok(())
 }
 
 fn compute_reward_payout(
-    stake_account: &StakeAccount,
+    vouch_account: &VouchAccount,
     market: &OpportunityMarket,
     option: &OpportunityMarketOption,
 ) -> Result<u64> {
@@ -121,7 +121,7 @@ fn compute_reward_payout(
     let active_bp = market.winning_option_active_bp;
     require!(active_bp > 0, ErrorCode::NoFinalizedWinningOption);
 
-    let user_score = stake_account.score.ok_or(ErrorCode::NotRevealed)?;
+    let user_score = vouch_account.score.ok_or(ErrorCode::NotRevealed)?;
     let total_score = option.total_score;
 
     let score_weighted_reward = (user_score as u128)
@@ -148,8 +148,8 @@ mod tests {
     use super::*;
     use crate::state::CollectedFees;
 
-    fn test_stake_account(score: Option<u64>, fees: CollectedFees) -> StakeAccount {
-        StakeAccount {
+    fn test_vouch_account(score: Option<u64>, fees: CollectedFees) -> VouchAccount {
+        VouchAccount {
             encrypted_option: [0; 32],
             state_nonce: 0,
             bump: 0,
@@ -158,17 +158,17 @@ mod tests {
             user_pubkey: [0; 32],
             encrypted_option_disclosure: [0; 32],
             state_nonce_disclosure: 0,
-            staked_at_timestamp: None,
-            unstaked_at_timestamp: None,
+            vouched_at_timestamp: None,
+            vouch_withdrawn_at_timestamp: None,
             amount: 0,
             collected_fees: fees,
             revealed_option: Some(0),
             score,
             rewards_claimed: false,
             id: 0,
-            pending_stake_computation: None,
+            pending_vouch_computation: None,
             pending_reveal_computation: None,
-            last_reveal_stake_at: 0,
+            last_reveal_vouch_at: 0,
         }
     }
 
@@ -179,7 +179,7 @@ mod tests {
             index: 0,
             total_options: 0,
             platform: Pubkey::default(),
-            staking_window_end: None,
+            vouching_window_end: None,
             resolved_at_timestamp: None,
             winning_option_allocation: 0,
             winning_option_active_bp: active_bp,
@@ -200,7 +200,7 @@ mod tests {
             market_resolution_deadline_seconds: 0,
             reveal_period_seconds: 0,
             reveal_ended: false,
-            min_stake_amount: 0,
+            min_vouch_amount: 0,
         }
     }
 
@@ -210,7 +210,7 @@ mod tests {
             id: 0,
             creator: Pubkey::default(),
             created_at: 0,
-            unclaimed_gross_stake: 0,
+            unclaimed_gross_vouch: 0,
             total_score,
             reward_bp,
             included_in_active_bp: false,
@@ -224,11 +224,11 @@ mod tests {
             reward_pool_fee: 200,
             creator_fee: 300,
         };
-        let stake = test_stake_account(Some(0), fees);
+        let vouch = test_vouch_account(Some(0), fees);
         let market = test_market(1_000_000_000, 10_000);
         let option = test_option(0, 10_000);
 
-        let payout = compute_reward_payout(&stake, &market, &option).unwrap();
+        let payout = compute_reward_payout(&vouch, &market, &option).unwrap();
         assert_eq!(payout, 0);
     }
 
@@ -239,18 +239,18 @@ mod tests {
             reward_pool_fee: 50,
             creator_fee: 50,
         };
-        let stake = test_stake_account(Some(0), fees);
+        let vouch = test_vouch_account(Some(0), fees);
         let market = test_market(1_000_000_000, 0);
         let option = test_option(0, 5_000);
 
-        assert!(compute_reward_payout(&stake, &market, &option).is_ok());
+        assert!(compute_reward_payout(&vouch, &market, &option).is_ok());
     }
 
     #[test]
     fn high_supply_sole_winner_does_not_overflow() {
         let score = 200_000_000_000_000_000;
         let reward_amount = 200_000_000_000_000_000;
-        let stake = test_stake_account(
+        let vouch = test_vouch_account(
             Some(score),
             CollectedFees {
                 platform_fee: 0,
@@ -261,7 +261,7 @@ mod tests {
         let market = test_market(reward_amount, 10_000);
         let option = test_option(score as u128, 10_000);
 
-        let payout = compute_reward_payout(&stake, &market, &option).unwrap();
+        let payout = compute_reward_payout(&vouch, &market, &option).unwrap();
         assert_eq!(payout, reward_amount);
     }
 
@@ -272,11 +272,11 @@ mod tests {
             reward_pool_fee: 10,
             creator_fee: 20,
         };
-        let stake = test_stake_account(Some(500), fees);
+        let vouch = test_vouch_account(Some(500), fees);
         let market = test_market(1_000_000, 10_000);
         let option = test_option(1_000, 10_000);
 
-        let payout = compute_reward_payout(&stake, &market, &option).unwrap();
+        let payout = compute_reward_payout(&vouch, &market, &option).unwrap();
         assert_eq!(payout, 500_000);
     }
 }

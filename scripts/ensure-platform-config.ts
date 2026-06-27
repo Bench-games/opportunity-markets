@@ -65,7 +65,7 @@ async function main() {
 
   const feeClaimAuthority = config.feeClaimAuthority ? address(config.feeClaimAuthority) : payer.address;
 
-  const minTimeToStakeSeconds = BigInt(config.minTimeToStakeSeconds);
+  const minTimeToVouchSeconds = BigInt(config.minTimeToVouchSeconds);
   const revealPeriodSeconds = BigInt(config.revealPeriodSeconds);
   const marketResolutionDeadlineSeconds = BigInt(config.marketResolutionDeadlineSeconds);
   const revealAuthority = config.revealAuthority
@@ -89,7 +89,7 @@ async function main() {
   console.log(`Reward-pool fee:            ${config.rewardPoolFeeBp} bp`);
   console.log(`Creator fee:                ${config.creatorFeeBp} bp`);
   console.log(`Fee claim authority:        ${feeClaimAuthority}`);
-  console.log(`Min time to stake (s):      ${minTimeToStakeSeconds}`);
+  console.log(`Min time to vouch (s):      ${minTimeToVouchSeconds}`);
   console.log(`Reveal period (s):          ${revealPeriodSeconds}`);
   console.log(`Reveal authority:           ${revealAuthority}`);
   console.log(`Resolution deadline (s):    ${marketResolutionDeadlineSeconds}`);
@@ -102,7 +102,7 @@ async function main() {
         platformFeeBp: config.platformFeeBp,
         rewardPoolFeeBp: config.rewardPoolFeeBp,
         creatorFeeBp: config.creatorFeeBp,
-        minTimeToStakeSeconds,
+        minTimeToVouchSeconds,
         revealAuthority,
         revealPeriodSeconds,
         marketResolutionDeadlineSeconds,
@@ -116,7 +116,7 @@ async function main() {
         creatorFeeBp: config.creatorFeeBp,
         feeClaimAuthority,
         revealAuthority,
-        minTimeToStakeSeconds,
+        minTimeToVouchSeconds,
         revealPeriodSeconds,
         marketResolutionDeadlineSeconds,
       });

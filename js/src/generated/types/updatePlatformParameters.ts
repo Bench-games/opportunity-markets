@@ -31,7 +31,7 @@ export type UpdatePlatformParameters = {
   rewardPoolFeeBp: Option<number>;
   creatorFeeBp: Option<number>;
   revealAuthority: Option<Address>;
-  minTimeToStakeSeconds: Option<bigint>;
+  minTimeToVouchSeconds: Option<bigint>;
   revealPeriodSeconds: Option<bigint>;
   marketResolutionDeadlineSeconds: Option<bigint>;
 };
@@ -41,7 +41,7 @@ export type UpdatePlatformParametersArgs = {
   rewardPoolFeeBp: OptionOrNullable<number>;
   creatorFeeBp: OptionOrNullable<number>;
   revealAuthority: OptionOrNullable<Address>;
-  minTimeToStakeSeconds: OptionOrNullable<number | bigint>;
+  minTimeToVouchSeconds: OptionOrNullable<number | bigint>;
   revealPeriodSeconds: OptionOrNullable<number | bigint>;
   marketResolutionDeadlineSeconds: OptionOrNullable<number | bigint>;
 };
@@ -52,7 +52,7 @@ export function getUpdatePlatformParametersEncoder(): Encoder<UpdatePlatformPara
     ['rewardPoolFeeBp', getOptionEncoder(getU16Encoder())],
     ['creatorFeeBp', getOptionEncoder(getU16Encoder())],
     ['revealAuthority', getOptionEncoder(getAddressEncoder())],
-    ['minTimeToStakeSeconds', getOptionEncoder(getU64Encoder())],
+    ['minTimeToVouchSeconds', getOptionEncoder(getU64Encoder())],
     ['revealPeriodSeconds', getOptionEncoder(getU64Encoder())],
     ['marketResolutionDeadlineSeconds', getOptionEncoder(getU64Encoder())],
   ]);
@@ -64,7 +64,7 @@ export function getUpdatePlatformParametersDecoder(): Decoder<UpdatePlatformPara
     ['rewardPoolFeeBp', getOptionDecoder(getU16Decoder())],
     ['creatorFeeBp', getOptionDecoder(getU16Decoder())],
     ['revealAuthority', getOptionDecoder(getAddressDecoder())],
-    ['minTimeToStakeSeconds', getOptionDecoder(getU64Decoder())],
+    ['minTimeToVouchSeconds', getOptionDecoder(getU64Decoder())],
     ['revealPeriodSeconds', getOptionDecoder(getU64Decoder())],
     ['marketResolutionDeadlineSeconds', getOptionDecoder(getU64Decoder())],
   ]);

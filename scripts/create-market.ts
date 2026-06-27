@@ -98,7 +98,7 @@ async function main() {
     authorizedReaderPubkey,
     earlinessCutoffSeconds: BigInt(config.earlinessCutoffSeconds),
     earlinessMultiplier: config.earlinessMultiplier ?? 10_000,
-    minStakeAmount: BigInt(config.minStakeAmount ?? 0),
+    minVouchAmount: BigInt(config.minVouchAmount ?? 0),
     creatorFeeClaimer: config.marketFeeClaimer ? address(config.marketFeeClaimer) : payer.address,
     programAddress: PROGRAM_ID,
   });

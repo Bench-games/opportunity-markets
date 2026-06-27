@@ -9,7 +9,7 @@ pub struct UpdatePlatformParameters {
     pub reward_pool_fee_bp: Option<u16>,
     pub creator_fee_bp: Option<u16>,
     pub reveal_authority: Option<Pubkey>,
-    pub min_time_to_stake_seconds: Option<u64>,
+    pub min_time_to_vouch_seconds: Option<u64>,
     pub reveal_period_seconds: Option<u64>,
     pub market_resolution_deadline_seconds: Option<u64>,
 }
@@ -50,8 +50,8 @@ pub fn update_platform_config(
             .market_resolution_deadline_seconds
             .unwrap_or(platform_config.market_resolution_deadline_seconds),
         params
-            .min_time_to_stake_seconds
-            .unwrap_or(platform_config.min_time_to_stake_seconds),
+            .min_time_to_vouch_seconds
+            .unwrap_or(platform_config.min_time_to_vouch_seconds),
         params
             .reveal_authority
             .unwrap_or(platform_config.reveal_authority),

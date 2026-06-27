@@ -32,7 +32,7 @@ export type CreateMarketParameters = {
   authorizedReaderPubkey: Array<number>;
   earlinessCutoffSeconds: bigint;
   earlinessMultiplier: number;
-  minStakeAmount: bigint;
+  minVouchAmount: bigint;
   creatorFeeClaimer: Address;
 };
 
@@ -42,7 +42,7 @@ export type CreateMarketParametersArgs = {
   authorizedReaderPubkey: Array<number>;
   earlinessCutoffSeconds: number | bigint;
   earlinessMultiplier: number;
-  minStakeAmount: number | bigint;
+  minVouchAmount: number | bigint;
   creatorFeeClaimer: Address;
 };
 
@@ -53,7 +53,7 @@ export function getCreateMarketParametersEncoder(): FixedSizeEncoder<CreateMarke
     ['authorizedReaderPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
     ['earlinessCutoffSeconds', getU64Encoder()],
     ['earlinessMultiplier', getU16Encoder()],
-    ['minStakeAmount', getU64Encoder()],
+    ['minVouchAmount', getU64Encoder()],
     ['creatorFeeClaimer', getAddressEncoder()],
   ]);
 }
@@ -65,7 +65,7 @@ export function getCreateMarketParametersDecoder(): FixedSizeDecoder<CreateMarke
     ['authorizedReaderPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     ['earlinessCutoffSeconds', getU64Decoder()],
     ['earlinessMultiplier', getU16Decoder()],
-    ['minStakeAmount', getU64Decoder()],
+    ['minVouchAmount', getU64Decoder()],
     ['creatorFeeClaimer', getAddressDecoder()],
   ]);
 }

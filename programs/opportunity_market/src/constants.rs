@@ -11,31 +11,31 @@ pub const MAX_PLATFORM_NAME_LEN: usize = 20;
 pub const MIN_MARKET_RESOLUTION_DEADLINE_SECONDS: u64 = 7 * 24 * 60 * 60;
 
 #[cfg(not(feature = "disable-prod-guardrails"))]
-pub const MIN_TIME_TO_STAKE_FLOOR_SECONDS: u64 = 24 * 60 * 60;
+pub const MIN_TIME_TO_VOUCH_FLOOR_SECONDS: u64 = 24 * 60 * 60;
 
 /// Bounds for the deadline after which end_reveal_period becomes permissionless.
 pub const MIN_REVEAL_PERIOD_SECONDS: u64 = 24 * 60 * 60; // 1 day
 pub const MAX_REVEAL_PERIOD_SECONDS: u64 = 60 * 24 * 60 * 60; // 60 days
 
-/// Minimum time between `reveal_stake` attempts on the same stake account.
-pub const REVEAL_STAKE_COOLDOWN_SECONDS: u64 = 5 * 60;
+/// Minimum time between `reveal_vouch` attempts on the same vouch account.
+pub const REVEAL_VOUCH_COOLDOWN_SECONDS: u64 = 5 * 60;
 
 // 2* PRECISION
 pub const MAX_EARLINESS_MULTIPLIER: u16 = 20_000;
 
-pub const MAX_TIME_TO_STAKE_SECONDS: u64 = 3 * 30 * 24 * 60 * 60;
+pub const MAX_TIME_TO_VOUCH_SECONDS: u64 = 3 * 30 * 24 * 60 * 60;
 
 /// Earliness boost window bounds (seconds after option creation).
 pub const MIN_EARLINESS_CUTOFF_SECONDS: u64 = 60;
-pub const MAX_EARLINESS_CUTOFF_SECONDS: u64 = MAX_TIME_TO_STAKE_SECONDS;
+pub const MAX_EARLINESS_CUTOFF_SECONDS: u64 = MAX_TIME_TO_VOUCH_SECONDS;
 
-/// Minimum stake amount (SPL token base units); must be non-zero.
-pub const MIN_MIN_STAKE_AMOUNT: u64 = 1;
+/// Minimum vouch amount (SPL token base units); must be non-zero.
+pub const MIN_MIN_VOUCH_AMOUNT: u64 = 1;
 
 /// PDA seeds
 pub const PLATFORM_CONFIG_SEED: &[u8] = b"platform_config";
 pub const ALLOWED_MINT_SEED: &[u8] = b"allowed_mint";
 pub const OPPORTUNITY_MARKET_SEED: &[u8] = b"opportunity_market";
 pub const OPTION_SEED: &[u8] = b"option";
-pub const STAKE_ACCOUNT_SEED: &[u8] = b"stake_account";
+pub const VOUCH_ACCOUNT_SEED: &[u8] = b"vouch_account";
 pub const SPONSOR_SEED: &[u8] = b"sponsor";

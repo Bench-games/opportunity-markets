@@ -8,40 +8,40 @@ pub const OVERFLOW_DIVISOR: u128 = 200;
 
 pub fn calculate_user_score_components(
     option_created: u64,
-    staking_window_end: u64,
-    user_staked_at: u64,
-    user_stake_end: u64,
+    vouching_window_end: u64,
+    user_vouched_at: u64,
+    user_vouch_end: u64,
     earliness_cutoff_seconds: u64, // unlimited, not an issue
     earliness_multiplier: u16,     // 10000 - 20000
 ) -> Result<(u64, u64)> {
     require!(
-        staking_window_end > option_created,
+        vouching_window_end > option_created,
         ErrorCode::InvalidParameters
     );
 
     let earliness_cutoff = earliness_cutoff_seconds.max(1);
     let earliness_multiplier = earliness_multiplier as u64;
 
-    // saturating_sub: a stake placed before the option existed gets peak earliness boost
-    let delay_after_option_creation = user_staked_at.saturating_sub(option_created).max(1);
+    // saturating_sub: a vouch placed before the option existed gets peak earliness boost
+    let delay_after_option_creation = user_vouched_at.saturating_sub(option_created).max(1);
 
-    let earliest_stake_start = option_created;
-    let latest_stake_end = staking_window_end;
-    let valid_stake_start = user_staked_at.max(earliest_stake_start);
-    let valid_stake_end = user_stake_end.min(latest_stake_end);
+    let earliest_vouch_start = option_created;
+    let latest_vouch_end = vouching_window_end;
+    let valid_vouch_start = user_vouched_at.max(earliest_vouch_start);
+    let valid_vouch_end = user_vouch_end.min(latest_vouch_end);
 
-    let max_stake_duration = latest_stake_end
-        .checked_sub(earliest_stake_start)
+    let max_vouch_duration = latest_vouch_end
+        .checked_sub(earliest_vouch_start)
         .ok_or(ErrorCode::Overflow)?;
 
-    let valid_stake_duration = valid_stake_end
-        .checked_sub(valid_stake_start)
+    let valid_vouch_duration = valid_vouch_end
+        .checked_sub(valid_vouch_start)
         .ok_or(ErrorCode::Overflow)?;
 
-    let stake_time_percentage = valid_stake_duration
+    let vouch_time_percentage = valid_vouch_duration
         .checked_mul(100)
         .ok_or(ErrorCode::Overflow)?
-        .checked_div(max_stake_duration)
+        .checked_div(max_vouch_duration)
         .ok_or(ErrorCode::Overflow)?;
 
     let boost_range = earliness_multiplier
@@ -59,29 +59,29 @@ pub fn calculate_user_score_components(
         )
         .ok_or(ErrorCode::Overflow)?;
 
-    Ok((stake_time_percentage, earliness_factor))
+    Ok((vouch_time_percentage, earliness_factor))
 }
 
 pub fn calculate_user_score(
     option_created: u64,
-    staking_window_end: u64,
-    user_staked_at: u64,
-    user_stake_end: u64,
-    stake_amount: u64,
+    vouching_window_end: u64,
+    user_vouched_at: u64,
+    user_vouch_end: u64,
+    vouch_amount: u64,
     earliness_cutoff_seconds: u64,
     earliness_multiplier: u16,
 ) -> Result<u64> {
     let (time_pct, earliness) = calculate_user_score_components(
         option_created,
-        staking_window_end,
-        user_staked_at,
-        user_stake_end,
+        vouching_window_end,
+        user_vouched_at,
+        user_vouch_end,
         earliness_cutoff_seconds,
         earliness_multiplier,
     )?;
 
     // score = amount * time_pct * earliness / (PRECISION * OVERFLOW_DIVISOR)
-    Ok((stake_amount as u128)
+    Ok((vouch_amount as u128)
         .checked_mul(time_pct as u128)
         .ok_or(ErrorCode::Overflow)?
         .checked_mul(earliness as u128)
@@ -97,10 +97,10 @@ pub fn calculate_user_score(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::constants::MAX_TIME_TO_STAKE_SECONDS;
+    use crate::constants::MAX_TIME_TO_VOUCH_SECONDS;
 
     // Realistic baseline: 1,000,000 tokens with 9 decimals
-    const STAKE: u64 = 1_000_000_000_000_000;
+    const VOUCH: u64 = 1_000_000_000_000_000;
 
     // Realistic Solana clock values (≈ 2024-05-01).
     const MARKET_OPENED: u64 = 1_714_521_600;
@@ -111,14 +111,14 @@ mod tests {
     const MULT_1X: u16 = 10_000;
 
     #[test]
-    fn peak_boost_when_staking_at_market_open() {
-        // Staker enters at t=0, never unstakes early.
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+    fn peak_boost_when_vouching_at_market_open() {
+        // Vouching user enters at t=0 and never withdraws their vouch early.
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let (time_pct, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             ONE_WEEK,
             MULT_2X,
         )
@@ -131,13 +131,13 @@ mod tests {
 
     #[test]
     fn no_boost_at_cutoff_boundary() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let cutoff = 24 * 60 * 60; // 1 day
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED + cutoff,
-            staking_window_end,
+            vouching_window_end,
             cutoff,
             MULT_2X,
         )
@@ -149,13 +149,13 @@ mod tests {
 
     #[test]
     fn no_boost_after_cutoff() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let cutoff = 24 * 60 * 60;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED + 2 * cutoff,
-            staking_window_end,
+            vouching_window_end,
             cutoff,
             MULT_2X,
         )
@@ -167,13 +167,13 @@ mod tests {
 
     #[test]
     fn midway_boost_is_linear() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let cutoff = 24 * 60 * 60;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED + cutoff / 2,
-            staking_window_end,
+            vouching_window_end,
             cutoff,
             MULT_2X,
         )
@@ -185,12 +185,12 @@ mod tests {
 
     #[test]
     fn multiplier_equal_to_precision_means_no_boost() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED + 60,
-            staking_window_end,
+            vouching_window_end,
             ONE_WEEK,
             MULT_1X,
         )
@@ -201,14 +201,14 @@ mod tests {
 
     #[test]
     fn realistic_full_score_with_1_5x_multiplier() {
-        // Stake 1M tokens (9 decimals) at t=0 of a 1-week market, never unstake.
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        // Vouch 1M tokens (9 decimals) at t=0 of a 1-week market, never withdraw.
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED,
-            staking_window_end,
-            STAKE,
+            vouching_window_end,
+            VOUCH,
             ONE_WEEK,
             MULT_1_5X,
         )
@@ -219,10 +219,10 @@ mod tests {
     }
 
     #[test]
-    fn max_value_stake_does_not_overflow() {
+    fn max_value_vouch_does_not_overflow() {
         let result = calculate_user_score(
             MARKET_OPENED,
-            MARKET_OPENED + MAX_TIME_TO_STAKE_SECONDS,
+            MARKET_OPENED + MAX_TIME_TO_VOUCH_SECONDS,
             MARKET_OPENED,
             u64::MAX,
             u64::MAX,
@@ -234,13 +234,13 @@ mod tests {
     }
 
     #[test]
-    fn early_unstake_pulls_time_pct_below_full() {
-        // User stakes at t=0, unstakes 1 day into a 1-week market.
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+    fn early_vouch_withdrawal_pulls_time_pct_below_full() {
+        // User vouches at t=0, then withdraws the vouch 1 day into a 1-week market.
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let day = 24 * 60 * 60;
         let (time_pct, _) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED,
             MARKET_OPENED + day,
             ONE_WEEK,
@@ -254,12 +254,12 @@ mod tests {
 
     #[test]
     fn zero_amount_yields_zero_score() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             0,
             ONE_WEEK,
             MULT_2X,
@@ -270,16 +270,16 @@ mod tests {
     }
 
     #[test]
-    fn zero_stake_duration_yields_zero_score() {
-        // Staker unstakes the same second they stake.
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+    fn zero_vouch_duration_yields_zero_score() {
+        // Vouching user withdraws the vouch the same second they vouch.
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let t = MARKET_OPENED + 60;
         let score = calculate_user_score(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             t,
             t,
-            STAKE,
+            VOUCH,
             ONE_WEEK,
             MULT_2X,
         )
@@ -291,13 +291,13 @@ mod tests {
     #[test]
     fn zero_cutoff_does_not_panic_and_gives_no_boost() {
         // Cutoff = 0 is .max(1)'d internally; any delay_after_option_creation >= 1 hits the
-        // clamp, so factor = PRECISION (1.0x) regardless of staking time.
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+        // clamp, so factor = PRECISION (1.0x) regardless of vouching time.
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let (_, earliness) = calculate_user_score_components(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED + 60,
-            staking_window_end,
+            vouching_window_end,
             0,
             MULT_2X,
         )
@@ -310,11 +310,11 @@ mod tests {
     fn reveal_before_option_creation_errors() {
         let r = calculate_user_score(
             MARKET_OPENED,
-            // staking_window_end < option_created
+            // vouching_window_end < option_created
             MARKET_OPENED - 1,
             MARKET_OPENED,
             MARKET_OPENED,
-            STAKE,
+            VOUCH,
             ONE_WEEK,
             MULT_2X,
         );
@@ -322,14 +322,14 @@ mod tests {
     }
 
     #[test]
-    fn option_created_at_staking_window_end_errors() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+    fn option_created_at_vouching_window_end_errors() {
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let r = calculate_user_score(
-            staking_window_end,
-            staking_window_end,
+            vouching_window_end,
+            vouching_window_end,
             MARKET_OPENED,
-            staking_window_end,
-            STAKE,
+            vouching_window_end,
+            VOUCH,
             ONE_WEEK,
             MULT_2X,
         );
@@ -337,15 +337,15 @@ mod tests {
     }
 
     #[test]
-    fn stake_end_before_stake_start_errors() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+    fn vouch_end_before_vouch_start_errors() {
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let r = calculate_user_score(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED + 100,
-            // unstake before stake
+            // withdraw before vouch
             MARKET_OPENED + 50,
-            STAKE,
+            VOUCH,
             ONE_WEEK,
             MULT_2X,
         );
@@ -353,16 +353,16 @@ mod tests {
     }
 
     #[test]
-    fn stake_before_option_creation_gets_peak_earliness() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
-        let user_staked_at = MARKET_OPENED + 10;
+    fn vouch_before_option_creation_gets_peak_earliness() {
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
+        let user_vouched_at = MARKET_OPENED + 10;
         let option_created = MARKET_OPENED + 60 * 60;
 
         let (_, earliness) = calculate_user_score_components(
             option_created,
-            staking_window_end,
-            user_staked_at,
-            staking_window_end,
+            vouching_window_end,
+            user_vouched_at,
+            vouching_window_end,
             ONE_WEEK,
             MULT_2X,
         )
@@ -372,13 +372,13 @@ mod tests {
     }
 
     #[test]
-    fn tiny_stake_gets_some_score() {
-        let staking_window_end = MARKET_OPENED + ONE_WEEK;
+    fn tiny_vouch_gets_some_score() {
+        let vouching_window_end = MARKET_OPENED + ONE_WEEK;
         let score = calculate_user_score(
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             MARKET_OPENED,
-            staking_window_end,
+            vouching_window_end,
             1,
             ONE_WEEK,
             MULT_2X,

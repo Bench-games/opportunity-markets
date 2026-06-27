@@ -533,18 +533,18 @@
           }
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -565,8 +565,8 @@
               },
               {
                 "kind": "account",
-                "path": "stake_account.id",
-                "account": "StakeAccount"
+                "path": "vouch_account.id",
+                "account": "VouchAccount"
               }
             ]
           }
@@ -593,8 +593,8 @@
               },
               {
                 "kind": "account",
-                "path": "stake_account.revealed_option",
-                "account": "StakeAccount"
+                "path": "vouch_account.revealed_option",
+                "account": "VouchAccount"
               }
             ]
           }
@@ -780,221 +780,16 @@
       ]
     },
     {
-      "name": "close_stake_account",
+      "name": "close_stuck_vouch_account",
       "discriminator": [
-        246,
-        236,
+        27,
+        238,
+        197,
+        24,
+        57,
         59,
-        167,
-        115,
-        135,
-        122,
-        12
-      ],
-      "accounts": [
-        {
-          "name": "owner",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "market",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  112,
-                  112,
-                  111,
-                  114,
-                  116,
-                  117,
-                  110,
-                  105,
-                  116,
-                  121,
-                  95,
-                  109,
-                  97,
-                  114,
-                  107,
-                  101,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "market.platform",
-                "account": "OpportunityMarket"
-              },
-              {
-                "kind": "account",
-                "path": "market.creator",
-                "account": "OpportunityMarket"
-              },
-              {
-                "kind": "account",
-                "path": "market.index",
-                "account": "OpportunityMarket"
-              }
-            ]
-          }
-        },
-        {
-          "name": "stake_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "stake_account.id",
-                "account": "StakeAccount"
-              }
-            ]
-          }
-        },
-        {
-          "name": "option",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  112,
-                  116,
-                  105,
-                  111,
-                  110
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "stake_account.revealed_option",
-                "account": "StakeAccount"
-              }
-            ]
-          }
-        },
-        {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "owner_token_account",
-          "writable": true
-        },
-        {
-          "name": "token_program"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "close_stuck_stake_account",
-      "discriminator": [
-        41,
-        239,
-        108,
-        203,
-        185,
-        230,
-        165,
-        181
+        252,
+        18
       ],
       "accounts": [
         {
@@ -1048,18 +843,18 @@
           }
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -1080,7 +875,7 @@
               },
               {
                 "kind": "arg",
-                "path": "stake_account_id"
+                "path": "vouch_account_id"
               }
             ]
           }
@@ -1162,22 +957,22 @@
       ],
       "args": [
         {
-          "name": "stake_account_id",
+          "name": "vouch_account_id",
           "type": "u32"
         }
       ]
     },
     {
-      "name": "close_unrevealed_stake_account",
+      "name": "close_unrevealed_vouch_account",
       "discriminator": [
-        171,
-        229,
+        192,
         236,
-        216,
-        122,
-        118,
+        224,
+        245,
+        5,
+        49,
         188,
-        103
+        11
       ],
       "accounts": [
         {
@@ -1232,18 +1027,18 @@
           }
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -1264,8 +1059,213 @@
               },
               {
                 "kind": "account",
-                "path": "stake_account.id",
-                "account": "StakeAccount"
+                "path": "vouch_account.id",
+                "account": "VouchAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_token_account",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_vouch_account",
+      "discriminator": [
+        107,
+        196,
+        52,
+        68,
+        9,
+        214,
+        207,
+        109
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116,
+                  117,
+                  110,
+                  105,
+                  116,
+                  121,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.platform",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.index",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vouch_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "vouch_account.id",
+                "account": "VouchAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "option",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "vouch_account.revealed_option",
+                "account": "VouchAccount"
               }
             ]
           }
@@ -1414,7 +1414,7 @@
         {
           "name": "market_token_ata",
           "docs": [
-            "This ATA holds all of the market's program-held tokens (stakes, rewards, fees)."
+            "This ATA holds all of the market's program-held tokens (vouches, rewards, fees)."
           ],
           "writable": true,
           "pda": {
@@ -1554,16 +1554,16 @@
       "args": []
     },
     {
-      "name": "finalize_reveal_stake",
+      "name": "finalize_reveal_vouch",
       "discriminator": [
-        92,
-        201,
-        94,
-        219,
-        117,
-        53,
-        255,
-        230
+        1,
+        34,
+        40,
+        131,
+        236,
+        85,
+        1,
+        25
       ],
       "accounts": [
         {
@@ -1579,18 +1579,18 @@
           "writable": true
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -1611,7 +1611,7 @@
               },
               {
                 "kind": "arg",
-                "path": "stake_account_id"
+                "path": "vouch_account_id"
               }
             ]
           }
@@ -1654,7 +1654,7 @@
           "type": "u64"
         },
         {
-          "name": "stake_account_id",
+          "name": "vouch_account_id",
           "type": "u32"
         }
       ]
@@ -1797,16 +1797,16 @@
       ]
     },
     {
-      "name": "init_stake_account",
+      "name": "init_vouch_account",
       "discriminator": [
-        132,
-        171,
-        255,
+        170,
+        190,
         149,
-        163,
-        37,
-        220,
-        45
+        246,
+        116,
+        216,
+        171,
+        230
       ],
       "accounts": [
         {
@@ -1824,18 +1824,18 @@
           "name": "market"
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -1856,7 +1856,7 @@
               },
               {
                 "kind": "arg",
-                "path": "stake_account_id"
+                "path": "vouch_account_id"
               }
             ]
           }
@@ -1868,7 +1868,7 @@
       ],
       "args": [
         {
-          "name": "stake_account_id",
+          "name": "vouch_account_id",
           "type": "u32"
         }
       ]
@@ -1903,7 +1903,7 @@
       ],
       "args": [
         {
-          "name": "time_to_stake",
+          "name": "time_to_vouch",
           "type": "u64"
         }
       ]
@@ -1936,16 +1936,16 @@
       "args": []
     },
     {
-      "name": "reveal_stake",
+      "name": "reveal_vouch",
       "discriminator": [
-        107,
-        229,
-        210,
-        77,
-        126,
-        255,
-        243,
-        188
+        137,
+        238,
+        214,
+        30,
+        51,
+        142,
+        141,
+        105
       ],
       "accounts": [
         {
@@ -1960,18 +1960,18 @@
           "name": "market"
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -1992,7 +1992,7 @@
               },
               {
                 "kind": "arg",
-                "path": "stake_account_id"
+                "path": "vouch_account_id"
               }
             ]
           }
@@ -2076,22 +2076,22 @@
           "type": "u64"
         },
         {
-          "name": "stake_account_id",
+          "name": "vouch_account_id",
           "type": "u32"
         }
       ]
     },
     {
-      "name": "reveal_stake_callback",
+      "name": "reveal_vouch_callback",
       "discriminator": [
-        79,
-        19,
-        120,
-        162,
-        232,
-        39,
-        206,
-        116
+        251,
+        246,
+        6,
+        118,
+        139,
+        46,
+        136,
+        190
       ],
       "accounts": [
         {
@@ -2115,7 +2115,7 @@
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true
         }
       ],
@@ -2130,7 +2130,7 @@
                   "kind": "type",
                   "type": {
                     "defined": {
-                      "name": "RevealStakeOutput"
+                      "name": "RevealVouchOutput"
                     }
                   }
                 }
@@ -2141,16 +2141,16 @@
       ]
     },
     {
-      "name": "reveal_stake_comp_def",
+      "name": "reveal_vouch_comp_def",
       "discriminator": [
-        197,
-        20,
-        216,
-        132,
-        43,
-        99,
-        64,
-        0
+        176,
+        228,
+        5,
+        47,
+        19,
+        6,
+        243,
+        236
       ],
       "accounts": [
         {
@@ -2309,16 +2309,52 @@
       ]
     },
     {
-      "name": "stake",
+      "name": "update_platform_config",
       "discriminator": [
-        206,
-        176,
-        202,
-        18,
-        200,
-        209,
+        195,
+        60,
+        76,
+        129,
+        146,
+        45,
+        67,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "update_authority",
+          "signer": true,
+          "relations": [
+            "platform_config"
+          ]
+        },
+        {
+          "name": "platform_config",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "UpdatePlatformParameters"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "vouch",
+      "discriminator": [
+        87,
+        240,
+        8,
+        21,
+        219,
         179,
-        108
+        242,
+        177
       ],
       "accounts": [
         {
@@ -2335,18 +2371,18 @@
           "writable": true
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
                   95,
                   97,
                   99,
@@ -2359,8 +2395,8 @@
               },
               {
                 "kind": "account",
-                "path": "stake_account.owner",
-                "account": "StakeAccount"
+                "path": "vouch_account.owner",
+                "account": "VouchAccount"
               },
               {
                 "kind": "account",
@@ -2368,7 +2404,7 @@
               },
               {
                 "kind": "arg",
-                "path": "params.stake_account_id"
+                "path": "params.vouch_account_id"
               }
             ]
           }
@@ -2379,7 +2415,7 @@
         {
           "name": "signer_token_account",
           "docs": [
-            "Funds the stake."
+            "Funds the vouch."
           ],
           "writable": true
         },
@@ -2521,23 +2557,23 @@
           "name": "params",
           "type": {
             "defined": {
-              "name": "StakeParameters"
+              "name": "VouchParameters"
             }
           }
         }
       ]
     },
     {
-      "name": "stake_callback",
+      "name": "vouch_callback",
       "discriminator": [
-        40,
-        220,
-        36,
-        47,
-        6,
-        116,
-        132,
-        89
+        10,
+        0,
+        52,
+        15,
+        179,
+        148,
+        194,
+        135
       ],
       "accounts": [
         {
@@ -2561,7 +2597,7 @@
           "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
-          "name": "stake_account",
+          "name": "vouch_account",
           "writable": true
         },
         {
@@ -2580,7 +2616,7 @@
                   "kind": "type",
                   "type": {
                     "defined": {
-                      "name": "StakeOutput"
+                      "name": "VouchOutput"
                     }
                   }
                 }
@@ -2591,16 +2627,16 @@
       ]
     },
     {
-      "name": "stake_comp_def",
+      "name": "vouch_comp_def",
       "discriminator": [
-        156,
-        5,
-        60,
-        126,
-        142,
-        149,
-        1,
-        130
+        138,
+        27,
+        95,
+        181,
+        9,
+        219,
+        232,
+        219
       ],
       "accounts": [
         {
@@ -2634,228 +2670,6 @@
         }
       ],
       "args": []
-    },
-    {
-      "name": "unstake",
-      "discriminator": [
-        90,
-        95,
-        107,
-        42,
-        205,
-        124,
-        50,
-        225
-      ],
-      "accounts": [
-        {
-          "name": "signer",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "owner"
-        },
-        {
-          "name": "market",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  111,
-                  112,
-                  112,
-                  111,
-                  114,
-                  116,
-                  117,
-                  110,
-                  105,
-                  116,
-                  121,
-                  95,
-                  109,
-                  97,
-                  114,
-                  107,
-                  101,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "market.platform",
-                "account": "OpportunityMarket"
-              },
-              {
-                "kind": "account",
-                "path": "market.creator",
-                "account": "OpportunityMarket"
-              },
-              {
-                "kind": "account",
-                "path": "market.index",
-                "account": "OpportunityMarket"
-              }
-            ]
-          }
-        },
-        {
-          "name": "stake_account",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  116,
-                  97,
-                  107,
-                  101,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "owner"
-              },
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "arg",
-                "path": "stake_account_id"
-              }
-            ]
-          }
-        },
-        {
-          "name": "token_mint"
-        },
-        {
-          "name": "market_token_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "market"
-              },
-              {
-                "kind": "account",
-                "path": "token_program"
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "owner_token_account",
-          "docs": [
-            "Owner's token account to receive staked tokens"
-          ],
-          "writable": true
-        },
-        {
-          "name": "token_program"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "stake_account_id",
-          "type": "u32"
-        }
-      ]
-    },
-    {
-      "name": "update_platform_config",
-      "discriminator": [
-        195,
-        60,
-        76,
-        129,
-        146,
-        45,
-        67,
-        143
-      ],
-      "accounts": [
-        {
-          "name": "update_authority",
-          "signer": true,
-          "relations": [
-            "platform_config"
-          ]
-        },
-        {
-          "name": "platform_config",
-          "writable": true
-        }
-      ],
-      "args": [
-        {
-          "name": "params",
-          "type": {
-            "defined": {
-              "name": "UpdatePlatformParameters"
-            }
-          }
-        }
-      ]
     },
     {
       "name": "withdraw_reward",
@@ -3021,6 +2835,192 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "withdraw_vouch",
+      "discriminator": [
+        201,
+        33,
+        64,
+        226,
+        252,
+        193,
+        27,
+        83
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "owner"
+        },
+        {
+          "name": "market",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  112,
+                  112,
+                  111,
+                  114,
+                  116,
+                  117,
+                  110,
+                  105,
+                  116,
+                  121,
+                  95,
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.platform",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "OpportunityMarket"
+              },
+              {
+                "kind": "account",
+                "path": "market.index",
+                "account": "OpportunityMarket"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vouch_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  111,
+                  117,
+                  99,
+                  104,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "arg",
+                "path": "vouch_account_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint"
+        },
+        {
+          "name": "market_token_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "owner_token_account",
+          "docs": [
+            "Owner's token account to receive vouched tokens"
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vouch_account_id",
+          "type": "u32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -3103,16 +3103,16 @@
       ]
     },
     {
-      "name": "StakeAccount",
+      "name": "VouchAccount",
       "discriminator": [
-        80,
-        158,
-        67,
-        124,
-        50,
-        189,
-        192,
-        255
+        165,
+        230,
+        131,
+        136,
+        184,
+        203,
+        66,
+        136
       ]
     }
   ],
@@ -3248,16 +3248,16 @@
       ]
     },
     {
-      "name": "RevealStakeFinalizedEvent",
+      "name": "RevealVouchFinalizedEvent",
       "discriminator": [
-        69,
-        61,
-        231,
-        137,
-        194,
-        99,
-        121,
-        108
+        252,
+        104,
+        166,
+        83,
+        204,
+        97,
+        6,
+        245
       ]
     },
     {
@@ -3300,81 +3300,16 @@
       ]
     },
     {
-      "name": "StakeAccountClosedEvent",
+      "name": "StuckVouchClosedEvent",
       "discriminator": [
+        89,
+        222,
         214,
-        188,
-        203,
-        148,
-        208,
-        97,
-        37,
-        185
-      ]
-    },
-    {
-      "name": "StakeAccountInitializedEvent",
-      "discriminator": [
-        106,
-        47,
-        162,
-        131,
-        142,
-        181,
-        69,
-        20
-      ]
-    },
-    {
-      "name": "StakeRevealedEvent",
-      "discriminator": [
-        251,
-        67,
-        27,
-        236,
-        153,
-        24,
-        248,
-        211
-      ]
-    },
-    {
-      "name": "StakedEvent",
-      "discriminator": [
-        81,
-        221,
-        186,
-        176,
-        240,
-        160,
-        193,
-        69
-      ]
-    },
-    {
-      "name": "StuckStakeClosedEvent",
-      "discriminator": [
-        0,
-        100,
-        58,
-        203,
-        169,
-        54,
-        149,
-        152
-      ]
-    },
-    {
-      "name": "UnstakedEvent",
-      "discriminator": [
-        186,
-        174,
-        247,
-        231,
-        242,
-        159,
-        68,
-        128
+        10,
+        115,
+        109,
+        16,
+        241
       ]
     },
     {
@@ -3388,6 +3323,71 @@
         170,
         84,
         201
+      ]
+    },
+    {
+      "name": "VouchAccountClosedEvent",
+      "discriminator": [
+        166,
+        74,
+        63,
+        250,
+        195,
+        43,
+        170,
+        171
+      ]
+    },
+    {
+      "name": "VouchAccountInitializedEvent",
+      "discriminator": [
+        165,
+        230,
+        74,
+        211,
+        201,
+        0,
+        45,
+        91
+      ]
+    },
+    {
+      "name": "VouchRevealedEvent",
+      "discriminator": [
+        43,
+        101,
+        92,
+        209,
+        192,
+        24,
+        15,
+        180
+      ]
+    },
+    {
+      "name": "VouchWithdrawnEvent",
+      "discriminator": [
+        181,
+        15,
+        141,
+        116,
+        71,
+        39,
+        159,
+        216
+      ]
+    },
+    {
+      "name": "VouchedEvent",
+      "discriminator": [
+        51,
+        45,
+        55,
+        53,
+        111,
+        49,
+        187,
+        7
       ]
     },
     {
@@ -3432,8 +3432,8 @@
     },
     {
       "code": 6005,
-      "name": "NoStake",
-      "msg": "Stake account has no recorded stake"
+      "name": "NoVouch",
+      "msg": "Vouch account has no recorded vouch"
     },
     {
       "code": 6006,
@@ -3443,17 +3443,17 @@
     {
       "code": 6007,
       "name": "AlreadyRevealed",
-      "msg": "Stake already revealed"
+      "msg": "Vouch already revealed"
     },
     {
       "code": 6008,
       "name": "NotRevealed",
-      "msg": "Stake not yet revealed"
+      "msg": "Vouch not yet revealed"
     },
     {
       "code": 6009,
       "name": "TallyAlreadyIncremented",
-      "msg": "Tally already incremented for this stake account"
+      "msg": "Tally already incremented for this vouch account"
     },
     {
       "code": 6010,
@@ -3467,13 +3467,13 @@
     },
     {
       "code": 6012,
-      "name": "AlreadyUnstaked",
-      "msg": "Already unstaked"
+      "name": "AlreadyVouchWithdrawn",
+      "msg": "Vouch already withdrawn"
     },
     {
       "code": 6013,
-      "name": "AlreadyStaked",
-      "msg": "Already staked for this stake account"
+      "name": "AlreadyVouched",
+      "msg": "Already vouched for this vouch account"
     },
     {
       "code": 6014,
@@ -3492,13 +3492,13 @@
     },
     {
       "code": 6017,
-      "name": "StakeNotStuck",
-      "msg": "Stake account is not in a stuck or failed state"
+      "name": "VouchNotStuck",
+      "msg": "Vouch account is not in a stuck or failed state"
     },
     {
       "code": 6018,
-      "name": "StakeBelowMinimum",
-      "msg": "Stake amount is below the market minimum"
+      "name": "VouchBelowMinimum",
+      "msg": "Vouch amount is below the market minimum"
     },
     {
       "code": 6019,
@@ -3518,7 +3518,7 @@
     {
       "code": 6022,
       "name": "NoFinalizedWinningOption",
-      "msg": "No winning option has a finalized stake"
+      "msg": "No winning option has a finalized vouch"
     },
     {
       "code": 6023,
@@ -3965,7 +3965,7 @@
             "type": "u16"
           },
           {
-            "name": "min_stake_amount",
+            "name": "min_vouch_amount",
             "type": "u64"
           },
           {
@@ -4137,7 +4137,7 @@
             "type": "pubkey"
           },
           {
-            "name": "min_time_to_stake_seconds",
+            "name": "min_time_to_vouch_seconds",
             "type": "u64"
           },
           {
@@ -4292,7 +4292,7 @@
             }
           },
           {
-            "name": "min_stake_amount",
+            "name": "min_vouch_amount",
             "type": "u64"
           },
           {
@@ -4336,7 +4336,7 @@
             "type": "pubkey"
           },
           {
-            "name": "staking_window_end",
+            "name": "vouching_window_end",
             "type": "u64"
           },
           {
@@ -4533,7 +4533,7 @@
             "type": "pubkey"
           },
           {
-            "name": "staking_window_end",
+            "name": "vouching_window_end",
             "type": {
               "option": "u64"
             }
@@ -4614,7 +4614,7 @@
             "type": "bool"
           },
           {
-            "name": "min_stake_amount",
+            "name": "min_vouch_amount",
             "type": "u64"
           }
         ]
@@ -4642,7 +4642,7 @@
             "type": "u64"
           },
           {
-            "name": "unclaimed_gross_stake",
+            "name": "unclaimed_gross_vouch",
             "type": "u64"
           },
           {
@@ -4877,7 +4877,7 @@
             "type": "u64"
           },
           {
-            "name": "min_time_to_stake_seconds",
+            "name": "min_time_to_vouch_seconds",
             "type": "u64"
           },
           {
@@ -4912,7 +4912,7 @@
       }
     },
     {
-      "name": "RevealStakeFinalizedEvent",
+      "name": "RevealVouchFinalizedEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -4925,11 +4925,11 @@
             "type": "pubkey"
           },
           {
-            "name": "stake_account",
+            "name": "vouch_account",
             "type": "pubkey"
           },
           {
-            "name": "stake_account_id",
+            "name": "vouch_account_id",
             "type": "u32"
           },
           {
@@ -4937,7 +4937,7 @@
             "type": "u64"
           },
           {
-            "name": "user_stake",
+            "name": "user_vouch",
             "type": "u64"
           },
           {
@@ -4949,7 +4949,7 @@
             "type": "u128"
           },
           {
-            "name": "total_stake",
+            "name": "total_vouch",
             "type": "u64"
           },
           {
@@ -4960,7 +4960,7 @@
       }
     },
     {
-      "name": "RevealStakeOutput",
+      "name": "RevealVouchOutput",
       "docs": [
         "The output of the callback instruction. Provided as a struct with ordered fields",
         "as anchor does not support tuples and tuple structs yet."
@@ -5045,11 +5045,11 @@
             "type": "pubkey"
           },
           {
-            "name": "stake_account",
+            "name": "vouch_account",
             "type": "pubkey"
           },
           {
-            "name": "stake_account_id",
+            "name": "vouch_account_id",
             "type": "u32"
           },
           {
@@ -5193,125 +5193,7 @@
       }
     },
     {
-      "name": "StakeAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "encrypted_option",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "state_nonce",
-            "type": "u128"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "user_pubkey",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "encrypted_option_disclosure",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "state_nonce_disclosure",
-            "type": "u128"
-          },
-          {
-            "name": "staked_at_timestamp",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "unstaked_at_timestamp",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "collected_fees",
-            "type": {
-              "defined": {
-                "name": "CollectedFees"
-              }
-            }
-          },
-          {
-            "name": "revealed_option",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "score",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "rewards_claimed",
-            "type": "bool"
-          },
-          {
-            "name": "id",
-            "type": "u32"
-          },
-          {
-            "name": "pending_stake_computation",
-            "type": {
-              "option": "pubkey"
-            }
-          },
-          {
-            "name": "pending_reveal_computation",
-            "type": {
-              "option": "pubkey"
-            }
-          },
-          {
-            "name": "last_reveal_stake_at",
-            "docs": [
-              "Unix timestamp of the last successful `reveal_stake` queue; 0 if never queued."
-            ],
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakeAccountClosedEvent",
+      "name": "StuckVouchClosedEvent",
       "type": {
         "kind": "struct",
         "fields": [
@@ -5324,293 +5206,11 @@
             "type": "pubkey"
           },
           {
-            "name": "stake_account",
+            "name": "vouch_account",
             "type": "pubkey"
           },
           {
-            "name": "stake_account_id",
-            "type": "u32"
-          },
-          {
-            "name": "option_id",
-            "type": {
-              "option": "u64"
-            }
-          },
-          {
-            "name": "stake_amount",
-            "type": "u64"
-          },
-          {
-            "name": "fee_refund",
-            "type": "u64"
-          },
-          {
-            "name": "staked_at_timestamp",
-            "type": "u64"
-          },
-          {
-            "name": "staking_window_end",
-            "type": "u64"
-          },
-          {
-            "name": "score",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakeAccountInitializedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "stake_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "account_id",
-            "type": "u32"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakeOutput",
-      "docs": [
-        "The output of the callback instruction. Provided as a struct with ordered fields",
-        "as anchor does not support tuples and tuple structs yet."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field_0",
-            "type": {
-              "defined": {
-                "name": "StakeOutputStruct0"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakeOutputStruct0",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "field_0",
-            "type": {
-              "defined": {
-                "name": "SharedEncryptedStruct",
-                "generics": [
-                  {
-                    "kind": "const",
-                    "value": "1"
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "name": "field_1",
-            "type": {
-              "defined": {
-                "name": "SharedEncryptedStruct",
-                "generics": [
-                  {
-                    "kind": "const",
-                    "value": "1"
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakeParameters",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "computation_offset",
-            "type": "u64"
-          },
-          {
-            "name": "stake_account_id",
-            "type": "u32"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "selected_option_ciphertext",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "input_nonce",
-            "type": "u128"
-          },
-          {
-            "name": "authorized_reader_nonce",
-            "type": "u128"
-          },
-          {
-            "name": "user_pubkey",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "state_nonce",
-            "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakeRevealedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account_id",
-            "type": "u32"
-          },
-          {
-            "name": "stake_amount",
-            "type": "u64"
-          },
-          {
-            "name": "selected_option",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StakedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "user",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account_id",
-            "type": "u32"
-          },
-          {
-            "name": "stake_encrypted_option",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "stake_state_nonce",
-            "type": "u128"
-          },
-          {
-            "name": "stake_encrypted_option_disclosure",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "stake_state_disclosure_nonce",
-            "type": "u128"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "StuckStakeClosedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account_id",
+            "name": "vouch_account_id",
             "type": "u32"
           },
           {
@@ -5644,38 +5244,6 @@
           {
             "name": "timestamp",
             "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "UnstakedEvent",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account",
-            "type": "pubkey"
-          },
-          {
-            "name": "stake_account_id",
-            "type": "u32"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "timestamp",
-            "type": "i64"
           }
         ]
       }
@@ -5734,7 +5302,7 @@
             }
           },
           {
-            "name": "min_time_to_stake_seconds",
+            "name": "min_time_to_vouch_seconds",
             "type": {
               "option": "u64"
             }
@@ -5794,6 +5362,438 @@
                 64
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "encrypted_option",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "state_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "user_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "encrypted_option_disclosure",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "state_nonce_disclosure",
+            "type": "u128"
+          },
+          {
+            "name": "vouched_at_timestamp",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "vouch_withdrawn_at_timestamp",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "collected_fees",
+            "type": {
+              "defined": {
+                "name": "CollectedFees"
+              }
+            }
+          },
+          {
+            "name": "revealed_option",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "score",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "rewards_claimed",
+            "type": "bool"
+          },
+          {
+            "name": "id",
+            "type": "u32"
+          },
+          {
+            "name": "pending_vouch_computation",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "pending_reveal_computation",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "last_reveal_vouch_at",
+            "docs": [
+              "Unix timestamp of the last successful `reveal_vouch` queue; 0 if never queued."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchAccountClosedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "option_id",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "vouch_amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee_refund",
+            "type": "u64"
+          },
+          {
+            "name": "vouched_at_timestamp",
+            "type": "u64"
+          },
+          {
+            "name": "vouching_window_end",
+            "type": "u64"
+          },
+          {
+            "name": "score",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchAccountInitializedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vouch_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "account_id",
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchOutput",
+      "docs": [
+        "The output of the callback instruction. Provided as a struct with ordered fields",
+        "as anchor does not support tuples and tuple structs yet."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "VouchOutputStruct0"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchOutputStruct0",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field_0",
+            "type": {
+              "defined": {
+                "name": "SharedEncryptedStruct",
+                "generics": [
+                  {
+                    "kind": "const",
+                    "value": "1"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "field_1",
+            "type": {
+              "defined": {
+                "name": "SharedEncryptedStruct",
+                "generics": [
+                  {
+                    "kind": "const",
+                    "value": "1"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchParameters",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "computation_offset",
+            "type": "u64"
+          },
+          {
+            "name": "vouch_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "selected_option_ciphertext",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "input_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "authorized_reader_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "user_pubkey",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "state_nonce",
+            "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchRevealedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "vouch_amount",
+            "type": "u64"
+          },
+          {
+            "name": "selected_option",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchWithdrawnEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VouchedEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "vouch_account_id",
+            "type": "u32"
+          },
+          {
+            "name": "vouch_encrypted_option",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "vouch_state_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "vouch_encrypted_option_disclosure",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "vouch_state_disclosure_nonce",
+            "type": "u128"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }

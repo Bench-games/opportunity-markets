@@ -53,7 +53,7 @@ export type ClaimRewardsInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountOwner extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
-  TAccountStakeAccount extends string | AccountMeta<string> = string,
+  TAccountVouchAccount extends string | AccountMeta<string> = string,
   TAccountOption extends string | AccountMeta<string> = string,
   TAccountTokenMint extends string | AccountMeta<string> = string,
   TAccountMarketTokenAta extends string | AccountMeta<string> = string,
@@ -71,9 +71,9 @@ export type ClaimRewardsInstruction<
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
-      TAccountStakeAccount extends string
-        ? WritableAccount<TAccountStakeAccount>
-        : TAccountStakeAccount,
+      TAccountVouchAccount extends string
+        ? WritableAccount<TAccountVouchAccount>
+        : TAccountVouchAccount,
       TAccountOption extends string
         ? WritableAccount<TAccountOption>
         : TAccountOption,
@@ -123,7 +123,7 @@ export function getClaimRewardsInstructionDataCodec(): FixedSizeCodec<
 export type ClaimRewardsAsyncInput<
   TAccountOwner extends string = string,
   TAccountMarket extends string = string,
-  TAccountStakeAccount extends string = string,
+  TAccountVouchAccount extends string = string,
   TAccountOption extends string = string,
   TAccountTokenMint extends string = string,
   TAccountMarketTokenAta extends string = string,
@@ -132,7 +132,7 @@ export type ClaimRewardsAsyncInput<
 > = {
   owner: TransactionSigner<TAccountOwner>;
   market: Address<TAccountMarket>;
-  stakeAccount: Address<TAccountStakeAccount>;
+  vouchAccount: Address<TAccountVouchAccount>;
   option: Address<TAccountOption>;
   tokenMint: Address<TAccountTokenMint>;
   marketTokenAta?: Address<TAccountMarketTokenAta>;
@@ -143,7 +143,7 @@ export type ClaimRewardsAsyncInput<
 export async function getClaimRewardsInstructionAsync<
   TAccountOwner extends string,
   TAccountMarket extends string,
-  TAccountStakeAccount extends string,
+  TAccountVouchAccount extends string,
   TAccountOption extends string,
   TAccountTokenMint extends string,
   TAccountMarketTokenAta extends string,
@@ -154,7 +154,7 @@ export async function getClaimRewardsInstructionAsync<
   input: ClaimRewardsAsyncInput<
     TAccountOwner,
     TAccountMarket,
-    TAccountStakeAccount,
+    TAccountVouchAccount,
     TAccountOption,
     TAccountTokenMint,
     TAccountMarketTokenAta,
@@ -167,7 +167,7 @@ export async function getClaimRewardsInstructionAsync<
     TProgramAddress,
     TAccountOwner,
     TAccountMarket,
-    TAccountStakeAccount,
+    TAccountVouchAccount,
     TAccountOption,
     TAccountTokenMint,
     TAccountMarketTokenAta,
@@ -183,7 +183,7 @@ export async function getClaimRewardsInstructionAsync<
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
-    stakeAccount: { value: input.stakeAccount ?? null, isWritable: true },
+    vouchAccount: { value: input.vouchAccount ?? null, isWritable: true },
     option: { value: input.option ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
     marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: true },
@@ -216,7 +216,7 @@ export async function getClaimRewardsInstructionAsync<
     accounts: [
       getAccountMeta(accounts.owner),
       getAccountMeta(accounts.market),
-      getAccountMeta(accounts.stakeAccount),
+      getAccountMeta(accounts.vouchAccount),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.tokenMint),
       getAccountMeta(accounts.marketTokenAta),
@@ -229,7 +229,7 @@ export async function getClaimRewardsInstructionAsync<
     TProgramAddress,
     TAccountOwner,
     TAccountMarket,
-    TAccountStakeAccount,
+    TAccountVouchAccount,
     TAccountOption,
     TAccountTokenMint,
     TAccountMarketTokenAta,
@@ -241,7 +241,7 @@ export async function getClaimRewardsInstructionAsync<
 export type ClaimRewardsInput<
   TAccountOwner extends string = string,
   TAccountMarket extends string = string,
-  TAccountStakeAccount extends string = string,
+  TAccountVouchAccount extends string = string,
   TAccountOption extends string = string,
   TAccountTokenMint extends string = string,
   TAccountMarketTokenAta extends string = string,
@@ -250,7 +250,7 @@ export type ClaimRewardsInput<
 > = {
   owner: TransactionSigner<TAccountOwner>;
   market: Address<TAccountMarket>;
-  stakeAccount: Address<TAccountStakeAccount>;
+  vouchAccount: Address<TAccountVouchAccount>;
   option: Address<TAccountOption>;
   tokenMint: Address<TAccountTokenMint>;
   marketTokenAta: Address<TAccountMarketTokenAta>;
@@ -261,7 +261,7 @@ export type ClaimRewardsInput<
 export function getClaimRewardsInstruction<
   TAccountOwner extends string,
   TAccountMarket extends string,
-  TAccountStakeAccount extends string,
+  TAccountVouchAccount extends string,
   TAccountOption extends string,
   TAccountTokenMint extends string,
   TAccountMarketTokenAta extends string,
@@ -272,7 +272,7 @@ export function getClaimRewardsInstruction<
   input: ClaimRewardsInput<
     TAccountOwner,
     TAccountMarket,
-    TAccountStakeAccount,
+    TAccountVouchAccount,
     TAccountOption,
     TAccountTokenMint,
     TAccountMarketTokenAta,
@@ -284,7 +284,7 @@ export function getClaimRewardsInstruction<
   TProgramAddress,
   TAccountOwner,
   TAccountMarket,
-  TAccountStakeAccount,
+  TAccountVouchAccount,
   TAccountOption,
   TAccountTokenMint,
   TAccountMarketTokenAta,
@@ -299,7 +299,7 @@ export function getClaimRewardsInstruction<
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
-    stakeAccount: { value: input.stakeAccount ?? null, isWritable: true },
+    vouchAccount: { value: input.vouchAccount ?? null, isWritable: true },
     option: { value: input.option ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
     marketTokenAta: { value: input.marketTokenAta ?? null, isWritable: true },
@@ -319,7 +319,7 @@ export function getClaimRewardsInstruction<
     accounts: [
       getAccountMeta(accounts.owner),
       getAccountMeta(accounts.market),
-      getAccountMeta(accounts.stakeAccount),
+      getAccountMeta(accounts.vouchAccount),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.tokenMint),
       getAccountMeta(accounts.marketTokenAta),
@@ -332,7 +332,7 @@ export function getClaimRewardsInstruction<
     TProgramAddress,
     TAccountOwner,
     TAccountMarket,
-    TAccountStakeAccount,
+    TAccountVouchAccount,
     TAccountOption,
     TAccountTokenMint,
     TAccountMarketTokenAta,
@@ -349,7 +349,7 @@ export type ParsedClaimRewardsInstruction<
   accounts: {
     owner: TAccountMetas[0];
     market: TAccountMetas[1];
-    stakeAccount: TAccountMetas[2];
+    vouchAccount: TAccountMetas[2];
     option: TAccountMetas[3];
     tokenMint: TAccountMetas[4];
     marketTokenAta: TAccountMetas[5];
@@ -382,7 +382,7 @@ export function parseClaimRewardsInstruction<
     accounts: {
       owner: getNextAccount(),
       market: getNextAccount(),
-      stakeAccount: getNextAccount(),
+      vouchAccount: getNextAccount(),
       option: getNextAccount(),
       tokenMint: getNextAccount(),
       marketTokenAta: getNextAccount(),

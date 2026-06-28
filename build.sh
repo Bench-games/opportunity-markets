@@ -8,7 +8,7 @@ if [ "${1:-}" = "--env" ] && [ "${2:-}" = "dev" ]; then
   anchor build --ignore-keys -- --features disable-prod-guardrails
 
 else
-  KEYPAIR_NAME="bncqApu6NkUibDwnbfXR5oRPCLiYjwHgVuCdHRTD6rp"
+  KEYPAIR_NAME="BENCLZWw5m2xTr3Mtb5nzWMLcBJFw6DNDtNAuhjNPgAe"
   KEYPAIR_PATH="../${KEYPAIR_NAME}.json"
 
   if [ ! -f "$KEYPAIR_PATH" ]; then

@@ -7,6 +7,7 @@ import { type BaseInstructionParams } from "./instructionParams";
 
 export interface CloseVouchAccountParams extends BaseInstructionParams {
   owner: TransactionSigner;
+  rentPayer: Address;
   market: Address;
   vouchAccount: Address;
   option: Address;

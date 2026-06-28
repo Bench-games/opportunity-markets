@@ -73,6 +73,7 @@ export type VouchAccount = {
   stateNonce: bigint;
   bump: number;
   owner: Address;
+  rentPayer: Address;
   market: Address;
   userPubkey: Array<number>;
   encryptedOptionDisclosure: Array<number>;
@@ -96,6 +97,7 @@ export type VouchAccountArgs = {
   stateNonce: number | bigint;
   bump: number;
   owner: Address;
+  rentPayer: Address;
   market: Address;
   userPubkey: Array<number>;
   encryptedOptionDisclosure: Array<number>;
@@ -122,6 +124,7 @@ export function getVouchAccountEncoder(): Encoder<VouchAccountArgs> {
       ['stateNonce', getU128Encoder()],
       ['bump', getU8Encoder()],
       ['owner', getAddressEncoder()],
+      ['rentPayer', getAddressEncoder()],
       ['market', getAddressEncoder()],
       ['userPubkey', getArrayEncoder(getU8Encoder(), { size: 32 })],
       [
@@ -152,6 +155,7 @@ export function getVouchAccountDecoder(): Decoder<VouchAccount> {
     ['stateNonce', getU128Decoder()],
     ['bump', getU8Decoder()],
     ['owner', getAddressDecoder()],
+    ['rentPayer', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['userPubkey', getArrayDecoder(getU8Decoder(), { size: 32 })],
     [

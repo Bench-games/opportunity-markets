@@ -15,6 +15,13 @@ pub struct CloseStuckVouchAccount<'info> {
     pub signer: Signer<'info>,
 
     #[account(
+        mut,
+        address = vouch_account.rent_payer,
+    )]
+    /// CHECK: receives the closed vouch account rent.
+    pub rent_payer: UncheckedAccount<'info>,
+
+    #[account(
         seeds = [OPPORTUNITY_MARKET_SEED, market.platform.as_ref(), market.creator.as_ref(), &market.index.to_le_bytes()],
         bump = market.bump,
     )]
@@ -22,7 +29,7 @@ pub struct CloseStuckVouchAccount<'info> {
 
     #[account(
         mut,
-        close = signer,
+        close = rent_payer,
         seeds = [VOUCH_ACCOUNT_SEED, signer.key().as_ref(), market.key().as_ref(), &vouch_account_id.to_le_bytes()],
         bump = vouch_account.bump,
         constraint = vouch_account.owner == signer.key() @ ErrorCode::Unauthorized,

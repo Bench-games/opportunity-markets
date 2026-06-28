@@ -317,6 +317,7 @@ pub struct VouchAccount {
     pub state_nonce: u128,
     pub bump: u8,
     pub owner: Pubkey,
+    pub rent_payer: Pubkey,
     pub market: Pubkey,
     pub user_pubkey: [u8; 32], // x25519 pubkey
     pub encrypted_option_disclosure: [u8; 32],

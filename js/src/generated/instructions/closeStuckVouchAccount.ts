@@ -55,6 +55,7 @@ export function getCloseStuckVouchAccountDiscriminatorBytes() {
 export type CloseStuckVouchAccountInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountSigner extends string | AccountMeta<string> = string,
+  TAccountRentPayer extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TAccountVouchAccount extends string | AccountMeta<string> = string,
   TAccountTokenMint extends string | AccountMeta<string> = string,
@@ -72,6 +73,9 @@ export type CloseStuckVouchAccountInstruction<
         ? WritableSignerAccount<TAccountSigner> &
             AccountSignerMeta<TAccountSigner>
         : TAccountSigner,
+      TAccountRentPayer extends string
+        ? WritableAccount<TAccountRentPayer>
+        : TAccountRentPayer,
       TAccountMarket extends string
         ? ReadonlyAccount<TAccountMarket>
         : TAccountMarket,
@@ -138,6 +142,7 @@ export function getCloseStuckVouchAccountInstructionDataCodec(): FixedSizeCodec<
 
 export type CloseStuckVouchAccountAsyncInput<
   TAccountSigner extends string = string,
+  TAccountRentPayer extends string = string,
   TAccountMarket extends string = string,
   TAccountVouchAccount extends string = string,
   TAccountTokenMint extends string = string,
@@ -147,6 +152,7 @@ export type CloseStuckVouchAccountAsyncInput<
   TAccountSystemProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
+  rentPayer: Address<TAccountRentPayer>;
   market: Address<TAccountMarket>;
   vouchAccount?: Address<TAccountVouchAccount>;
   tokenMint: Address<TAccountTokenMint>;
@@ -160,6 +166,7 @@ export type CloseStuckVouchAccountAsyncInput<
 
 export async function getCloseStuckVouchAccountInstructionAsync<
   TAccountSigner extends string,
+  TAccountRentPayer extends string,
   TAccountMarket extends string,
   TAccountVouchAccount extends string,
   TAccountTokenMint extends string,
@@ -171,6 +178,7 @@ export async function getCloseStuckVouchAccountInstructionAsync<
 >(
   input: CloseStuckVouchAccountAsyncInput<
     TAccountSigner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -184,6 +192,7 @@ export async function getCloseStuckVouchAccountInstructionAsync<
   CloseStuckVouchAccountInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -200,6 +209,7 @@ export async function getCloseStuckVouchAccountInstructionAsync<
   // Original accounts.
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: true },
+    rentPayer: { value: input.rentPayer ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: false },
     vouchAccount: { value: input.vouchAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
@@ -255,6 +265,7 @@ export async function getCloseStuckVouchAccountInstructionAsync<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
+      getAccountMeta(accounts.rentPayer),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.vouchAccount),
       getAccountMeta(accounts.tokenMint),
@@ -270,6 +281,7 @@ export async function getCloseStuckVouchAccountInstructionAsync<
   } as CloseStuckVouchAccountInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -282,6 +294,7 @@ export async function getCloseStuckVouchAccountInstructionAsync<
 
 export type CloseStuckVouchAccountInput<
   TAccountSigner extends string = string,
+  TAccountRentPayer extends string = string,
   TAccountMarket extends string = string,
   TAccountVouchAccount extends string = string,
   TAccountTokenMint extends string = string,
@@ -291,6 +304,7 @@ export type CloseStuckVouchAccountInput<
   TAccountSystemProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
+  rentPayer: Address<TAccountRentPayer>;
   market: Address<TAccountMarket>;
   vouchAccount: Address<TAccountVouchAccount>;
   tokenMint: Address<TAccountTokenMint>;
@@ -304,6 +318,7 @@ export type CloseStuckVouchAccountInput<
 
 export function getCloseStuckVouchAccountInstruction<
   TAccountSigner extends string,
+  TAccountRentPayer extends string,
   TAccountMarket extends string,
   TAccountVouchAccount extends string,
   TAccountTokenMint extends string,
@@ -315,6 +330,7 @@ export function getCloseStuckVouchAccountInstruction<
 >(
   input: CloseStuckVouchAccountInput<
     TAccountSigner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -327,6 +343,7 @@ export function getCloseStuckVouchAccountInstruction<
 ): CloseStuckVouchAccountInstruction<
   TProgramAddress,
   TAccountSigner,
+  TAccountRentPayer,
   TAccountMarket,
   TAccountVouchAccount,
   TAccountTokenMint,
@@ -342,6 +359,7 @@ export function getCloseStuckVouchAccountInstruction<
   // Original accounts.
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: true },
+    rentPayer: { value: input.rentPayer ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: false },
     vouchAccount: { value: input.vouchAccount ?? null, isWritable: true },
     tokenMint: { value: input.tokenMint ?? null, isWritable: false },
@@ -371,6 +389,7 @@ export function getCloseStuckVouchAccountInstruction<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
+      getAccountMeta(accounts.rentPayer),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.vouchAccount),
       getAccountMeta(accounts.tokenMint),
@@ -386,6 +405,7 @@ export function getCloseStuckVouchAccountInstruction<
   } as CloseStuckVouchAccountInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountRentPayer,
     TAccountMarket,
     TAccountVouchAccount,
     TAccountTokenMint,
@@ -403,14 +423,15 @@ export type ParsedCloseStuckVouchAccountInstruction<
   programAddress: Address<TProgram>;
   accounts: {
     signer: TAccountMetas[0];
-    market: TAccountMetas[1];
-    vouchAccount: TAccountMetas[2];
-    tokenMint: TAccountMetas[3];
+    rentPayer: TAccountMetas[1];
+    market: TAccountMetas[2];
+    vouchAccount: TAccountMetas[3];
+    tokenMint: TAccountMetas[4];
     /** Signer's token account to receive refund */
-    signerTokenAccount: TAccountMetas[4];
-    marketTokenAta: TAccountMetas[5];
-    tokenProgram: TAccountMetas[6];
-    systemProgram: TAccountMetas[7];
+    signerTokenAccount: TAccountMetas[5];
+    marketTokenAta: TAccountMetas[6];
+    tokenProgram: TAccountMetas[7];
+    systemProgram: TAccountMetas[8];
   };
   data: CloseStuckVouchAccountInstructionData;
 };
@@ -423,7 +444,7 @@ export function parseCloseStuckVouchAccountInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedCloseStuckVouchAccountInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 8) {
+  if (instruction.accounts.length < 9) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -437,6 +458,7 @@ export function parseCloseStuckVouchAccountInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       signer: getNextAccount(),
+      rentPayer: getNextAccount(),
       market: getNextAccount(),
       vouchAccount: getNextAccount(),
       tokenMint: getNextAccount(),

@@ -962,6 +962,7 @@ export class Platform {
         );
         const ix = await closeVouchAccount({
           owner: user.solanaKeypair,
+          rentPayer: user.solanaKeypair.address,
           market: this.marketAddress,
           vouchAccount,
           option,
@@ -991,6 +992,7 @@ export class Platform {
         );
         const ix = await closeUnrevealedVouchAccount({
           owner: user.solanaKeypair,
+          rentPayer: user.solanaKeypair.address,
           market: this.marketAddress,
           vouchAccount,
           tokenMint: this.mint.address,
@@ -1126,6 +1128,7 @@ export class Platform {
     // Build close stuck instruction (codama auto-derives tokenVault/tokenVaultAta from tokenMint)
     const closeStuckIx = await closeStuckVouchAccountIx({
       signer: user.solanaKeypair,
+      rentPayer: user.solanaKeypair.address,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       signerTokenAccount: user.tokenAccount,
@@ -1209,6 +1212,7 @@ export class Platform {
 
     const closeStuckIx = await closeStuckVouchAccountIx({
       signer: user.solanaKeypair,
+      rentPayer: user.solanaKeypair.address,
       market: this.marketAddress,
       tokenMint: this.mint.address,
       signerTokenAccount: user.tokenAccount,

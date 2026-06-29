@@ -25,8 +25,6 @@ import {
 export type OptionClosedEvent = {
   option: Address;
   optionId: bigint;
-  signer: Address;
-  creator: Address;
   market: Address;
   timestamp: bigint;
 };
@@ -34,8 +32,6 @@ export type OptionClosedEvent = {
 export type OptionClosedEventArgs = {
   option: Address;
   optionId: number | bigint;
-  signer: Address;
-  creator: Address;
   market: Address;
   timestamp: number | bigint;
 };
@@ -44,8 +40,6 @@ export function getOptionClosedEventEncoder(): FixedSizeEncoder<OptionClosedEven
   return getStructEncoder([
     ['option', getAddressEncoder()],
     ['optionId', getU64Encoder()],
-    ['signer', getAddressEncoder()],
-    ['creator', getAddressEncoder()],
     ['market', getAddressEncoder()],
     ['timestamp', getI64Encoder()],
   ]);
@@ -55,8 +49,6 @@ export function getOptionClosedEventDecoder(): FixedSizeDecoder<OptionClosedEven
   return getStructDecoder([
     ['option', getAddressDecoder()],
     ['optionId', getU64Decoder()],
-    ['signer', getAddressDecoder()],
-    ['creator', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['timestamp', getI64Decoder()],
   ]);

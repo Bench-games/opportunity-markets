@@ -55,6 +55,7 @@ export function getAddMarketOptionDiscriminatorBytes() {
 export type AddMarketOptionInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountSigner extends string | AccountMeta<string> = string,
+  TAccountPlatformConfig extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
   TAccountOption extends string | AccountMeta<string> = string,
   TAccountSystemProgram extends string | AccountMeta<string> =
@@ -68,6 +69,9 @@ export type AddMarketOptionInstruction<
         ? WritableSignerAccount<TAccountSigner> &
             AccountSignerMeta<TAccountSigner>
         : TAccountSigner,
+      TAccountPlatformConfig extends string
+        ? ReadonlyAccount<TAccountPlatformConfig>
+        : TAccountPlatformConfig,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
@@ -117,11 +121,13 @@ export function getAddMarketOptionInstructionDataCodec(): FixedSizeCodec<
 
 export type AddMarketOptionAsyncInput<
   TAccountSigner extends string = string,
+  TAccountPlatformConfig extends string = string,
   TAccountMarket extends string = string,
   TAccountOption extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
+  platformConfig: Address<TAccountPlatformConfig>;
   market: Address<TAccountMarket>;
   option?: Address<TAccountOption>;
   systemProgram?: Address<TAccountSystemProgram>;
@@ -130,6 +136,7 @@ export type AddMarketOptionAsyncInput<
 
 export async function getAddMarketOptionInstructionAsync<
   TAccountSigner extends string,
+  TAccountPlatformConfig extends string,
   TAccountMarket extends string,
   TAccountOption extends string,
   TAccountSystemProgram extends string,
@@ -137,6 +144,7 @@ export async function getAddMarketOptionInstructionAsync<
 >(
   input: AddMarketOptionAsyncInput<
     TAccountSigner,
+    TAccountPlatformConfig,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -146,6 +154,7 @@ export async function getAddMarketOptionInstructionAsync<
   AddMarketOptionInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountPlatformConfig,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -158,6 +167,7 @@ export async function getAddMarketOptionInstructionAsync<
   // Original accounts.
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: true },
+    platformConfig: { value: input.platformConfig ?? null, isWritable: false },
     market: { value: input.market ?? null, isWritable: true },
     option: { value: input.option ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
@@ -192,6 +202,7 @@ export async function getAddMarketOptionInstructionAsync<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
+      getAccountMeta(accounts.platformConfig),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.systemProgram),
@@ -203,6 +214,7 @@ export async function getAddMarketOptionInstructionAsync<
   } as AddMarketOptionInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountPlatformConfig,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -211,11 +223,13 @@ export async function getAddMarketOptionInstructionAsync<
 
 export type AddMarketOptionInput<
   TAccountSigner extends string = string,
+  TAccountPlatformConfig extends string = string,
   TAccountMarket extends string = string,
   TAccountOption extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
+  platformConfig: Address<TAccountPlatformConfig>;
   market: Address<TAccountMarket>;
   option: Address<TAccountOption>;
   systemProgram?: Address<TAccountSystemProgram>;
@@ -224,6 +238,7 @@ export type AddMarketOptionInput<
 
 export function getAddMarketOptionInstruction<
   TAccountSigner extends string,
+  TAccountPlatformConfig extends string,
   TAccountMarket extends string,
   TAccountOption extends string,
   TAccountSystemProgram extends string,
@@ -231,6 +246,7 @@ export function getAddMarketOptionInstruction<
 >(
   input: AddMarketOptionInput<
     TAccountSigner,
+    TAccountPlatformConfig,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -239,6 +255,7 @@ export function getAddMarketOptionInstruction<
 ): AddMarketOptionInstruction<
   TProgramAddress,
   TAccountSigner,
+  TAccountPlatformConfig,
   TAccountMarket,
   TAccountOption,
   TAccountSystemProgram
@@ -250,6 +267,7 @@ export function getAddMarketOptionInstruction<
   // Original accounts.
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: true },
+    platformConfig: { value: input.platformConfig ?? null, isWritable: false },
     market: { value: input.market ?? null, isWritable: true },
     option: { value: input.option ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
@@ -272,6 +290,7 @@ export function getAddMarketOptionInstruction<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
+      getAccountMeta(accounts.platformConfig),
       getAccountMeta(accounts.market),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.systemProgram),
@@ -283,6 +302,7 @@ export function getAddMarketOptionInstruction<
   } as AddMarketOptionInstruction<
     TProgramAddress,
     TAccountSigner,
+    TAccountPlatformConfig,
     TAccountMarket,
     TAccountOption,
     TAccountSystemProgram
@@ -296,9 +316,10 @@ export type ParsedAddMarketOptionInstruction<
   programAddress: Address<TProgram>;
   accounts: {
     signer: TAccountMetas[0];
-    market: TAccountMetas[1];
-    option: TAccountMetas[2];
-    systemProgram: TAccountMetas[3];
+    platformConfig: TAccountMetas[1];
+    market: TAccountMetas[2];
+    option: TAccountMetas[3];
+    systemProgram: TAccountMetas[4];
   };
   data: AddMarketOptionInstructionData;
 };
@@ -311,7 +332,7 @@ export function parseAddMarketOptionInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedAddMarketOptionInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
+  if (instruction.accounts.length < 5) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -325,6 +346,7 @@ export function parseAddMarketOptionInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       signer: getNextAccount(),
+      platformConfig: getNextAccount(),
       market: getNextAccount(),
       option: getNextAccount(),
       systemProgram: getNextAccount(),

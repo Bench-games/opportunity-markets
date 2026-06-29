@@ -35,6 +35,9 @@ pub struct PlatformConfig {
     // Can end the reveal period at any time after market resolution.
     pub reveal_authority: Pubkey,
 
+    // Can create options for markets on this platform.
+    pub option_creation_authority: Pubkey,
+
     // After this duration from resolution, end_reveal_period becomes permissionless.
     pub reveal_period_seconds: u64,
 }
@@ -49,6 +52,7 @@ impl PlatformConfig {
         market_resolution_deadline_seconds: u64,
         min_time_to_vouch_seconds: u64,
         reveal_authority: Pubkey,
+        option_creation_authority: Pubkey,
         reveal_period_seconds: u64,
     ) -> Result<Self> {
         require!(
@@ -85,6 +89,7 @@ impl PlatformConfig {
             market_resolution_deadline_seconds,
             min_time_to_vouch_seconds,
             reveal_authority,
+            option_creation_authority,
             reveal_period_seconds,
         })
     }
@@ -348,7 +353,6 @@ pub struct VouchAccount {
 pub struct OpportunityMarketOption {
     pub bump: u8,
     pub id: u64,
-    pub creator: Pubkey,
 
     pub created_at: u64,
 

@@ -38,7 +38,6 @@ pub struct MarketCreatedEvent {
 pub struct MarketOptionCreatedEvent {
     pub option: Pubkey,
     pub market: Pubkey,
-    pub signer: Pubkey,
     pub id: u64,
     pub timestamp: i64,
 }
@@ -242,8 +241,6 @@ pub struct FeeClaimAuthorityChangedEvent {
 pub struct OptionClosedEvent {
     pub option: Pubkey,
     pub option_id: u64,
-    pub signer: Pubkey,
-    pub creator: Pubkey,
     pub market: Pubkey,
     pub timestamp: i64,
 }

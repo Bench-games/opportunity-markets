@@ -338,6 +338,7 @@ export class Platform {
       creatorFeeBp,
       feeClaimAuthority: creatorAccountBase.keypair.address,
       revealAuthority: resolvedRevealAuthority,
+      optionCreationAuthority: creatorAccountBase.keypair.address,
       minTimeToVouchSeconds: 1n,
       revealPeriodSeconds,
       marketResolutionDeadlineSeconds,
@@ -680,6 +681,7 @@ export class Platform {
 
     const addOptionIx = await addMarketOption({
       signer: this.marketCreator.solanaKeypair,
+      platformConfig: this.platformConfigAddress,
       market: this.marketAddress,
       optionId,
     });
@@ -1059,8 +1061,8 @@ export class Platform {
   async closeOptionAccount(optionId: number): Promise<void> {
     const ix = await closeOptionAccount({
       signer: this.marketCreator.solanaKeypair,
-      creator: this.creator,
       market: this.marketAddress,
+      platformConfig: this.platformConfigAddress,
       optionId,
     });
 

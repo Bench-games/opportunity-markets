@@ -5,9 +5,10 @@ use crate::state::{FeeRates, PlatformConfig};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdatePlatformParameters {
-    pub platform_fee_bp: Option<u16>,
-    pub reward_pool_fee_bp: Option<u16>,
-    pub creator_fee_bp: Option<u16>,
+    pub user_platform_fee_bp: Option<u16>,
+    pub user_reward_pool_fee_bp: Option<u16>,
+    pub user_creator_fee_bp: Option<u16>,
+    pub sponsor_platform_fee_bp: Option<u16>,
     pub reveal_authority: Option<Pubkey>,
     pub min_time_to_vouch_seconds: Option<u64>,
     pub reveal_period_seconds: Option<u64>,
@@ -37,14 +38,17 @@ pub fn update_platform_config(
         platform_config.fee_claim_authority,
         FeeRates::new(
             params
-                .platform_fee_bp
-                .unwrap_or(platform_config.fee_rates.platform_fee_bp),
+                .user_platform_fee_bp
+                .unwrap_or(platform_config.fee_rates.user_platform_fee_bp),
             params
-                .reward_pool_fee_bp
-                .unwrap_or(platform_config.fee_rates.reward_pool_fee_bp),
+                .user_reward_pool_fee_bp
+                .unwrap_or(platform_config.fee_rates.user_reward_pool_fee_bp),
             params
-                .creator_fee_bp
-                .unwrap_or(platform_config.fee_rates.creator_fee_bp),
+                .user_creator_fee_bp
+                .unwrap_or(platform_config.fee_rates.user_creator_fee_bp),
+            params
+                .sponsor_platform_fee_bp
+                .unwrap_or(platform_config.fee_rates.sponsor_platform_fee_bp),
         )?,
         params
             .market_resolution_deadline_seconds

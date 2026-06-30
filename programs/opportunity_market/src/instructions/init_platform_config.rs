@@ -6,9 +6,10 @@ use crate::state::{FeeRates, PlatformConfig};
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPlatformParameters {
     pub name: String,
-    pub platform_fee_bp: u16,
-    pub reward_pool_fee_bp: u16,
-    pub creator_fee_bp: u16,
+    pub user_platform_fee_bp: u16,
+    pub user_reward_pool_fee_bp: u16,
+    pub user_creator_fee_bp: u16,
+    pub sponsor_platform_fee_bp: u16,
     pub fee_claim_authority: Pubkey,
     pub reveal_authority: Pubkey,
     pub min_time_to_vouch_seconds: u64,
@@ -44,9 +45,10 @@ pub fn init_platform_config(
         ctx.accounts.payer.key(),
         params.fee_claim_authority,
         FeeRates::new(
-            params.platform_fee_bp,
-            params.reward_pool_fee_bp,
-            params.creator_fee_bp,
+            params.user_platform_fee_bp,
+            params.user_reward_pool_fee_bp,
+            params.user_creator_fee_bp,
+            params.sponsor_platform_fee_bp,
         )?,
         params.market_resolution_deadline_seconds,
         params.min_time_to_vouch_seconds,

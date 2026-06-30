@@ -11,6 +11,7 @@ pub struct InitPlatformParameters {
     pub creator_fee_bp: u16,
     pub fee_claim_authority: Pubkey,
     pub reveal_authority: Pubkey,
+    pub option_creation_authority: Pubkey,
     pub min_time_to_vouch_seconds: u64,
     pub reveal_period_seconds: u64,
     pub market_resolution_deadline_seconds: u64,
@@ -51,6 +52,7 @@ pub fn init_platform_config(
         params.market_resolution_deadline_seconds,
         params.min_time_to_vouch_seconds,
         params.reveal_authority,
+        params.option_creation_authority,
         params.reveal_period_seconds,
     )?;
     ctx.accounts.platform_config.set_inner(platform_config);

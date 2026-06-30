@@ -3,17 +3,13 @@ use anchor_lang::prelude::*;
 use crate::constants::{OPPORTUNITY_MARKET_SEED, OPTION_SEED};
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, OptionClosedEvent};
-use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, PlatformConfig};
 
 #[derive(Accounts)]
 #[instruction(option_id: u64)]
 pub struct CloseOptionAccount<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-
-    /// CHECK: Any account, this operation is permissionless.
-    #[account(mut)]
-    pub creator: UncheckedAccount<'info>,
 
     #[account(
         mut,
@@ -23,12 +19,17 @@ pub struct CloseOptionAccount<'info> {
     pub market: Account<'info, OpportunityMarket>,
 
     #[account(
+        address = market.platform @ ErrorCode::Unauthorized,
+        constraint = platform_config.option_creation_authority == signer.key() @ ErrorCode::Unauthorized,
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+
+    #[account(
         mut,
-        close = creator,
+        close = signer,
         seeds = [OPTION_SEED, market.key().as_ref(), &option_id.to_le_bytes()],
         bump = option.bump,
         constraint = option.unclaimed_gross_vouch == 0 || option.reward_bp == 0 @ ErrorCode::OptionStillNeeded,
-        has_one = creator @ ErrorCode::CreatorMismatch,
     )]
     pub option: Account<'info, OpportunityMarketOption>,
 
@@ -46,8 +47,6 @@ pub fn close_option_account(ctx: Context<CloseOptionAccount>, option_id: u64) ->
     emit_ts!(OptionClosedEvent {
         option: ctx.accounts.option.key(),
         option_id: option_id,
-        signer: ctx.accounts.signer.key(),
-        creator: ctx.accounts.creator.key(),
         market: ctx.accounts.market.key(),
     });
     Ok(())

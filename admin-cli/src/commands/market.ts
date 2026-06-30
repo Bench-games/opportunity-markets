@@ -153,6 +153,7 @@ export function registerMarketCommands(program: Command): void {
       const instruction = await addMarketOption({
         programAddress: ctx.programId,
         signer: ctx.payer,
+        platformConfig: selected.data.platform,
         market: selected.address,
         optionId,
       });

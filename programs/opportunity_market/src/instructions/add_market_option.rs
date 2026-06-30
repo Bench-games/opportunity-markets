@@ -3,13 +3,19 @@ use anchor_lang::prelude::*;
 use crate::constants::OPTION_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, MarketOptionCreatedEvent};
-use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption};
+use crate::state::{MarketPhase, OpportunityMarket, OpportunityMarketOption, PlatformConfig};
 
 #[derive(Accounts)]
 #[instruction(option_id: u64)]
 pub struct AddMarketOption<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
+
+    #[account(
+        address = market.platform @ ErrorCode::Unauthorized,
+        constraint = platform_config.option_creation_authority == signer.key() @ ErrorCode::Unauthorized,
+    )]
+    pub platform_config: Box<Account<'info, PlatformConfig>>,
 
     #[account(
         mut,
@@ -43,12 +49,10 @@ pub fn add_market_option(ctx: Context<AddMarketOption>, option_id: u64) -> Resul
     option.bump = ctx.bumps.option;
     option.id = option_id;
     option.created_at = now;
-    option.creator = ctx.accounts.signer.key();
 
     emit_ts!(MarketOptionCreatedEvent {
         option: option.key(),
         market: market.key(),
-        signer: ctx.accounts.signer.key(),
         id: option.id,
     });
 

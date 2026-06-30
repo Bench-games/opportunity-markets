@@ -15,6 +15,7 @@ export interface EnsurePlatformConfigParams extends BaseInstructionParams {
   creatorFeeBp: number;
   feeClaimAuthority: Address;
   revealAuthority: Address;
+  optionCreationAuthority: Address;
   minTimeToVouchSeconds: bigint;
   revealPeriodSeconds: bigint;
   marketResolutionDeadlineSeconds: bigint;
@@ -33,6 +34,7 @@ export async function ensurePlatformConfig(
     creatorFeeBp,
     feeClaimAuthority,
     revealAuthority,
+    optionCreationAuthority,
     minTimeToVouchSeconds,
     revealPeriodSeconds,
     marketResolutionDeadlineSeconds,
@@ -52,6 +54,8 @@ export async function ensurePlatformConfig(
       s.feeRates.platformFeeBp === platformFeeBp &&
       s.feeRates.rewardPoolFeeBp === rewardPoolFeeBp &&
       s.feeRates.creatorFeeBp === creatorFeeBp &&
+      s.revealAuthority === revealAuthority &&
+      s.optionCreationAuthority === optionCreationAuthority &&
       s.minTimeToVouchSeconds === minTimeToVouchSeconds &&
       s.revealPeriodSeconds === revealPeriodSeconds &&
       s.marketResolutionDeadlineSeconds === marketResolutionDeadlineSeconds
@@ -68,6 +72,7 @@ export async function ensurePlatformConfig(
           rewardPoolFeeBp,
           creatorFeeBp,
           revealAuthority,
+          optionCreationAuthority,
           minTimeToVouchSeconds,
           revealPeriodSeconds,
           marketResolutionDeadlineSeconds,
@@ -88,6 +93,7 @@ export async function ensurePlatformConfig(
         creatorFeeBp,
         feeClaimAuthority,
         revealAuthority,
+        optionCreationAuthority,
         minTimeToVouchSeconds,
         revealPeriodSeconds,
         marketResolutionDeadlineSeconds,

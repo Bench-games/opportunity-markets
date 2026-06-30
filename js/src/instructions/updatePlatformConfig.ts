@@ -13,6 +13,7 @@ export interface UpdatePlatformConfigParams extends BaseInstructionParams {
   rewardPoolFeeBp: number;
   creatorFeeBp: number;
   revealAuthority: Address;
+  optionCreationAuthority: Address;
   minTimeToVouchSeconds: bigint;
   revealPeriodSeconds: bigint;
   marketResolutionDeadlineSeconds: bigint;
@@ -30,6 +31,7 @@ export async function updatePlatformConfig(
     rewardPoolFeeBp,
     creatorFeeBp,
     revealAuthority,
+    optionCreationAuthority,
     minTimeToVouchSeconds,
     revealPeriodSeconds,
     marketResolutionDeadlineSeconds,
@@ -56,6 +58,7 @@ export async function updatePlatformConfig(
         rewardPoolFeeBp,
         creatorFeeBp,
         revealAuthority,
+        optionCreationAuthority,
         minTimeToVouchSeconds,
         revealPeriodSeconds,
         marketResolutionDeadlineSeconds,

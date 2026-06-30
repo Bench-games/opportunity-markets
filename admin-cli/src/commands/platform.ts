@@ -34,7 +34,8 @@ function printPlatforms(platforms: Awaited<ReturnType<typeof listPlatforms>>): v
     console.log(
       `${String(index + 1).padStart(2, " ")}  ${platform.data.name.padEnd(20)}  ${platform.address}  ` +
         `fees ${fees.platformFeeBp}/${fees.rewardPoolFeeBp}/${fees.creatorFeeBp}bp  ` +
-        `update ${shortAddress(platform.data.updateAuthority)}`,
+        `update ${shortAddress(platform.data.updateAuthority)}  ` +
+        `option creation ${shortAddress(platform.data.optionCreationAuthority)}`,
     );
   }
 }
@@ -87,6 +88,7 @@ export function registerPlatformCommands(program: Command): void {
     .option("--creator-fee-bp <bp>")
     .option("--fee-claim-authority <address>")
     .option("--reveal-authority <address>")
+    .option("--option-creation-authority <address>")
     .option("--min-time-to-vouch-seconds <seconds>")
     .option("--reveal-period-seconds <seconds>")
     .option("--resolution-deadline-seconds <seconds>")
@@ -102,6 +104,9 @@ export function registerPlatformCommands(program: Command): void {
       const revealAuthority = options.revealAuthority
         ? address(options.revealAuthority)
         : await promptAddress("Reveal authority", ctx.payer.address);
+      const optionCreationAuthority = options.optionCreationAuthority
+        ? address(options.optionCreationAuthority)
+        : await promptAddress("Option creation authority", ctx.payer.address);
       const minTimeToVouchSeconds = options.minTimeToVouchSeconds
         ? BigInt(options.minTimeToVouchSeconds)
         : await promptBigInt("Min time to vouch seconds", DEFAULT_PLATFORM.minTimeToVouchSeconds);
@@ -127,6 +132,7 @@ export function registerPlatformCommands(program: Command): void {
         "Creator fee": `${creatorFeeBp} bp`,
         "Fee claim authority": existing.exists ? existing.data.feeClaimAuthority : feeClaimAuthority,
         "Reveal authority": revealAuthority,
+        "Option creation authority": optionCreationAuthority,
       });
       await confirmTransaction(ctx.yes);
 
@@ -139,6 +145,7 @@ export function registerPlatformCommands(program: Command): void {
             rewardPoolFeeBp,
             creatorFeeBp,
             revealAuthority,
+            optionCreationAuthority,
             minTimeToVouchSeconds,
             revealPeriodSeconds,
             marketResolutionDeadlineSeconds,
@@ -152,6 +159,7 @@ export function registerPlatformCommands(program: Command): void {
             creatorFeeBp,
             feeClaimAuthority,
             revealAuthority,
+            optionCreationAuthority,
             minTimeToVouchSeconds,
             revealPeriodSeconds,
             marketResolutionDeadlineSeconds,

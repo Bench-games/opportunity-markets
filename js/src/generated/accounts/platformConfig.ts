@@ -71,6 +71,7 @@ export type PlatformConfig = {
   marketResolutionDeadlineSeconds: bigint;
   minTimeToVouchSeconds: bigint;
   revealAuthority: Address;
+  optionCreationAuthority: Address;
   revealPeriodSeconds: bigint;
 };
 
@@ -83,6 +84,7 @@ export type PlatformConfigArgs = {
   marketResolutionDeadlineSeconds: number | bigint;
   minTimeToVouchSeconds: number | bigint;
   revealAuthority: Address;
+  optionCreationAuthority: Address;
   revealPeriodSeconds: number | bigint;
 };
 
@@ -98,6 +100,7 @@ export function getPlatformConfigEncoder(): Encoder<PlatformConfigArgs> {
       ['marketResolutionDeadlineSeconds', getU64Encoder()],
       ['minTimeToVouchSeconds', getU64Encoder()],
       ['revealAuthority', getAddressEncoder()],
+      ['optionCreationAuthority', getAddressEncoder()],
       ['revealPeriodSeconds', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: PLATFORM_CONFIG_DISCRIMINATOR })
@@ -115,6 +118,7 @@ export function getPlatformConfigDecoder(): Decoder<PlatformConfig> {
     ['marketResolutionDeadlineSeconds', getU64Decoder()],
     ['minTimeToVouchSeconds', getU64Decoder()],
     ['revealAuthority', getAddressDecoder()],
+    ['optionCreationAuthority', getAddressDecoder()],
     ['revealPeriodSeconds', getU64Decoder()],
   ]);
 }

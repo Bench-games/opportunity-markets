@@ -7,8 +7,8 @@ import { type BaseInstructionParams } from "./instructionParams";
 
 export interface CloseOptionAccountParams extends BaseInstructionParams {
   signer: TransactionSigner;
-  creator: Address;
   market: Address;
+  platformConfig: Address;
   optionId: number | bigint;
 }
 

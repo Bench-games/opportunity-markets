@@ -12,7 +12,7 @@ export * from './bN254G2BLSPublicKey';
 export * from './circuitSource';
 export * from './clockAccount';
 export * from './cluster';
-export * from './collectedFees';
+export * from './collectedUserFees';
 export * from './computationDefinitionAccount';
 export * from './computationDefinitionMeta';
 export * from './computationSignature';

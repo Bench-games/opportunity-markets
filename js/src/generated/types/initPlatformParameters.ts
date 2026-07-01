@@ -30,9 +30,10 @@ import {
 
 export type InitPlatformParameters = {
   name: string;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
+  userPlatformFeeBp: number;
+  userRewardPoolFeeBp: number;
+  userCreatorFeeBp: number;
+  sponsorPlatformFeeBp: number;
   feeClaimAuthority: Address;
   revealAuthority: Address;
   minTimeToVouchSeconds: bigint;
@@ -42,9 +43,10 @@ export type InitPlatformParameters = {
 
 export type InitPlatformParametersArgs = {
   name: string;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
+  userPlatformFeeBp: number;
+  userRewardPoolFeeBp: number;
+  userCreatorFeeBp: number;
+  sponsorPlatformFeeBp: number;
   feeClaimAuthority: Address;
   revealAuthority: Address;
   minTimeToVouchSeconds: number | bigint;
@@ -55,9 +57,10 @@ export type InitPlatformParametersArgs = {
 export function getInitPlatformParametersEncoder(): Encoder<InitPlatformParametersArgs> {
   return getStructEncoder([
     ['name', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
-    ['platformFeeBp', getU16Encoder()],
-    ['rewardPoolFeeBp', getU16Encoder()],
-    ['creatorFeeBp', getU16Encoder()],
+    ['userPlatformFeeBp', getU16Encoder()],
+    ['userRewardPoolFeeBp', getU16Encoder()],
+    ['userCreatorFeeBp', getU16Encoder()],
+    ['sponsorPlatformFeeBp', getU16Encoder()],
     ['feeClaimAuthority', getAddressEncoder()],
     ['revealAuthority', getAddressEncoder()],
     ['minTimeToVouchSeconds', getU64Encoder()],
@@ -69,9 +72,10 @@ export function getInitPlatformParametersEncoder(): Encoder<InitPlatformParamete
 export function getInitPlatformParametersDecoder(): Decoder<InitPlatformParameters> {
   return getStructDecoder([
     ['name', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
-    ['platformFeeBp', getU16Decoder()],
-    ['rewardPoolFeeBp', getU16Decoder()],
-    ['creatorFeeBp', getU16Decoder()],
+    ['userPlatformFeeBp', getU16Decoder()],
+    ['userRewardPoolFeeBp', getU16Decoder()],
+    ['userCreatorFeeBp', getU16Decoder()],
+    ['sponsorPlatformFeeBp', getU16Decoder()],
     ['feeClaimAuthority', getAddressDecoder()],
     ['revealAuthority', getAddressDecoder()],
     ['minTimeToVouchSeconds', getU64Decoder()],

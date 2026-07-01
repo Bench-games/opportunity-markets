@@ -55,6 +55,7 @@ export type OpportunityMarketSponsor = {
   sponsor: Address;
   market: Address;
   rewardDeposited: bigint;
+  sponsorPlatformFeeDeposited: bigint;
 };
 
 export type OpportunityMarketSponsorArgs = {
@@ -62,6 +63,7 @@ export type OpportunityMarketSponsorArgs = {
   sponsor: Address;
   market: Address;
   rewardDeposited: number | bigint;
+  sponsorPlatformFeeDeposited: number | bigint;
 };
 
 export function getOpportunityMarketSponsorEncoder(): FixedSizeEncoder<OpportunityMarketSponsorArgs> {
@@ -72,6 +74,7 @@ export function getOpportunityMarketSponsorEncoder(): FixedSizeEncoder<Opportuni
       ['sponsor', getAddressEncoder()],
       ['market', getAddressEncoder()],
       ['rewardDeposited', getU64Encoder()],
+      ['sponsorPlatformFeeDeposited', getU64Encoder()],
     ]),
     (value) => ({
       ...value,
@@ -87,6 +90,7 @@ export function getOpportunityMarketSponsorDecoder(): FixedSizeDecoder<Opportuni
     ['sponsor', getAddressDecoder()],
     ['market', getAddressDecoder()],
     ['rewardDeposited', getU64Decoder()],
+    ['sponsorPlatformFeeDeposited', getU64Decoder()],
   ]);
 }
 

@@ -17,19 +17,19 @@ import {
   type FixedSizeEncoder,
 } from '@solana/kit';
 
-export type CollectedFees = {
+export type CollectedUserFees = {
   platformFee: bigint;
   rewardPoolFee: bigint;
   creatorFee: bigint;
 };
 
-export type CollectedFeesArgs = {
+export type CollectedUserFeesArgs = {
   platformFee: number | bigint;
   rewardPoolFee: number | bigint;
   creatorFee: number | bigint;
 };
 
-export function getCollectedFeesEncoder(): FixedSizeEncoder<CollectedFeesArgs> {
+export function getCollectedUserFeesEncoder(): FixedSizeEncoder<CollectedUserFeesArgs> {
   return getStructEncoder([
     ['platformFee', getU64Encoder()],
     ['rewardPoolFee', getU64Encoder()],
@@ -37,7 +37,7 @@ export function getCollectedFeesEncoder(): FixedSizeEncoder<CollectedFeesArgs> {
   ]);
 }
 
-export function getCollectedFeesDecoder(): FixedSizeDecoder<CollectedFees> {
+export function getCollectedUserFeesDecoder(): FixedSizeDecoder<CollectedUserFees> {
   return getStructDecoder([
     ['platformFee', getU64Decoder()],
     ['rewardPoolFee', getU64Decoder()],
@@ -45,9 +45,12 @@ export function getCollectedFeesDecoder(): FixedSizeDecoder<CollectedFees> {
   ]);
 }
 
-export function getCollectedFeesCodec(): FixedSizeCodec<
-  CollectedFeesArgs,
-  CollectedFees
+export function getCollectedUserFeesCodec(): FixedSizeCodec<
+  CollectedUserFeesArgs,
+  CollectedUserFees
 > {
-  return combineCodec(getCollectedFeesEncoder(), getCollectedFeesDecoder());
+  return combineCodec(
+    getCollectedUserFeesEncoder(),
+    getCollectedUserFeesDecoder()
+  );
 }

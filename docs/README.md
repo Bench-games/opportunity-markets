@@ -42,7 +42,8 @@ Following describes the complete lifecycle of an Opportunity Market (later refer
 A decision maker creates a market by calling the `create_market` instruction.
 The creator can adjust some of the market's configuration with parameters passed into this instruction.
 Some configuration is inherited from a `PlatformConfig` account.
-Each opportunity market belongs to a *platform* which defines some rules for it like fee percentages for example.
+Each opportunity market belongs to a *platform* which defines fee rates and other rules for markets created under it.
+Fee rates are snapshotted onto the market at creation; later platform config updates do not change existing markets.
 The market is associated with one SPL token mint, which must be whitelisted by the platform update authority account.
 This token mint dictates the token that is used for rewards and fees within the market.
 
@@ -63,7 +64,9 @@ This is done with the `add_market_option` instruction, which is **permissionless
 The market has a reward pool that at the end is distributed to those that vouched on the winning options.
 
 A sponsor can fund the market with the `add_reward` instruction during the vouching period or before it.
-Deposited rewards remain in the market pool until resolution. If the market creator fails to resolve within the given time period, sponsors reclaim their deposits via `withdraw_reward`. After resolution, sponsors can also reclaim deposits during the settlement phase if no winning vouch earned a positive score (`winning_option_active_bp == 0`). More about this in the *Resolving the market* and *Claiming rewards* sections.
+The instruction accepts a gross deposit amount. The platform's `sponsor_platform_fee_bp` (capped at 50%) is deducted and credited to `collected_platform_fees`; the net remainder increases `reward_amount` and is tracked per sponsor in `reward_deposited`. The platform fee portion is not refunded on `withdraw_reward`.
+
+Deposited rewards remain in the market pool until resolution. If the market creator fails to resolve within the given time period, sponsors reclaim their net deposits via `withdraw_reward`. After resolution, sponsors can also reclaim deposits during the settlement phase if no winning vouch earned a positive score (`winning_option_active_bp == 0`). More about this in the *Resolving the market* and *Claiming rewards* sections.
 
 #### Vouching
 
@@ -87,15 +90,30 @@ It is possible that the callback fails to run. In this case, the user can recove
 
 A user can have multiple vouch accounts for the same option, but they cannot add vouch to an existing one. So if a user wishes to vouch more on a certain option, they can just create a new vouch account and deposit in it again.
 
-#### Vouching fee structure
+#### Fee structure
 
-The `vouch` instruction also collects fees, split into 3 configurable components:
+Platform config defines four basis-point rates (per 10,000):
 
-1. Platform fee
+| Rate | Charged on | Destination |
+| --- | --- | --- |
+| `user_platform_fee_bp` | `vouch` gross amount | `collected_platform_fees` |
+| `user_creator_fee_bp` | `vouch` gross amount | `collected_creator_fees` |
+| `user_reward_pool_fee_bp` | `vouch` gross amount | `reward_amount` |
+| `sponsor_platform_fee_bp` | `add_reward` gross amount | `collected_platform_fees` |
+
+User-side rates are capped individually and must sum to at most 100%. The sponsor rate is capped at 50%.
+
+Platform fees from vouches and reward deposits are both swept by `claim_fees` to the platform's fee claim authority.
+
+#### Vouching fees
+
+The `vouch` instruction collects the three user-side fees from the gross deposit, split into:
+
+1. Platform fee (`user_platform_fee_bp`)
     - Goes to the platform
-2. Creator fee
+2. Creator fee (`user_creator_fee_bp`)
     - Goes to the market creator
-3. Reward pool fee
+3. Reward pool fee (`user_reward_pool_fee_bp`)
     - Goes to the reward pool, allows reward pool to grow with market volume
 
 Creator fee and reward pool fee are refunded to winners later when they close their vouch account (after claiming any reward slice).
@@ -103,7 +121,7 @@ The reason being that, with a large amount of vouch on the winning option, it is
 
 The reward pool fee can be set to a very high value. For example following configuration is possible:
 
-Platform fee 1%, creator fee 1%, reward pool fee 98%
+Platform fee 1%, creator fee 1%, reward pool fee 98% (`user_platform_fee_bp` / `user_creator_fee_bp` / `user_reward_pool_fee_bp`)
 
 This setup effectively turns the opportunity market into a speculative market à la prediction markets, with significant downside for the losers and great upside for the winners. If this kind of setup were to be used, early vouch withdrawal should be disabled in the market as the user of course has no vouch to withdraw since their vouch goes to the reward pool.
 

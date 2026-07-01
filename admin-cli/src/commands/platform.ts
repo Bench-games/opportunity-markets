@@ -33,8 +33,9 @@ function printPlatforms(platforms: Awaited<ReturnType<typeof listPlatforms>>): v
     const fees = platform.data.feeRates;
     console.log(
       `${String(index + 1).padStart(2, " ")}  ${platform.data.name.padEnd(20)}  ${platform.address}  ` +
-      `fees ${fees.userPlatformFeeBp}/${fees.userRewardPoolFeeBp}/${fees.userCreatorFeeBp}/${fees.sponsorPlatformFeeBp}bp  ` +
-      `update ${shortAddress(platform.data.updateAuthority)}`,
+        `fees ${fees.userPlatformFeeBp}/${fees.userRewardPoolFeeBp}/${fees.userCreatorFeeBp}/${fees.sponsorPlatformFeeBp}bp  ` +
+        `update ${shortAddress(platform.data.updateAuthority)}  ` +
+        `option creation ${shortAddress(platform.data.optionCreationAuthority)}`,
     );
   }
 }
@@ -88,6 +89,7 @@ export function registerPlatformCommands(program: Command): void {
     .option("--sponsor-platform-fee-bp <bp>")
     .option("--fee-claim-authority <address>")
     .option("--reveal-authority <address>")
+    .option("--option-creation-authority <address>")
     .option("--min-time-to-vouch-seconds <seconds>")
     .option("--reveal-period-seconds <seconds>")
     .option("--resolution-deadline-seconds <seconds>")
@@ -104,6 +106,9 @@ export function registerPlatformCommands(program: Command): void {
       const revealAuthority = options.revealAuthority
         ? address(options.revealAuthority)
         : await promptAddress("Reveal authority", ctx.payer.address);
+      const optionCreationAuthority = options.optionCreationAuthority
+        ? address(options.optionCreationAuthority)
+        : await promptAddress("Option creation authority", ctx.payer.address);
       const minTimeToVouchSeconds = options.minTimeToVouchSeconds
         ? BigInt(options.minTimeToVouchSeconds)
         : await promptBigInt("Min time to vouch seconds", DEFAULT_PLATFORM.minTimeToVouchSeconds);
@@ -130,37 +135,40 @@ export function registerPlatformCommands(program: Command): void {
         "Sponsor platform fee": `${sponsorPlatformFeeBp} bp`,
         "Fee claim authority": existing.exists ? existing.data.feeClaimAuthority : feeClaimAuthority,
         "Reveal authority": revealAuthority,
+        "Option creation authority": optionCreationAuthority,
       });
       await confirmTransaction(ctx.yes);
 
       const instruction = existing.exists
         ? await updatePlatformConfig(ctx.rpc, {
-          programAddress: ctx.programId,
-          signer: ctx.payer,
-          name,
-          userPlatformFeeBp,
-          userRewardPoolFeeBp,
-          userCreatorFeeBp,
-          sponsorPlatformFeeBp,
-          revealAuthority,
-          minTimeToVouchSeconds,
-          revealPeriodSeconds,
-          marketResolutionDeadlineSeconds,
-        })
+            programAddress: ctx.programId,
+            signer: ctx.payer,
+            name,
+            userPlatformFeeBp,
+            userRewardPoolFeeBp,
+            userCreatorFeeBp,
+            sponsorPlatformFeeBp,
+            revealAuthority,
+            optionCreationAuthority,
+            minTimeToVouchSeconds,
+            revealPeriodSeconds,
+            marketResolutionDeadlineSeconds,
+          })
         : await createPlatformConfig(ctx.rpc, {
-          programAddress: ctx.programId,
-          signer: ctx.payer,
-          name,
-          userPlatformFeeBp,
-          userRewardPoolFeeBp,
-          userCreatorFeeBp,
-          sponsorPlatformFeeBp,
-          feeClaimAuthority,
-          revealAuthority,
-          minTimeToVouchSeconds,
-          revealPeriodSeconds,
-          marketResolutionDeadlineSeconds,
-        });
+            programAddress: ctx.programId,
+            signer: ctx.payer,
+            name,
+            userPlatformFeeBp,
+            userRewardPoolFeeBp,
+            userCreatorFeeBp,
+            sponsorPlatformFeeBp,
+            feeClaimAuthority,
+            revealAuthority,
+            optionCreationAuthority,
+            minTimeToVouchSeconds,
+            revealPeriodSeconds,
+            marketResolutionDeadlineSeconds,
+          });
       const sig = await sendInstructions(ctx, [instruction], `platform ${mode}`);
       printTxResult(sig);
     });

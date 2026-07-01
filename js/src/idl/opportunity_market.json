@@ -26,6 +26,9 @@
           "signer": true
         },
         {
+          "name": "platform_config"
+        },
+        {
           "name": "market",
           "writable": true
         },
@@ -688,13 +691,6 @@
           "signer": true
         },
         {
-          "name": "creator",
-          "writable": true,
-          "relations": [
-            "option"
-          ]
-        },
-        {
           "name": "market",
           "writable": true,
           "pda": {
@@ -739,6 +735,9 @@
               }
             ]
           }
+        },
+        {
+          "name": "platform_config"
         },
         {
           "name": "option",
@@ -4157,6 +4156,10 @@
             "type": "pubkey"
           },
           {
+            "name": "option_creation_authority",
+            "type": "pubkey"
+          },
+          {
             "name": "min_time_to_vouch_seconds",
             "type": "u64"
           },
@@ -4377,10 +4380,6 @@
           },
           {
             "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "signer",
             "type": "pubkey"
           },
           {
@@ -4654,10 +4653,6 @@
             "type": "u64"
           },
           {
-            "name": "creator",
-            "type": "pubkey"
-          },
-          {
             "name": "created_at",
             "type": "u64"
           },
@@ -4726,14 +4721,6 @@
           {
             "name": "option_id",
             "type": "u64"
-          },
-          {
-            "name": "signer",
-            "type": "pubkey"
-          },
-          {
-            "name": "creator",
-            "type": "pubkey"
           },
           {
             "name": "market",
@@ -4906,6 +4893,10 @@
           },
           {
             "name": "reveal_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "option_creation_authority",
             "type": "pubkey"
           },
           {
@@ -5331,6 +5322,12 @@
           },
           {
             "name": "reveal_authority",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "option_creation_authority",
             "type": {
               "option": "pubkey"
             }

@@ -36,6 +36,7 @@ export type InitPlatformParameters = {
   sponsorPlatformFeeBp: number;
   feeClaimAuthority: Address;
   revealAuthority: Address;
+  optionCreationAuthority: Address;
   minTimeToVouchSeconds: bigint;
   revealPeriodSeconds: bigint;
   marketResolutionDeadlineSeconds: bigint;
@@ -49,6 +50,7 @@ export type InitPlatformParametersArgs = {
   sponsorPlatformFeeBp: number;
   feeClaimAuthority: Address;
   revealAuthority: Address;
+  optionCreationAuthority: Address;
   minTimeToVouchSeconds: number | bigint;
   revealPeriodSeconds: number | bigint;
   marketResolutionDeadlineSeconds: number | bigint;
@@ -63,6 +65,7 @@ export function getInitPlatformParametersEncoder(): Encoder<InitPlatformParamete
     ['sponsorPlatformFeeBp', getU16Encoder()],
     ['feeClaimAuthority', getAddressEncoder()],
     ['revealAuthority', getAddressEncoder()],
+    ['optionCreationAuthority', getAddressEncoder()],
     ['minTimeToVouchSeconds', getU64Encoder()],
     ['revealPeriodSeconds', getU64Encoder()],
     ['marketResolutionDeadlineSeconds', getU64Encoder()],
@@ -78,6 +81,7 @@ export function getInitPlatformParametersDecoder(): Decoder<InitPlatformParamete
     ['sponsorPlatformFeeBp', getU16Decoder()],
     ['feeClaimAuthority', getAddressDecoder()],
     ['revealAuthority', getAddressDecoder()],
+    ['optionCreationAuthority', getAddressDecoder()],
     ['minTimeToVouchSeconds', getU64Decoder()],
     ['revealPeriodSeconds', getU64Decoder()],
     ['marketResolutionDeadlineSeconds', getU64Decoder()],

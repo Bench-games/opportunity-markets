@@ -55,8 +55,8 @@ export function getCloseOptionAccountDiscriminatorBytes() {
 export type CloseOptionAccountInstruction<
   TProgram extends string = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
   TAccountSigner extends string | AccountMeta<string> = string,
-  TAccountCreator extends string | AccountMeta<string> = string,
   TAccountMarket extends string | AccountMeta<string> = string,
+  TAccountPlatformConfig extends string | AccountMeta<string> = string,
   TAccountOption extends string | AccountMeta<string> = string,
   TAccountSystemProgram extends string | AccountMeta<string> =
     '11111111111111111111111111111111',
@@ -69,12 +69,12 @@ export type CloseOptionAccountInstruction<
         ? WritableSignerAccount<TAccountSigner> &
             AccountSignerMeta<TAccountSigner>
         : TAccountSigner,
-      TAccountCreator extends string
-        ? WritableAccount<TAccountCreator>
-        : TAccountCreator,
       TAccountMarket extends string
         ? WritableAccount<TAccountMarket>
         : TAccountMarket,
+      TAccountPlatformConfig extends string
+        ? ReadonlyAccount<TAccountPlatformConfig>
+        : TAccountPlatformConfig,
       TAccountOption extends string
         ? WritableAccount<TAccountOption>
         : TAccountOption,
@@ -123,14 +123,14 @@ export function getCloseOptionAccountInstructionDataCodec(): FixedSizeCodec<
 
 export type CloseOptionAccountAsyncInput<
   TAccountSigner extends string = string,
-  TAccountCreator extends string = string,
   TAccountMarket extends string = string,
+  TAccountPlatformConfig extends string = string,
   TAccountOption extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
-  creator: Address<TAccountCreator>;
   market: Address<TAccountMarket>;
+  platformConfig: Address<TAccountPlatformConfig>;
   option?: Address<TAccountOption>;
   systemProgram?: Address<TAccountSystemProgram>;
   optionId: CloseOptionAccountInstructionDataArgs['optionId'];
@@ -138,16 +138,16 @@ export type CloseOptionAccountAsyncInput<
 
 export async function getCloseOptionAccountInstructionAsync<
   TAccountSigner extends string,
-  TAccountCreator extends string,
   TAccountMarket extends string,
+  TAccountPlatformConfig extends string,
   TAccountOption extends string,
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
   input: CloseOptionAccountAsyncInput<
     TAccountSigner,
-    TAccountCreator,
     TAccountMarket,
+    TAccountPlatformConfig,
     TAccountOption,
     TAccountSystemProgram
   >,
@@ -156,8 +156,8 @@ export async function getCloseOptionAccountInstructionAsync<
   CloseOptionAccountInstruction<
     TProgramAddress,
     TAccountSigner,
-    TAccountCreator,
     TAccountMarket,
+    TAccountPlatformConfig,
     TAccountOption,
     TAccountSystemProgram
   >
@@ -169,8 +169,8 @@ export async function getCloseOptionAccountInstructionAsync<
   // Original accounts.
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: true },
-    creator: { value: input.creator ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
+    platformConfig: { value: input.platformConfig ?? null, isWritable: false },
     option: { value: input.option ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
@@ -204,8 +204,8 @@ export async function getCloseOptionAccountInstructionAsync<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
-      getAccountMeta(accounts.creator),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.platformConfig),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.systemProgram),
     ],
@@ -216,8 +216,8 @@ export async function getCloseOptionAccountInstructionAsync<
   } as CloseOptionAccountInstruction<
     TProgramAddress,
     TAccountSigner,
-    TAccountCreator,
     TAccountMarket,
+    TAccountPlatformConfig,
     TAccountOption,
     TAccountSystemProgram
   >);
@@ -225,14 +225,14 @@ export async function getCloseOptionAccountInstructionAsync<
 
 export type CloseOptionAccountInput<
   TAccountSigner extends string = string,
-  TAccountCreator extends string = string,
   TAccountMarket extends string = string,
+  TAccountPlatformConfig extends string = string,
   TAccountOption extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
   signer: TransactionSigner<TAccountSigner>;
-  creator: Address<TAccountCreator>;
   market: Address<TAccountMarket>;
+  platformConfig: Address<TAccountPlatformConfig>;
   option: Address<TAccountOption>;
   systemProgram?: Address<TAccountSystemProgram>;
   optionId: CloseOptionAccountInstructionDataArgs['optionId'];
@@ -240,16 +240,16 @@ export type CloseOptionAccountInput<
 
 export function getCloseOptionAccountInstruction<
   TAccountSigner extends string,
-  TAccountCreator extends string,
   TAccountMarket extends string,
+  TAccountPlatformConfig extends string,
   TAccountOption extends string,
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
 >(
   input: CloseOptionAccountInput<
     TAccountSigner,
-    TAccountCreator,
     TAccountMarket,
+    TAccountPlatformConfig,
     TAccountOption,
     TAccountSystemProgram
   >,
@@ -257,8 +257,8 @@ export function getCloseOptionAccountInstruction<
 ): CloseOptionAccountInstruction<
   TProgramAddress,
   TAccountSigner,
-  TAccountCreator,
   TAccountMarket,
+  TAccountPlatformConfig,
   TAccountOption,
   TAccountSystemProgram
 > {
@@ -269,8 +269,8 @@ export function getCloseOptionAccountInstruction<
   // Original accounts.
   const originalAccounts = {
     signer: { value: input.signer ?? null, isWritable: true },
-    creator: { value: input.creator ?? null, isWritable: true },
     market: { value: input.market ?? null, isWritable: true },
+    platformConfig: { value: input.platformConfig ?? null, isWritable: false },
     option: { value: input.option ?? null, isWritable: true },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
@@ -292,8 +292,8 @@ export function getCloseOptionAccountInstruction<
   return Object.freeze({
     accounts: [
       getAccountMeta(accounts.signer),
-      getAccountMeta(accounts.creator),
       getAccountMeta(accounts.market),
+      getAccountMeta(accounts.platformConfig),
       getAccountMeta(accounts.option),
       getAccountMeta(accounts.systemProgram),
     ],
@@ -304,8 +304,8 @@ export function getCloseOptionAccountInstruction<
   } as CloseOptionAccountInstruction<
     TProgramAddress,
     TAccountSigner,
-    TAccountCreator,
     TAccountMarket,
+    TAccountPlatformConfig,
     TAccountOption,
     TAccountSystemProgram
   >);
@@ -318,8 +318,8 @@ export type ParsedCloseOptionAccountInstruction<
   programAddress: Address<TProgram>;
   accounts: {
     signer: TAccountMetas[0];
-    creator: TAccountMetas[1];
-    market: TAccountMetas[2];
+    market: TAccountMetas[1];
+    platformConfig: TAccountMetas[2];
     option: TAccountMetas[3];
     systemProgram: TAccountMetas[4];
   };
@@ -348,8 +348,8 @@ export function parseCloseOptionAccountInstruction<
     programAddress: instruction.programAddress,
     accounts: {
       signer: getNextAccount(),
-      creator: getNextAccount(),
       market: getNextAccount(),
+      platformConfig: getNextAccount(),
       option: getNextAccount(),
       systemProgram: getNextAccount(),
     },

@@ -15,8 +15,6 @@ import {
   fetchEncodedAccounts,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressDecoder,
-  getAddressEncoder,
   getBooleanDecoder,
   getBooleanEncoder,
   getBytesDecoder,
@@ -59,7 +57,6 @@ export type OpportunityMarketOption = {
   discriminator: ReadonlyUint8Array;
   bump: number;
   id: bigint;
-  creator: Address;
   createdAt: bigint;
   unclaimedGrossVouch: bigint;
   totalScore: bigint;
@@ -72,7 +69,6 @@ export type OpportunityMarketOption = {
 export type OpportunityMarketOptionArgs = {
   bump: number;
   id: number | bigint;
-  creator: Address;
   createdAt: number | bigint;
   unclaimedGrossVouch: number | bigint;
   totalScore: number | bigint;
@@ -88,7 +84,6 @@ export function getOpportunityMarketOptionEncoder(): FixedSizeEncoder<Opportunit
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['bump', getU8Encoder()],
       ['id', getU64Encoder()],
-      ['creator', getAddressEncoder()],
       ['createdAt', getU64Encoder()],
       ['unclaimedGrossVouch', getU64Encoder()],
       ['totalScore', getU128Encoder()],
@@ -107,7 +102,6 @@ export function getOpportunityMarketOptionDecoder(): FixedSizeDecoder<Opportunit
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['bump', getU8Decoder()],
     ['id', getU64Decoder()],
-    ['creator', getAddressDecoder()],
     ['createdAt', getU64Decoder()],
     ['unclaimedGrossVouch', getU64Decoder()],
     ['totalScore', getU128Decoder()],

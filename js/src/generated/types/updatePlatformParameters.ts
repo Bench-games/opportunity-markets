@@ -32,6 +32,7 @@ export type UpdatePlatformParameters = {
   userCreatorFeeBp: Option<number>;
   sponsorPlatformFeeBp: Option<number>;
   revealAuthority: Option<Address>;
+  optionCreationAuthority: Option<Address>;
   minTimeToVouchSeconds: Option<bigint>;
   revealPeriodSeconds: Option<bigint>;
   marketResolutionDeadlineSeconds: Option<bigint>;
@@ -43,6 +44,7 @@ export type UpdatePlatformParametersArgs = {
   userCreatorFeeBp: OptionOrNullable<number>;
   sponsorPlatformFeeBp: OptionOrNullable<number>;
   revealAuthority: OptionOrNullable<Address>;
+  optionCreationAuthority: OptionOrNullable<Address>;
   minTimeToVouchSeconds: OptionOrNullable<number | bigint>;
   revealPeriodSeconds: OptionOrNullable<number | bigint>;
   marketResolutionDeadlineSeconds: OptionOrNullable<number | bigint>;
@@ -55,6 +57,7 @@ export function getUpdatePlatformParametersEncoder(): Encoder<UpdatePlatformPara
     ['userCreatorFeeBp', getOptionEncoder(getU16Encoder())],
     ['sponsorPlatformFeeBp', getOptionEncoder(getU16Encoder())],
     ['revealAuthority', getOptionEncoder(getAddressEncoder())],
+    ['optionCreationAuthority', getOptionEncoder(getAddressEncoder())],
     ['minTimeToVouchSeconds', getOptionEncoder(getU64Encoder())],
     ['revealPeriodSeconds', getOptionEncoder(getU64Encoder())],
     ['marketResolutionDeadlineSeconds', getOptionEncoder(getU64Encoder())],
@@ -68,6 +71,7 @@ export function getUpdatePlatformParametersDecoder(): Decoder<UpdatePlatformPara
     ['userCreatorFeeBp', getOptionDecoder(getU16Decoder())],
     ['sponsorPlatformFeeBp', getOptionDecoder(getU16Decoder())],
     ['revealAuthority', getOptionDecoder(getAddressDecoder())],
+    ['optionCreationAuthority', getOptionDecoder(getAddressDecoder())],
     ['minTimeToVouchSeconds', getOptionDecoder(getU64Decoder())],
     ['revealPeriodSeconds', getOptionDecoder(getU64Decoder())],
     ['marketResolutionDeadlineSeconds', getOptionDecoder(getU64Decoder())],

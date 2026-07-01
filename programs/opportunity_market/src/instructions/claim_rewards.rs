@@ -210,7 +210,6 @@ mod tests {
         OpportunityMarketOption {
             bump: 0,
             id: 0,
-            creator: Pubkey::default(),
             created_at: 0,
             unclaimed_gross_vouch: 0,
             total_score,

@@ -739,7 +739,6 @@ describe("Opportunity markets", () => {
     // Open market
     const vouchEnd = await platform.openMarket();
 
-    // Add options as creator
     const { optionId: optionA } = await platform.addOption();
     await platform.addOption();
     // Try to select option before vouch period ends - should fail

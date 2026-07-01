@@ -10,9 +10,10 @@ import { type BaseInstructionParams } from "./instructionParams";
 export interface EnsurePlatformConfigParams extends BaseInstructionParams {
   signer: TransactionSigner;
   name: string;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
+  userPlatformFeeBp: number;
+  userRewardPoolFeeBp: number;
+  userCreatorFeeBp: number;
+  sponsorPlatformFeeBp: number;
   feeClaimAuthority: Address;
   revealAuthority: Address;
   minTimeToVouchSeconds: bigint;
@@ -28,9 +29,10 @@ export async function ensurePlatformConfig(
     programAddress,
     signer,
     name,
-    platformFeeBp,
-    rewardPoolFeeBp,
-    creatorFeeBp,
+    userPlatformFeeBp,
+    userRewardPoolFeeBp,
+    userCreatorFeeBp,
+    sponsorPlatformFeeBp,
     feeClaimAuthority,
     revealAuthority,
     minTimeToVouchSeconds,
@@ -49,9 +51,10 @@ export async function ensurePlatformConfig(
   if (existing.exists) {
     const s = existing.data;
     if (
-      s.feeRates.platformFeeBp === platformFeeBp &&
-      s.feeRates.rewardPoolFeeBp === rewardPoolFeeBp &&
-      s.feeRates.creatorFeeBp === creatorFeeBp &&
+      s.feeRates.userPlatformFeeBp === userPlatformFeeBp &&
+      s.feeRates.userRewardPoolFeeBp === userRewardPoolFeeBp &&
+      s.feeRates.userCreatorFeeBp === userCreatorFeeBp &&
+      s.feeRates.sponsorPlatformFeeBp === sponsorPlatformFeeBp &&
       s.minTimeToVouchSeconds === minTimeToVouchSeconds &&
       s.revealPeriodSeconds === revealPeriodSeconds &&
       s.marketResolutionDeadlineSeconds === marketResolutionDeadlineSeconds
@@ -64,9 +67,10 @@ export async function ensurePlatformConfig(
         updateAuthority: signer,
         platformConfig: platformConfigAddress,
         params: {
-          platformFeeBp,
-          rewardPoolFeeBp,
-          creatorFeeBp,
+          userPlatformFeeBp,
+          userRewardPoolFeeBp,
+          userCreatorFeeBp,
+          sponsorPlatformFeeBp,
           revealAuthority,
           minTimeToVouchSeconds,
           revealPeriodSeconds,
@@ -83,9 +87,10 @@ export async function ensurePlatformConfig(
       platformConfig: platformConfigAddress,
       params: {
         name,
-        platformFeeBp,
-        rewardPoolFeeBp,
-        creatorFeeBp,
+        userPlatformFeeBp,
+        userRewardPoolFeeBp,
+        userCreatorFeeBp,
+        sponsorPlatformFeeBp,
         feeClaimAuthority,
         revealAuthority,
         minTimeToVouchSeconds,

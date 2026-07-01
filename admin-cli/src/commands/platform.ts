@@ -33,8 +33,8 @@ function printPlatforms(platforms: Awaited<ReturnType<typeof listPlatforms>>): v
     const fees = platform.data.feeRates;
     console.log(
       `${String(index + 1).padStart(2, " ")}  ${platform.data.name.padEnd(20)}  ${platform.address}  ` +
-        `fees ${fees.platformFeeBp}/${fees.rewardPoolFeeBp}/${fees.creatorFeeBp}bp  ` +
-        `update ${shortAddress(platform.data.updateAuthority)}`,
+      `fees ${fees.userPlatformFeeBp}/${fees.userRewardPoolFeeBp}/${fees.userCreatorFeeBp}/${fees.sponsorPlatformFeeBp}bp  ` +
+      `update ${shortAddress(platform.data.updateAuthority)}`,
     );
   }
 }
@@ -82,9 +82,10 @@ export function registerPlatformCommands(program: Command): void {
     .command("ensure")
     .description("Create or update a platform config")
     .option("--name <name>")
-    .option("--platform-fee-bp <bp>")
-    .option("--reward-pool-fee-bp <bp>")
-    .option("--creator-fee-bp <bp>")
+    .option("--user-platform-fee-bp <bp>")
+    .option("--user-reward-pool-fee-bp <bp>")
+    .option("--user-creator-fee-bp <bp>")
+    .option("--sponsor-platform-fee-bp <bp>")
     .option("--fee-claim-authority <address>")
     .option("--reveal-authority <address>")
     .option("--min-time-to-vouch-seconds <seconds>")
@@ -93,9 +94,10 @@ export function registerPlatformCommands(program: Command): void {
     .action(async (options, command) => {
       const ctx = await getContext(command);
       const name = options.name ?? await promptString("Platform name", DEFAULT_PLATFORM.name);
-      const platformFeeBp = options.platformFeeBp ? Number(options.platformFeeBp) : await promptNumber("Platform fee bp", DEFAULT_PLATFORM.platformFeeBp);
-      const rewardPoolFeeBp = options.rewardPoolFeeBp ? Number(options.rewardPoolFeeBp) : await promptNumber("Reward pool fee bp", DEFAULT_PLATFORM.rewardPoolFeeBp);
-      const creatorFeeBp = options.creatorFeeBp ? Number(options.creatorFeeBp) : await promptNumber("Creator fee bp", DEFAULT_PLATFORM.creatorFeeBp);
+      const userPlatformFeeBp = options.userPlatformFeeBp ? Number(options.userPlatformFeeBp) : await promptNumber("User platform fee bp", DEFAULT_PLATFORM.userPlatformFeeBp);
+      const userRewardPoolFeeBp = options.userRewardPoolFeeBp ? Number(options.userRewardPoolFeeBp) : await promptNumber("User reward pool fee bp", DEFAULT_PLATFORM.userRewardPoolFeeBp);
+      const userCreatorFeeBp = options.userCreatorFeeBp ? Number(options.userCreatorFeeBp) : await promptNumber("User creator fee bp", DEFAULT_PLATFORM.userCreatorFeeBp);
+      const sponsorPlatformFeeBp = options.sponsorPlatformFeeBp ? Number(options.sponsorPlatformFeeBp) : await promptNumber("Sponsor platform fee bp", DEFAULT_PLATFORM.sponsorPlatformFeeBp);
       const feeClaimAuthority = options.feeClaimAuthority
         ? address(options.feeClaimAuthority)
         : await promptAddress("Fee claim authority", ctx.payer.address);
@@ -122,9 +124,10 @@ export function registerPlatformCommands(program: Command): void {
         Payer: ctx.payer.address,
         Name: name,
         "Platform config": platformConfig,
-        "Platform fee": `${platformFeeBp} bp`,
-        "Reward pool fee": `${rewardPoolFeeBp} bp`,
-        "Creator fee": `${creatorFeeBp} bp`,
+        "User platform fee": `${userPlatformFeeBp} bp`,
+        "User reward pool fee": `${userRewardPoolFeeBp} bp`,
+        "User creator fee": `${userCreatorFeeBp} bp`,
+        "Sponsor platform fee": `${sponsorPlatformFeeBp} bp`,
         "Fee claim authority": existing.exists ? existing.data.feeClaimAuthority : feeClaimAuthority,
         "Reveal authority": revealAuthority,
       });
@@ -132,30 +135,32 @@ export function registerPlatformCommands(program: Command): void {
 
       const instruction = existing.exists
         ? await updatePlatformConfig(ctx.rpc, {
-            programAddress: ctx.programId,
-            signer: ctx.payer,
-            name,
-            platformFeeBp,
-            rewardPoolFeeBp,
-            creatorFeeBp,
-            revealAuthority,
-            minTimeToVouchSeconds,
-            revealPeriodSeconds,
-            marketResolutionDeadlineSeconds,
-          })
+          programAddress: ctx.programId,
+          signer: ctx.payer,
+          name,
+          userPlatformFeeBp,
+          userRewardPoolFeeBp,
+          userCreatorFeeBp,
+          sponsorPlatformFeeBp,
+          revealAuthority,
+          minTimeToVouchSeconds,
+          revealPeriodSeconds,
+          marketResolutionDeadlineSeconds,
+        })
         : await createPlatformConfig(ctx.rpc, {
-            programAddress: ctx.programId,
-            signer: ctx.payer,
-            name,
-            platformFeeBp,
-            rewardPoolFeeBp,
-            creatorFeeBp,
-            feeClaimAuthority,
-            revealAuthority,
-            minTimeToVouchSeconds,
-            revealPeriodSeconds,
-            marketResolutionDeadlineSeconds,
-          });
+          programAddress: ctx.programId,
+          signer: ctx.payer,
+          name,
+          userPlatformFeeBp,
+          userRewardPoolFeeBp,
+          userCreatorFeeBp,
+          sponsorPlatformFeeBp,
+          feeClaimAuthority,
+          revealAuthority,
+          minTimeToVouchSeconds,
+          revealPeriodSeconds,
+          marketResolutionDeadlineSeconds,
+        });
       const sig = await sendInstructions(ctx, [instruction], `platform ${mode}`);
       printTxResult(sig);
     });

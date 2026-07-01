@@ -51,10 +51,10 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/kit';
 import {
-  getCollectedFeesDecoder,
-  getCollectedFeesEncoder,
-  type CollectedFees,
-  type CollectedFeesArgs,
+  getCollectedUserFeesDecoder,
+  getCollectedUserFeesEncoder,
+  type CollectedUserFees,
+  type CollectedUserFeesArgs,
 } from '../types';
 
 export const VOUCH_ACCOUNT_DISCRIMINATOR = new Uint8Array([
@@ -81,7 +81,7 @@ export type VouchAccount = {
   vouchedAtTimestamp: Option<bigint>;
   vouchWithdrawnAtTimestamp: Option<bigint>;
   amount: bigint;
-  collectedFees: CollectedFees;
+  collectedFees: CollectedUserFees;
   revealedOption: Option<bigint>;
   score: Option<bigint>;
   rewardsClaimed: boolean;
@@ -105,7 +105,7 @@ export type VouchAccountArgs = {
   vouchedAtTimestamp: OptionOrNullable<number | bigint>;
   vouchWithdrawnAtTimestamp: OptionOrNullable<number | bigint>;
   amount: number | bigint;
-  collectedFees: CollectedFeesArgs;
+  collectedFees: CollectedUserFeesArgs;
   revealedOption: OptionOrNullable<number | bigint>;
   score: OptionOrNullable<number | bigint>;
   rewardsClaimed: boolean;
@@ -135,7 +135,7 @@ export function getVouchAccountEncoder(): Encoder<VouchAccountArgs> {
       ['vouchedAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['vouchWithdrawnAtTimestamp', getOptionEncoder(getU64Encoder())],
       ['amount', getU64Encoder()],
-      ['collectedFees', getCollectedFeesEncoder()],
+      ['collectedFees', getCollectedUserFeesEncoder()],
       ['revealedOption', getOptionEncoder(getU64Encoder())],
       ['score', getOptionEncoder(getU64Encoder())],
       ['rewardsClaimed', getBooleanEncoder()],
@@ -166,7 +166,7 @@ export function getVouchAccountDecoder(): Decoder<VouchAccount> {
     ['vouchedAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['vouchWithdrawnAtTimestamp', getOptionDecoder(getU64Decoder())],
     ['amount', getU64Decoder()],
-    ['collectedFees', getCollectedFeesDecoder()],
+    ['collectedFees', getCollectedUserFeesDecoder()],
     ['revealedOption', getOptionDecoder(getU64Decoder())],
     ['score', getOptionDecoder(getU64Decoder())],
     ['rewardsClaimed', getBooleanDecoder()],

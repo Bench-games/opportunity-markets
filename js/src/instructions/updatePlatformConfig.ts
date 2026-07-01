@@ -9,9 +9,10 @@ import { type BaseInstructionParams } from "./instructionParams";
 export interface UpdatePlatformConfigParams extends BaseInstructionParams {
   signer: TransactionSigner;
   name: string;
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
+  userPlatformFeeBp: number;
+  userRewardPoolFeeBp: number;
+  userCreatorFeeBp: number;
+  sponsorPlatformFeeBp: number;
   revealAuthority: Address;
   optionCreationAuthority: Address;
   minTimeToVouchSeconds: bigint;
@@ -27,9 +28,10 @@ export async function updatePlatformConfig(
     programAddress,
     signer,
     name,
-    platformFeeBp,
-    rewardPoolFeeBp,
-    creatorFeeBp,
+    userPlatformFeeBp,
+    userRewardPoolFeeBp,
+    userCreatorFeeBp,
+    sponsorPlatformFeeBp,
     revealAuthority,
     optionCreationAuthority,
     minTimeToVouchSeconds,
@@ -54,9 +56,10 @@ export async function updatePlatformConfig(
       updateAuthority: signer,
       platformConfig: platformConfigAddress,
       params: {
-        platformFeeBp,
-        rewardPoolFeeBp,
-        creatorFeeBp,
+        userPlatformFeeBp,
+        userRewardPoolFeeBp,
+        userCreatorFeeBp,
+        sponsorPlatformFeeBp,
         revealAuthority,
         optionCreationAuthority,
         minTimeToVouchSeconds,

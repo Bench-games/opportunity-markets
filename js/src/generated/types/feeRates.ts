@@ -18,26 +18,29 @@ import {
 } from '@solana/kit';
 
 export type FeeRates = {
-  platformFeeBp: number;
-  rewardPoolFeeBp: number;
-  creatorFeeBp: number;
+  userPlatformFeeBp: number;
+  userRewardPoolFeeBp: number;
+  userCreatorFeeBp: number;
+  sponsorPlatformFeeBp: number;
 };
 
 export type FeeRatesArgs = FeeRates;
 
 export function getFeeRatesEncoder(): FixedSizeEncoder<FeeRatesArgs> {
   return getStructEncoder([
-    ['platformFeeBp', getU16Encoder()],
-    ['rewardPoolFeeBp', getU16Encoder()],
-    ['creatorFeeBp', getU16Encoder()],
+    ['userPlatformFeeBp', getU16Encoder()],
+    ['userRewardPoolFeeBp', getU16Encoder()],
+    ['userCreatorFeeBp', getU16Encoder()],
+    ['sponsorPlatformFeeBp', getU16Encoder()],
   ]);
 }
 
 export function getFeeRatesDecoder(): FixedSizeDecoder<FeeRates> {
   return getStructDecoder([
-    ['platformFeeBp', getU16Decoder()],
-    ['rewardPoolFeeBp', getU16Decoder()],
-    ['creatorFeeBp', getU16Decoder()],
+    ['userPlatformFeeBp', getU16Decoder()],
+    ['userRewardPoolFeeBp', getU16Decoder()],
+    ['userCreatorFeeBp', getU16Decoder()],
+    ['sponsorPlatformFeeBp', getU16Decoder()],
   ]);
 }
 

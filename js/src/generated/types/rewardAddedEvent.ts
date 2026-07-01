@@ -26,6 +26,7 @@ export type RewardAddedEvent = {
   market: Address;
   sponsor: Address;
   amount: bigint;
+  sponsorPlatformFee: bigint;
   totalRewardAmount: bigint;
   timestamp: bigint;
 };
@@ -34,6 +35,7 @@ export type RewardAddedEventArgs = {
   market: Address;
   sponsor: Address;
   amount: number | bigint;
+  sponsorPlatformFee: number | bigint;
   totalRewardAmount: number | bigint;
   timestamp: number | bigint;
 };
@@ -43,6 +45,7 @@ export function getRewardAddedEventEncoder(): FixedSizeEncoder<RewardAddedEventA
     ['market', getAddressEncoder()],
     ['sponsor', getAddressEncoder()],
     ['amount', getU64Encoder()],
+    ['sponsorPlatformFee', getU64Encoder()],
     ['totalRewardAmount', getU64Encoder()],
     ['timestamp', getI64Encoder()],
   ]);
@@ -53,6 +56,7 @@ export function getRewardAddedEventDecoder(): FixedSizeDecoder<RewardAddedEvent>
     ['market', getAddressDecoder()],
     ['sponsor', getAddressDecoder()],
     ['amount', getU64Decoder()],
+    ['sponsorPlatformFee', getU64Decoder()],
     ['totalRewardAmount', getU64Decoder()],
     ['timestamp', getI64Decoder()],
   ]);

@@ -93,9 +93,10 @@ describe("Redistributes rewards in vouch-withdrawn options", () => {
       numParticipants: 1,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
-      platformFeeBp: 0,
-      creatorFeeBp: 0,
-      rewardPoolFeeBp: 0,
+      userPlatformFeeBp: 0,
+      userRewardPoolFeeBp: 0,
+      userCreatorFeeBp: 0,
+      sponsorPlatformFeeBp: 0,
       marketConfig: {
         rewardAmount,
         timeToVouch: 8n,

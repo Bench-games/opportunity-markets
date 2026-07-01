@@ -61,8 +61,11 @@ describe("Opportunity markets", () => {
   it("passes full opportunity market flow", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const numParticipants = 4;
-    const platformFeeBp = 100n; // 1%
-    const creatorFeeBp = 50n;  // 0.5%
+    const userPlatformFeeBp = 100n; // 1%
+    const userRewardPoolFeeBp = 50n;  // 0.5%
+    const userCreatorFeeBp = 50n;  // 0.5%
+    const sponsorPlatformFeeBp = 1000n; // 10%
+    const marketFundingFees = marketFundingAmount * sponsorPlatformFeeBp / 10_000n;
 
     const observer = loadObserverKeypair();
 
@@ -72,8 +75,10 @@ describe("Opportunity markets", () => {
       numParticipants,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
-      platformFeeBp: Number(platformFeeBp),
-      creatorFeeBp: Number(creatorFeeBp),
+      userPlatformFeeBp: Number(userPlatformFeeBp),
+      userRewardPoolFeeBp: Number(userRewardPoolFeeBp),
+      userCreatorFeeBp: Number(userCreatorFeeBp),
+      sponsorPlatformFeeBp: Number(sponsorPlatformFeeBp),
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToVouch: 10n,
@@ -90,8 +95,8 @@ describe("Opportunity markets", () => {
     const { optionId: optionB } = await platform.addOption();
     // First half vouch on Option A, second half vouch on Option B
     const vouchAmounts = [50_000_000n, 75_000_000n, 100_000_000n, 60_000_000n];
-    const expectedPlatformFeePerUser = vouchAmounts.map(a => a * platformFeeBp / 10_000n);
-    const expectedCreatorFeePerUser = vouchAmounts.map(a => a * creatorFeeBp / 10_000n);
+    const expectedPlatformFeePerUser = vouchAmounts.map(a => a * userPlatformFeeBp / 10_000n);
+    const expectedCreatorFeePerUser = vouchAmounts.map(a => a * userCreatorFeeBp / 10_000n);
     const expectedNetPerUser = vouchAmounts.map(
       (a, i) => a - expectedPlatformFeePerUser[i] - expectedCreatorFeePerUser[i],
     );
@@ -232,6 +237,11 @@ describe("Opportunity markets", () => {
     const marketAfterCreatorClaim = await platform.fetchMarket();
     expect(marketAfterCreatorClaim.data.collectedCreatorFees).to.equal(0n);
 
+    const sumWinnerRewardPoolFees = winnerIndices.reduce(
+      (sum, idx) => sum + vouchAmounts[idx] * userRewardPoolFeeBp / 10_000n,
+      0n,
+    );
+
     // Get token balances before closing (after reclaim, so only reward transfer remains)
     const marketAta = await platform.getMarketAta();
 
@@ -290,8 +300,11 @@ describe("Opportunity markets", () => {
       expect(gain > 0n).to.be.true;
     }
 
-    // Total market loss equals the reward pool plus winners' refunded creator fees.
-    const expectedMarketLoss = marketFundingAmount + sumWinnerCreatorFees;
+    // Total market loss equals reward payouts plus winners' refunded vouch fees.
+    const expectedMarketLoss =
+      marketAfterCreatorClaim.data.rewardAmount +
+      sumWinnerCreatorFees +
+      sumWinnerRewardPoolFees;
     const marketLoss = marketBalanceBefore - marketBalanceAfter;
     expect(marketLoss >= expectedMarketLoss - 2n && marketLoss <= expectedMarketLoss).to.be.true;
 
@@ -319,7 +332,8 @@ describe("Opportunity markets", () => {
     expect(totalGains <= expectedMarketLoss).to.be.true;
 
     // Verify the fee vault has collected platform fees
-    const totalExpectedPlatformFees = expectedPlatformFeePerUser.reduce((sum, f) => sum + f, 0n);
+    const totalExpectedPlatformFees =
+      expectedPlatformFeePerUser.reduce((sum, f) => sum + f, 0n) + marketFundingFees;
     const marketBefore = await platform.fetchMarket();
     expect(marketBefore.data.collectedPlatformFees).to.equal(totalExpectedPlatformFees,
       `Market should have collected ${totalExpectedPlatformFees} in platform fees`);
@@ -349,6 +363,8 @@ describe("Opportunity markets", () => {
 
   it("distributes rewards across multiple winning options", async () => {
     const marketFundingAmount = 1_000_000_000n;
+    const marketFundingFees = 100_000_000n;
+    const marketRewardPool = marketFundingAmount - marketFundingFees;
     const vouchAmount = 1000n;
 
     const observer = loadObserverKeypair();
@@ -469,8 +485,8 @@ describe("Opportunity markets", () => {
 
     // User 1 should receive rewards from A (50%) and B (30%) = 80% of total
     // User 2 should receive rewards from E (20%) = 20% of total
-    const expectedU1Gain = marketFundingAmount * 80n / 100n;
-    const expectedU2Gain = marketFundingAmount * 20n / 100n;
+    const expectedU1Gain = marketRewardPool * 80n / 100n;
+    const expectedU2Gain = marketRewardPool * 20n / 100n;
 
     // Allow tolerance of 2 for rounding
     expect(
@@ -486,8 +502,8 @@ describe("Opportunity markets", () => {
     // Total paid out should equal the full reward amount
     const totalGains = u1Gain + u2Gain;
     expect(
-      totalGains >= marketFundingAmount - 3n && totalGains <= marketFundingAmount,
-      `Total gains should be ~${marketFundingAmount}, got ${totalGains}`
+      totalGains >= marketRewardPool - 3n && totalGains <= marketRewardPool,
+      `Total gains should be ~${marketRewardPool}, got ${totalGains}`
     ).to.be.true;
 
     // All vouch accounts should be closed
@@ -501,6 +517,8 @@ describe("Opportunity markets", () => {
 
   it("allows users to vouch on multiple options", async () => {
     const marketFundingAmount = 1_000_000_000n;
+    const marketFundingFees = 100_000_000n;
+    const marketRewardPool = marketFundingAmount - marketFundingFees;
     const vouchAmount = 50_000_000n;
 
     const observer = loadObserverKeypair();
@@ -623,14 +641,14 @@ describe("Opportunity markets", () => {
 
     // User is the only participant, so they should receive the entire market reward
     expect(
-      userGained >= marketFundingAmount - 1n && userGained <= marketFundingAmount,
-      `User should gain ~${marketFundingAmount}, got ${userGained}`
+      userGained >= marketRewardPool - 1n && userGained <= marketRewardPool,
+      `User should gain ~${marketRewardPool}, got ${userGained}`
     ).to.be.true;
 
     // Market should have paid out the full reward amount
     expect(
-      marketPaidOut >= marketFundingAmount - 1n && marketPaidOut <= marketFundingAmount,
-      `Market should pay out ~${marketFundingAmount}, paid ${marketPaidOut}`
+      marketPaidOut >= marketRewardPool - 1n && marketPaidOut <= marketRewardPool,
+      `Market should pay out ~${marketRewardPool}, paid ${marketPaidOut}`
     ).to.be.true;
 
     const marketStateAfter = await platform.fetchMarket();
@@ -749,7 +767,9 @@ describe("Opportunity markets", () => {
 
   it("allows adding more reward during vouching", async () => {
     const initialReward = 1_000_000_000n;
+    const initialRewardFees = 100_000_000n;
     const additionalReward = 1_000_000_000n;
+    const additionalRewardFees = 100_000_000n;
 
     const observer = loadObserverKeypair();
 
@@ -772,14 +792,16 @@ describe("Opportunity markets", () => {
     await platform.addOption();
     // Verify initial reward amount
     let market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(initialReward);
+    expect(market.data.rewardAmount).to.equal(initialReward - initialRewardFees);
+    expect(market.data.collectedPlatformFees).to.equal(initialRewardFees);
 
     // Add more reward from creator
     await platform.addReward(platform.creator, additionalReward);
 
     // Verify updated reward amount
     market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(initialReward + additionalReward);
+    expect(market.data.rewardAmount).to.equal(initialReward - initialRewardFees + additionalReward - additionalRewardFees);
+    expect(market.data.collectedPlatformFees).to.equal(initialRewardFees + additionalRewardFees);
   });
 
   it("early vouch withdrawal works as expected", async () => {
@@ -795,8 +817,9 @@ describe("Opportunity markets", () => {
       numParticipants: 1,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
-      platformFeeBp: 100,
-      creatorFeeBp: 100,
+      userPlatformFeeBp: 100,
+      userCreatorFeeBp: 100,
+      sponsorPlatformFeeBp: 1000,
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToVouch,
@@ -1002,9 +1025,12 @@ describe("Opportunity markets", () => {
   it("collects fee components correctly", async () => {
     const marketFundingAmount = 1_000_000_000n;
     const vouchAmount = 100_000_000n;
-    const platformFeeBp = 100n;     // 1%
-    const rewardPoolFeeBp = 200n;   // 2%
-    const creatorFeeBp = 150n;      // 1.5%
+    const userPlatformFeeBp = 100n;     // 1%
+    const userRewardPoolFeeBp = 200n;   // 2%
+    const userCreatorFeeBp = 150n;      // 1.5%
+    const sponsorPlatformFeeBp = 1000n; // 10%
+    const rewardDepositFees = marketFundingAmount * sponsorPlatformFeeBp / 10_000n;
+    const netMarketFunding = marketFundingAmount - rewardDepositFees;
 
     const observer = loadObserverKeypair();
 
@@ -1014,9 +1040,10 @@ describe("Opportunity markets", () => {
       numParticipants: 1,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
-      platformFeeBp: Number(platformFeeBp),
-      rewardPoolFeeBp: Number(rewardPoolFeeBp),
-      creatorFeeBp: Number(creatorFeeBp),
+      userPlatformFeeBp: Number(userPlatformFeeBp),
+      userRewardPoolFeeBp: Number(userRewardPoolFeeBp),
+      userCreatorFeeBp: Number(userCreatorFeeBp),
+      sponsorPlatformFeeBp: Number(sponsorPlatformFeeBp),
       marketConfig: {
         rewardAmount: marketFundingAmount,
         timeToVouch: 10n,
@@ -1029,9 +1056,9 @@ describe("Opportunity markets", () => {
     const user = platform.participants[0];
     const rpc = platform.getRpc();
 
-    const expectedPlatformFee = vouchAmount * platformFeeBp / 10_000n;
-    const expectedRewardPoolFee = vouchAmount * rewardPoolFeeBp / 10_000n;
-    const expectedCreatorFee = vouchAmount * creatorFeeBp / 10_000n;
+    const expectedPlatformFee = vouchAmount * userPlatformFeeBp / 10_000n;
+    const expectedRewardPoolFee = vouchAmount * userRewardPoolFeeBp / 10_000n;
+    const expectedCreatorFee = vouchAmount * userCreatorFeeBp / 10_000n;
     const expectedNetVouch =
       vouchAmount - expectedPlatformFee - expectedRewardPoolFee - expectedCreatorFee;
 
@@ -1046,9 +1073,9 @@ describe("Opportunity markets", () => {
 
     // Market accumulators credit each fee bucket appropriately.
     let market = await platform.fetchMarket();
-    expect(market.data.collectedPlatformFees).to.equal(expectedPlatformFee);
+    expect(market.data.collectedPlatformFees).to.equal(expectedPlatformFee + rewardDepositFees);
     expect(market.data.collectedCreatorFees).to.equal(expectedCreatorFee);
-    expect(market.data.rewardAmount).to.equal(marketFundingAmount + expectedRewardPoolFee);
+    expect(market.data.rewardAmount).to.equal(netMarketFunding + expectedRewardPoolFee);
 
     // Resolve the market and run through reveal/reclaim.
     await platform.waitForVouchEnd();
@@ -1063,14 +1090,14 @@ describe("Opportunity markets", () => {
     const feeAuthBefore = (await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))).data.amount;
     await platform.claimFees();
     const feeAuthAfter = (await fetchToken(rpc, platform.getUserTokenAccount(platform.creator))).data.amount;
-    expect(feeAuthAfter - feeAuthBefore).to.equal(expectedPlatformFee);
+    expect(feeAuthAfter - feeAuthBefore).to.equal(expectedPlatformFee + rewardDepositFees);
 
     // Winner claims reward + fee refund, then closes the vouch account.
     const userBalanceBeforeClose = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
     await platform.claimRewards(user, optionId, vouchAccountId);
     await platform.closeRevealedVouchAccountBatch([{ userId: user, optionId, vouchAccountId }]);
     const userBalanceAfterClose = (await fetchToken(rpc, platform.getUserTokenAccount(user))).data.amount;
-    const expectedReward = marketFundingAmount + expectedRewardPoolFee + expectedCreatorFee;
+    const expectedReward = netMarketFunding + expectedRewardPoolFee + expectedCreatorFee;
     const userGain = userBalanceAfterClose - userBalanceBeforeClose;
     expect(
       userGain >= expectedReward - 1n && userGain <= expectedReward,
@@ -1085,9 +1112,10 @@ describe("Opportunity markets", () => {
 
   it("expired market refunds reward_pool and creator fees", async () => {
     const vouchAmount = 100_000_000n;
-    const platformFeeBp = 100n;
-    const rewardPoolFeeBp = 200n;
-    const creatorFeeBp = 150n;
+    const userPlatformFeeBp = 100n;
+    const userRewardPoolFeeBp = 200n;
+    const userCreatorFeeBp = 150n;
+    const sponsorPlatformFeeBp = 1000n;
     const marketResolutionDeadlineSeconds = 10n;
     const timeToVouch = 10n;
 
@@ -1099,9 +1127,10 @@ describe("Opportunity markets", () => {
       numParticipants: 1,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 2_000_000_000n,
-      platformFeeBp: Number(platformFeeBp),
-      rewardPoolFeeBp: Number(rewardPoolFeeBp),
-      creatorFeeBp: Number(creatorFeeBp),
+      userPlatformFeeBp: Number(userPlatformFeeBp),
+      userRewardPoolFeeBp: Number(userRewardPoolFeeBp),
+      userCreatorFeeBp: Number(userCreatorFeeBp),
+      sponsorPlatformFeeBp: Number(sponsorPlatformFeeBp),
       marketResolutionDeadlineSeconds,
       marketConfig: {
         rewardAmount: 0n,
@@ -1115,9 +1144,9 @@ describe("Opportunity markets", () => {
     const user = platform.participants[0];
     const rpc = platform.getRpc();
 
-    const expectedPlatformFee = vouchAmount * platformFeeBp / 10_000n;
-    const expectedRewardPoolFee = vouchAmount * rewardPoolFeeBp / 10_000n;
-    const expectedCreatorFee = vouchAmount * creatorFeeBp / 10_000n;
+    const expectedPlatformFee = vouchAmount * userPlatformFeeBp / 10_000n;
+    const expectedRewardPoolFee = vouchAmount * userRewardPoolFeeBp / 10_000n;
+    const expectedCreatorFee = vouchAmount * userCreatorFeeBp / 10_000n;
     const expectedNetVouch =
       vouchAmount - expectedPlatformFee - expectedRewardPoolFee - expectedCreatorFee;
 
@@ -1162,6 +1191,10 @@ describe("Opportunity markets", () => {
   it("expired market lets sponsors recover their deposits", async () => {
     const sponsorAmountA = 500_000_000n;
     const sponsorAmountB = 300_000_000n;
+    const sponsorFeesA = 50_000_000n;
+    const sponsorFeesB = 30_000_000n;
+    const netSponsorA = sponsorAmountA - sponsorFeesA;
+    const netSponsorB = sponsorAmountB - sponsorFeesB;
     const timeToVouch = 15n;
     const marketResolutionDeadlineSeconds = 15n;
 
@@ -1191,7 +1224,7 @@ describe("Opportunity markets", () => {
     await platform.addReward(sponsorB, sponsorAmountB);
 
     let market = await platform.fetchMarket();
-    expect(market.data.rewardAmount).to.equal(sponsorAmountA + sponsorAmountB);
+    expect(market.data.rewardAmount).to.equal(netSponsorA + netSponsorB);
 
     // Pre-open: the market has no vouch window yet, so withdrawal is rejected.
     await shouldThrowCustomError(
@@ -1208,7 +1241,7 @@ describe("Opportunity markets", () => {
       OPPORTUNITY_MARKET_ERROR__WRONG_MARKET_PHASE,
     );
 
-    // After expiry without resolution, both sponsors recover their deposits in full.
+    // After expiry without resolution, sponsors recover their net deposits; platform fees are not refunded.
     const expiredAt = vouchEnd + Number(marketResolutionDeadlineSeconds);
     await sleepUntilOnChainTimestamp(expiredAt + ONCHAIN_TIMESTAMP_BUFFER_SECONDS, rpc);
 
@@ -1217,15 +1250,15 @@ describe("Opportunity markets", () => {
 
     const balanceAfterA = (await fetchToken(rpc, platform.getUserTokenAccount(sponsorA))).data.amount;
     const balanceAfterB = (await fetchToken(rpc, platform.getUserTokenAccount(sponsorB))).data.amount;
-    expect(balanceAfterA).to.equal(balanceBeforeA);
-    expect(balanceAfterB).to.equal(balanceBeforeB);
+    expect(balanceAfterA).to.equal(balanceBeforeA - sponsorFeesA);
+    expect(balanceAfterB).to.equal(balanceBeforeB - sponsorFeesB);
 
     market = await platform.fetchMarket();
     expect(market.data.rewardAmount).to.equal(0n);
 
     const marketAta = await platform.getMarketAta();
     const marketAtaBalance = (await fetchToken(rpc, marketAta)).data.amount;
-    expect(marketAtaBalance).to.equal(0n);
+    expect(marketAtaBalance).to.equal(sponsorFeesA + sponsorFeesB);
   });
 
   it("rejects vouching below the minimum vouch amount", async () => {
@@ -1335,14 +1368,15 @@ describe("Opportunity markets", () => {
 
   it("winner takes all when fees sum up to 100%", async () => {
     // Fees consume all but 1 bp of the vouch; net remains so withdrawal can run.
-    const platformFeeBp = 100;
-    const creatorFeeBp = 100;
-    const rewardPoolFeeBp = 9799;
+    const userPlatformFeeBp = 100;
+    const userCreatorFeeBp = 100;
+    const userRewardPoolFeeBp = 9799;
+    const sponsorPlatformFeeBp = 1000;
 
     const vouchAmount = 100_000_000_000n;
-    const expectedPoolFee = vouchAmount * BigInt(rewardPoolFeeBp) / 10_000n;
-    const expectedPlatformFee = vouchAmount * BigInt(platformFeeBp) / 10_000n;
-    const expectedCreatorFee = vouchAmount * BigInt(creatorFeeBp) / 10_000n;
+    const expectedPoolFee = vouchAmount * BigInt(userRewardPoolFeeBp) / 10_000n;
+    const expectedPlatformFee = vouchAmount * BigInt(userPlatformFeeBp) / 10_000n;
+    const expectedCreatorFee = vouchAmount * BigInt(userCreatorFeeBp) / 10_000n;
     const expectedNetVouch =
       vouchAmount - expectedPlatformFee - expectedPoolFee - expectedCreatorFee;
 
@@ -1354,9 +1388,10 @@ describe("Opportunity markets", () => {
       numParticipants: 2,
       airdropLamports: 2_000_000_000n,
       initialTokenAmount: 1_000_000_000_000n,
-      platformFeeBp,
-      rewardPoolFeeBp,
-      creatorFeeBp,
+      userPlatformFeeBp,
+      userRewardPoolFeeBp,
+      userCreatorFeeBp,
+      sponsorPlatformFeeBp,
       marketConfig: {
         // No initial reward — the entire winning pool is the loser's contribution.
         rewardAmount: 0n,

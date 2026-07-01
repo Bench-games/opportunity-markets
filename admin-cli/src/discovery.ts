@@ -111,7 +111,7 @@ export async function selectPlatform(ctx: BaseCliContext, message = "Select plat
   const platforms = await listPlatforms(ctx);
   return chooseOne(message, platforms, (item) => {
     const fees = item.data.feeRates;
-    return `${item.data.name}  ${shortAddress(item.address)}  fees ${fees.platformFeeBp}/${fees.rewardPoolFeeBp}/${fees.creatorFeeBp}bp`;
+    return `${item.data.name}  ${shortAddress(item.address)}  fees ${fees.userPlatformFeeBp}/${fees.userRewardPoolFeeBp}/${fees.userCreatorFeeBp}/${fees.sponsorPlatformFeeBp}bp`;
   });
 }
 

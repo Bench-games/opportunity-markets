@@ -151,6 +151,7 @@ pub struct RewardAddedEvent {
     pub market: Pubkey,
     pub sponsor: Pubkey,
     pub amount: u64,
+    pub sponsor_platform_fee: u64,
     pub total_reward_amount: u64,
     pub timestamp: i64,
 }

@@ -1,7 +1,8 @@
-pub const MAX_PLATFORM_FEE_BP: u16 = 300;
-pub const MAX_CREATOR_FEE_BP: u16 = 500;
-pub const MAX_REWARD_POOL_FEE_BP: u16 = 10_000;
-pub const MAX_TOTAL_FEE_BP: u16 = 10_000;
+pub const MAX_USER_PLATFORM_FEE_BP: u16 = 300;
+pub const MAX_USER_CREATOR_FEE_BP: u16 = 500;
+pub const MAX_USER_REWARD_POOL_FEE_BP: u16 = 10_000;
+pub const MAX_USER_TOTAL_FEE_BP: u16 = 10_000;
+pub const MAX_SPONSOR_PLATFORM_FEE_BP: u16 = 5_000;
 
 /// Minimum and maximum length (in bytes) of a platform name.
 pub const MIN_PLATFORM_NAME_LEN: usize = 3;

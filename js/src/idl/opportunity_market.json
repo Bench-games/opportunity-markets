@@ -3822,7 +3822,7 @@
       }
     },
     {
-      "name": "CollectedFees",
+      "name": "CollectedUserFees",
       "type": {
         "kind": "struct",
         "fields": [
@@ -4072,15 +4072,19 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "platform_fee_bp",
+            "name": "user_platform_fee_bp",
             "type": "u16"
           },
           {
-            "name": "reward_pool_fee_bp",
+            "name": "user_reward_pool_fee_bp",
             "type": "u16"
           },
           {
-            "name": "creator_fee_bp",
+            "name": "user_creator_fee_bp",
+            "type": "u16"
+          },
+          {
+            "name": "sponsor_platform_fee_bp",
             "type": "u16"
           }
         ]
@@ -4128,15 +4132,19 @@
             "type": "string"
           },
           {
-            "name": "platform_fee_bp",
+            "name": "user_platform_fee_bp",
             "type": "u16"
           },
           {
-            "name": "reward_pool_fee_bp",
+            "name": "user_reward_pool_fee_bp",
             "type": "u16"
           },
           {
-            "name": "creator_fee_bp",
+            "name": "user_creator_fee_bp",
+            "type": "u16"
+          },
+          {
+            "name": "sponsor_platform_fee_bp",
             "type": "u16"
           },
           {
@@ -4693,6 +4701,10 @@
           {
             "name": "reward_deposited",
             "type": "u64"
+          },
+          {
+            "name": "sponsor_platform_fee_deposited",
+            "type": "u64"
           }
         ]
       }
@@ -4996,6 +5008,10 @@
             "type": "u64"
           },
           {
+            "name": "sponsor_platform_fee",
+            "type": "u64"
+          },
+          {
             "name": "total_reward_amount",
             "type": "u64"
           },
@@ -5281,19 +5297,25 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "platform_fee_bp",
+            "name": "user_platform_fee_bp",
             "type": {
               "option": "u16"
             }
           },
           {
-            "name": "reward_pool_fee_bp",
+            "name": "user_reward_pool_fee_bp",
             "type": {
               "option": "u16"
             }
           },
           {
-            "name": "creator_fee_bp",
+            "name": "user_creator_fee_bp",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "sponsor_platform_fee_bp",
             "type": {
               "option": "u16"
             }
@@ -5451,7 +5473,7 @@
             "name": "collected_fees",
             "type": {
               "defined": {
-                "name": "CollectedFees"
+                "name": "CollectedUserFees"
               }
             }
           },

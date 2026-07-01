@@ -110,9 +110,10 @@ export interface PlatformConfigArgs {
   airdropLamports?: bigint;
   initialTokenAmount?: bigint;
   marketConfig?: Partial<MarketConfig>;
-  platformFeeBp?: number;
-  rewardPoolFeeBp?: number;
-  creatorFeeBp?: number;
+  userPlatformFeeBp?: number;
+  userRewardPoolFeeBp?: number;
+  userCreatorFeeBp?: number;
+  sponsorPlatformFeeBp?: number;
   marketResolutionDeadlineSeconds?: bigint;
   revealPeriodSeconds?: bigint;
   revealAuthority?: Address;
@@ -159,9 +160,10 @@ const DEFAULT_CONFIG: Required<Omit<PlatformConfigArgs, "name">> = {
   numParticipants: 2,
   airdropLamports: 2_000_000_000n,
   initialTokenAmount: 1_000_000_000n,
-  platformFeeBp: 100,
-  rewardPoolFeeBp: 0,
-  creatorFeeBp: 0,
+  userPlatformFeeBp: 100,
+  userRewardPoolFeeBp: 0,
+  userCreatorFeeBp: 0,
+  sponsorPlatformFeeBp: 1000,
   // Program enforces a hard floor of 7 days.
   marketResolutionDeadlineSeconds: 7n * 24n * 60n * 60n,
   // Program enforces 1 week .. 60 days; pick the floor for tests.
@@ -268,9 +270,10 @@ export class Platform {
       airdropLamports,
       initialTokenAmount,
       marketConfig,
-      platformFeeBp,
-      rewardPoolFeeBp,
-      creatorFeeBp,
+      userPlatformFeeBp,
+      userRewardPoolFeeBp,
+      userCreatorFeeBp,
+      sponsorPlatformFeeBp,
       marketResolutionDeadlineSeconds,
       revealPeriodSeconds,
       revealAuthority,
@@ -333,9 +336,10 @@ export class Platform {
     const platformConfigIx = await createPlatformConfig(runner.rpc, {
       signer: deployer,
       name: platformName,
-      platformFeeBp,
-      rewardPoolFeeBp,
-      creatorFeeBp,
+      userPlatformFeeBp,
+      userRewardPoolFeeBp,
+      userCreatorFeeBp,
+      sponsorPlatformFeeBp,
       feeClaimAuthority: creatorAccountBase.keypair.address,
       revealAuthority: resolvedRevealAuthority,
       optionCreationAuthority: creatorAccountBase.keypair.address,

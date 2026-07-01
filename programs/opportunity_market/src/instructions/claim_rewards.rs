@@ -146,9 +146,9 @@ fn compute_reward_payout(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::CollectedFees;
+    use crate::state::CollectedUserFees;
 
-    fn test_vouch_account(score: Option<u64>, fees: CollectedFees) -> VouchAccount {
+    fn test_vouch_account(score: Option<u64>, fees: CollectedUserFees) -> VouchAccount {
         VouchAccount {
             encrypted_option: [0; 32],
             state_nonce: 0,
@@ -191,9 +191,10 @@ mod tests {
             earliness_multiplier: 0,
             authorized_reader_pubkey: [0; 32],
             fee_rates: crate::state::FeeRates {
-                platform_fee_bp: 0,
-                reward_pool_fee_bp: 0,
-                creator_fee_bp: 0,
+                user_platform_fee_bp: 0,
+                user_reward_pool_fee_bp: 0,
+                user_creator_fee_bp: 0,
+                sponsor_platform_fee_bp: 0,
             },
             collected_platform_fees: 0,
             collected_creator_fees: 0,
@@ -219,7 +220,7 @@ mod tests {
 
     #[test]
     fn zero_total_score_returns_zero_payout() {
-        let fees = CollectedFees {
+        let fees = CollectedUserFees {
             platform_fee: 100,
             reward_pool_fee: 200,
             creator_fee: 300,
@@ -234,7 +235,7 @@ mod tests {
 
     #[test]
     fn zero_total_score_succeeds_even_when_active_bp_is_zero() {
-        let fees = CollectedFees {
+        let fees = CollectedUserFees {
             platform_fee: 0,
             reward_pool_fee: 50,
             creator_fee: 50,
@@ -252,7 +253,7 @@ mod tests {
         let reward_amount = 200_000_000_000_000_000;
         let vouch = test_vouch_account(
             Some(score),
-            CollectedFees {
+            CollectedUserFees {
                 platform_fee: 0,
                 reward_pool_fee: 0,
                 creator_fee: 0,
@@ -267,7 +268,7 @@ mod tests {
 
     #[test]
     fn non_zero_total_score_does_not_pay_rewards_plus_fees() {
-        let fees = CollectedFees {
+        let fees = CollectedUserFees {
             platform_fee: 0,
             reward_pool_fee: 10,
             creator_fee: 20,

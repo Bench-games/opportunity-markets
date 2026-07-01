@@ -1,11 +1,12 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::{
-    MAX_CREATOR_FEE_BP, MAX_PLATFORM_FEE_BP, MAX_REWARD_POOL_FEE_BP, MAX_TOTAL_FEE_BP,
-};
-use crate::constants::{
     MAX_PLATFORM_NAME_LEN, MAX_REVEAL_PERIOD_SECONDS, MAX_TIME_TO_VOUCH_SECONDS,
     MIN_PLATFORM_NAME_LEN, MIN_REVEAL_PERIOD_SECONDS,
+};
+use crate::constants::{
+    MAX_SPONSOR_PLATFORM_FEE_BP, MAX_USER_CREATOR_FEE_BP, MAX_USER_PLATFORM_FEE_BP,
+    MAX_USER_REWARD_POOL_FEE_BP, MAX_USER_TOTAL_FEE_BP,
 };
 #[cfg(not(feature = "disable-prod-guardrails"))]
 use crate::constants::{MIN_MARKET_RESOLUTION_DEADLINE_SECONDS, MIN_TIME_TO_VOUCH_FLOOR_SECONDS};
@@ -25,7 +26,6 @@ pub struct PlatformConfig {
     // Can claim platform fees
     pub fee_claim_authority: Pubkey,
 
-    // Platform fee in basis points
     pub fee_rates: FeeRates,
 
     pub market_resolution_deadline_seconds: u64,
@@ -178,33 +178,45 @@ pub enum MarketPhase {
 
 #[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, InitSpace)]
 pub struct FeeRates {
-    pub platform_fee_bp: u16,
-    pub reward_pool_fee_bp: u16,
-    pub creator_fee_bp: u16,
+    pub user_platform_fee_bp: u16,
+    pub user_reward_pool_fee_bp: u16,
+    pub user_creator_fee_bp: u16,
+    pub sponsor_platform_fee_bp: u16,
 }
 
 impl FeeRates {
-    pub fn new(platform_fee_bp: u16, reward_pool_fee_bp: u16, creator_fee_bp: u16) -> Result<Self> {
+    pub fn new(
+        user_platform_fee_bp: u16,
+        user_reward_pool_fee_bp: u16,
+        user_creator_fee_bp: u16,
+        sponsor_platform_fee_bp: u16,
+    ) -> Result<Self> {
         require!(
-            platform_fee_bp <= MAX_PLATFORM_FEE_BP,
+            user_platform_fee_bp <= MAX_USER_PLATFORM_FEE_BP,
             ErrorCode::InvalidFeeRates
         );
         require!(
-            reward_pool_fee_bp <= MAX_REWARD_POOL_FEE_BP,
+            user_reward_pool_fee_bp <= MAX_USER_REWARD_POOL_FEE_BP,
             ErrorCode::InvalidFeeRates
         );
         require!(
-            creator_fee_bp <= MAX_CREATOR_FEE_BP,
+            user_creator_fee_bp <= MAX_USER_CREATOR_FEE_BP,
             ErrorCode::InvalidFeeRates
         );
         require!(
-            platform_fee_bp + reward_pool_fee_bp + creator_fee_bp <= MAX_TOTAL_FEE_BP,
+            user_platform_fee_bp + user_reward_pool_fee_bp + user_creator_fee_bp
+                <= MAX_USER_TOTAL_FEE_BP,
+            ErrorCode::InvalidFeeRates
+        );
+        require!(
+            sponsor_platform_fee_bp <= MAX_SPONSOR_PLATFORM_FEE_BP,
             ErrorCode::InvalidFeeRates
         );
         Ok(Self {
-            platform_fee_bp,
-            reward_pool_fee_bp,
-            creator_fee_bp,
+            user_platform_fee_bp,
+            user_reward_pool_fee_bp,
+            user_creator_fee_bp,
+            sponsor_platform_fee_bp,
         })
     }
 }
@@ -252,37 +264,48 @@ impl OpportunityMarket {
         Ok(())
     }
 
-    pub fn calculate_fees(&self, amount: u64) -> Result<CollectedFees> {
+    pub fn calculate_sponsor_platform_fee(&self, amount: u64) -> Result<u64> {
+        let sponsor_platform_fee = (amount as u128)
+            .checked_mul(self.fee_rates.sponsor_platform_fee_bp as u128)
+            .ok_or(ErrorCode::Overflow)?
+            .checked_div(10_000)
+            .ok_or(ErrorCode::Overflow)?
+            .try_into()
+            .map_err(|_| ErrorCode::Overflow)?;
+        Ok(sponsor_platform_fee)
+    }
+
+    pub fn calculate_user_fees(&self, amount: u64) -> Result<CollectedUserFees> {
         let platform_fee = (amount as u128)
-            .checked_mul(self.fee_rates.platform_fee_bp as u128)
+            .checked_mul(self.fee_rates.user_platform_fee_bp as u128)
             .ok_or(ErrorCode::Overflow)?
             .checked_div(10_000)
             .ok_or(ErrorCode::Overflow)?
             .try_into()
             .map_err(|_| ErrorCode::Overflow)?;
         let reward_pool_fee = (amount as u128)
-            .checked_mul(self.fee_rates.reward_pool_fee_bp as u128)
+            .checked_mul(self.fee_rates.user_reward_pool_fee_bp as u128)
             .ok_or(ErrorCode::Overflow)?
             .checked_div(10_000)
             .ok_or(ErrorCode::Overflow)?
             .try_into()
             .map_err(|_| ErrorCode::Overflow)?;
         let creator_fee = (amount as u128)
-            .checked_mul(self.fee_rates.creator_fee_bp as u128)
+            .checked_mul(self.fee_rates.user_creator_fee_bp as u128)
             .ok_or(ErrorCode::Overflow)?
             .checked_div(10_000)
             .ok_or(ErrorCode::Overflow)?
             .try_into()
             .map_err(|_| ErrorCode::Overflow)?;
 
-        Ok(CollectedFees {
+        Ok(CollectedUserFees {
             platform_fee,
             reward_pool_fee,
             creator_fee,
         })
     }
 
-    pub fn deduct_vouch_fees(&mut self, fees: &CollectedFees) -> Result<u64> {
+    pub fn deduct_vouch_fees(&mut self, fees: &CollectedUserFees) -> Result<u64> {
         self.reward_amount = self
             .reward_amount
             .checked_sub(fees.reward_pool_fee)
@@ -298,13 +321,13 @@ impl OpportunityMarket {
 }
 
 #[derive(Clone, Copy, AnchorSerialize, AnchorDeserialize, InitSpace)]
-pub struct CollectedFees {
+pub struct CollectedUserFees {
     pub platform_fee: u64,
     pub reward_pool_fee: u64,
     pub creator_fee: u64,
 }
 
-impl CollectedFees {
+impl CollectedUserFees {
     pub fn total(&self) -> Result<u64> {
         let total_fee = self
             .platform_fee
@@ -329,8 +352,8 @@ pub struct VouchAccount {
     pub state_nonce_disclosure: u128,
     pub vouched_at_timestamp: Option<u64>,
     pub vouch_withdrawn_at_timestamp: Option<u64>,
-    pub amount: u64,                   // net vouch (after all fees)
-    pub collected_fees: CollectedFees, // fees owed to the platform, reward pool, and creator
+    pub amount: u64,                       // net vouch (after all fees)
+    pub collected_fees: CollectedUserFees, // fees owed to the platform, reward pool, and creator
     pub revealed_option: Option<u64>,
     pub score: Option<u64>,
     pub rewards_claimed: bool,
@@ -373,6 +396,7 @@ pub struct OpportunityMarketSponsor {
     pub sponsor: Pubkey,
     pub market: Pubkey,
     pub reward_deposited: u64,
+    pub sponsor_platform_fee_deposited: u64,
 }
 
 #[cfg(test)]
@@ -405,9 +429,10 @@ mod tests {
             earliness_multiplier: 0,
             authorized_reader_pubkey: [0; 32],
             fee_rates: FeeRates {
-                platform_fee_bp: 0,
-                reward_pool_fee_bp: 0,
-                creator_fee_bp: 0,
+                user_platform_fee_bp: 0,
+                user_reward_pool_fee_bp: 0,
+                user_creator_fee_bp: 0,
+                sponsor_platform_fee_bp: 0,
             },
             collected_platform_fees: 0,
             collected_creator_fees: 0,

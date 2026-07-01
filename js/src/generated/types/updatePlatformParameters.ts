@@ -27,9 +27,10 @@ import {
 } from '@solana/kit';
 
 export type UpdatePlatformParameters = {
-  platformFeeBp: Option<number>;
-  rewardPoolFeeBp: Option<number>;
-  creatorFeeBp: Option<number>;
+  userPlatformFeeBp: Option<number>;
+  userRewardPoolFeeBp: Option<number>;
+  userCreatorFeeBp: Option<number>;
+  sponsorPlatformFeeBp: Option<number>;
   revealAuthority: Option<Address>;
   optionCreationAuthority: Option<Address>;
   minTimeToVouchSeconds: Option<bigint>;
@@ -38,9 +39,10 @@ export type UpdatePlatformParameters = {
 };
 
 export type UpdatePlatformParametersArgs = {
-  platformFeeBp: OptionOrNullable<number>;
-  rewardPoolFeeBp: OptionOrNullable<number>;
-  creatorFeeBp: OptionOrNullable<number>;
+  userPlatformFeeBp: OptionOrNullable<number>;
+  userRewardPoolFeeBp: OptionOrNullable<number>;
+  userCreatorFeeBp: OptionOrNullable<number>;
+  sponsorPlatformFeeBp: OptionOrNullable<number>;
   revealAuthority: OptionOrNullable<Address>;
   optionCreationAuthority: OptionOrNullable<Address>;
   minTimeToVouchSeconds: OptionOrNullable<number | bigint>;
@@ -50,9 +52,10 @@ export type UpdatePlatformParametersArgs = {
 
 export function getUpdatePlatformParametersEncoder(): Encoder<UpdatePlatformParametersArgs> {
   return getStructEncoder([
-    ['platformFeeBp', getOptionEncoder(getU16Encoder())],
-    ['rewardPoolFeeBp', getOptionEncoder(getU16Encoder())],
-    ['creatorFeeBp', getOptionEncoder(getU16Encoder())],
+    ['userPlatformFeeBp', getOptionEncoder(getU16Encoder())],
+    ['userRewardPoolFeeBp', getOptionEncoder(getU16Encoder())],
+    ['userCreatorFeeBp', getOptionEncoder(getU16Encoder())],
+    ['sponsorPlatformFeeBp', getOptionEncoder(getU16Encoder())],
     ['revealAuthority', getOptionEncoder(getAddressEncoder())],
     ['optionCreationAuthority', getOptionEncoder(getAddressEncoder())],
     ['minTimeToVouchSeconds', getOptionEncoder(getU64Encoder())],
@@ -63,9 +66,10 @@ export function getUpdatePlatformParametersEncoder(): Encoder<UpdatePlatformPara
 
 export function getUpdatePlatformParametersDecoder(): Decoder<UpdatePlatformParameters> {
   return getStructDecoder([
-    ['platformFeeBp', getOptionDecoder(getU16Decoder())],
-    ['rewardPoolFeeBp', getOptionDecoder(getU16Decoder())],
-    ['creatorFeeBp', getOptionDecoder(getU16Decoder())],
+    ['userPlatformFeeBp', getOptionDecoder(getU16Decoder())],
+    ['userRewardPoolFeeBp', getOptionDecoder(getU16Decoder())],
+    ['userCreatorFeeBp', getOptionDecoder(getU16Decoder())],
+    ['sponsorPlatformFeeBp', getOptionDecoder(getU16Decoder())],
     ['revealAuthority', getOptionDecoder(getAddressDecoder())],
     ['optionCreationAuthority', getOptionDecoder(getAddressDecoder())],
     ['minTimeToVouchSeconds', getOptionDecoder(getU64Decoder())],

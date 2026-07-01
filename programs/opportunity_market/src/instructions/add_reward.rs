@@ -81,21 +81,38 @@ pub fn add_reward(ctx: Context<AddReward>, amount: u64) -> Result<()> {
         ctx.accounts.token_mint.decimals,
     )?;
 
+    // Collect platform fees
+    let sponsor_platform_fee = market.calculate_sponsor_platform_fee(amount)?;
+    let net_amount = amount
+        .checked_sub(sponsor_platform_fee)
+        .ok_or(ErrorCode::Overflow)?;
+
     sponsor_account.reward_deposited = sponsor_account
         .reward_deposited
-        .checked_add(amount)
+        .checked_add(net_amount)
+        .ok_or(ErrorCode::Overflow)?;
+
+    sponsor_account.sponsor_platform_fee_deposited = sponsor_account
+        .sponsor_platform_fee_deposited
+        .checked_add(sponsor_platform_fee)
         .ok_or(ErrorCode::Overflow)?;
 
     let market = &mut ctx.accounts.market;
     market.reward_amount = market
         .reward_amount
-        .checked_add(amount)
+        .checked_add(net_amount)
+        .ok_or(ErrorCode::Overflow)?;
+
+    market.collected_platform_fees = market
+        .collected_platform_fees
+        .checked_add(sponsor_platform_fee)
         .ok_or(ErrorCode::Overflow)?;
 
     emit_ts!(RewardAddedEvent {
         market: market.key(),
         sponsor: ctx.accounts.sponsor.key(),
-        amount: amount,
+        amount: net_amount,
+        sponsor_platform_fee: sponsor_platform_fee,
         total_reward_amount: market.reward_amount,
     });
 

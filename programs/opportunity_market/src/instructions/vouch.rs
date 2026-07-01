@@ -8,7 +8,7 @@ use arcium_client::idl::arcium::types::CallbackAccount;
 use crate::constants::VOUCH_ACCOUNT_SEED;
 use crate::error::ErrorCode;
 use crate::events::{emit_ts, VouchedEvent};
-use crate::state::{CollectedFees, MarketPhase, OpportunityMarket, VouchAccount};
+use crate::state::{CollectedUserFees, MarketPhase, OpportunityMarket, VouchAccount};
 use crate::COMP_DEF_OFFSET_VOUCH;
 use crate::{ArciumSignerAccount, ID, ID_CONST};
 
@@ -117,7 +117,7 @@ pub fn vouch(ctx: Context<Vouch>, params: VouchParameters) -> Result<()> {
     let now = Clock::get()?.unix_timestamp as u64;
     market.require_phase(now, MarketPhase::Vouching)?;
 
-    let collected_fees = market.calculate_fees(params.amount)?;
+    let collected_fees = market.calculate_user_fees(params.amount)?;
     let net_amount = params
         .amount
         .checked_sub(collected_fees.total()?)
@@ -253,7 +253,7 @@ pub fn vouch_callback(
     ctx.accounts.vouch_account.state_nonce_disclosure = vouch_data_shared.nonce;
     ctx.accounts.vouch_account.encrypted_option_disclosure = vouch_data_shared.ciphertexts[0];
 
-    let CollectedFees {
+    let CollectedUserFees {
         platform_fee,
         reward_pool_fee,
         creator_fee,

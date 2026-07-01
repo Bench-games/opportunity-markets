@@ -1,8 +1,9 @@
 export const DEFAULT_PLATFORM = {
   name: "bench",
-  platformFeeBp: 50,
-  rewardPoolFeeBp: 0,
-  creatorFeeBp: 50,
+  userPlatformFeeBp: 50,
+  userRewardPoolFeeBp: 0,
+  userCreatorFeeBp: 50,
+  sponsorPlatformFeeBp: 0,
   minTimeToVouchSeconds: 86_400n,
   revealPeriodSeconds: 2_592_000n,
   marketResolutionDeadlineSeconds: 604_800n,

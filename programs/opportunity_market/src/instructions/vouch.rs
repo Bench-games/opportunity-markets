@@ -185,6 +185,7 @@ pub fn vouch(ctx: Context<Vouch>, params: VouchParameters) -> Result<()> {
         )?],
         1,
         0,
+        0,
     )?;
 
     Ok(())

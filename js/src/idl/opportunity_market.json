@@ -1,5 +1,5 @@
 {
-  "address": "BENCLZWw5m2xTr3Mtb5nzWMLcBJFw6DNDtNAuhjNPgAe",
+  "address": "BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd",
   "metadata": {
     "name": "opportunity_market",
     "version": "0.1.0",
@@ -3817,6 +3817,26 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "current_epoch_total_rewards",
+            "type": "u64"
+          },
+          {
+            "name": "rewards_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          },
+          {
+            "name": "leader_selector",
+            "type": {
+              "defined": {
+                "name": "LeaderSelector"
+              }
+            }
           }
         ]
       }
@@ -4175,6 +4195,86 @@
       }
     },
     {
+      "name": "LeaderChoice",
+      "docs": [
+        "The computation chosen by a node to be executed when the node is leader."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "offset",
+            "type": "u64"
+          },
+          {
+            "name": "slot_idx",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderInfo",
+      "docs": [
+        "The information about a node."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stake",
+            "type": "u64"
+          },
+          {
+            "name": "count",
+            "type": "u64"
+          },
+          {
+            "name": "last_counter_plus_one",
+            "type": "u64"
+          },
+          {
+            "name": "choice",
+            "type": {
+              "defined": {
+                "name": "LeaderChoice"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderSelector",
+      "docs": [
+        "To select a Leader.",
+        "Uses the greatest divisors method: https://en.wikipedia.org/wiki/D%27Hondt_method"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "staking_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
+          },
+          {
+            "name": "info",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "LeaderInfo"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "LocalCircuitSource",
       "type": {
         "kind": "enum",
@@ -4264,6 +4364,18 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "current_epoch_recovery_rewards",
+            "type": "u64"
+          },
+          {
+            "name": "recovery_rewards_epoch",
+            "type": {
+              "defined": {
+                "name": "Epoch"
+              }
+            }
           }
         ]
       }
@@ -4467,9 +4579,7 @@
       "name": "NodeRef",
       "docs": [
         "A reference to a node in the cluster.",
-        "The offset is to derive the Node Account.",
-        "The current_total_rewards is the total rewards the node has received so far in the current",
-        "epoch."
+        "The offset is to derive the Node Account."
       ],
       "type": {
         "kind": "struct",
@@ -4479,8 +4589,13 @@
             "type": "u32"
           },
           {
-            "name": "current_total_rewards",
-            "type": "u64"
+            "name": "_padding",
+            "type": {
+              "array": [
+                "u8",
+                8
+              ]
+            }
           },
           {
             "name": "vote",

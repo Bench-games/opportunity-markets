@@ -5,7 +5,7 @@
     "": {
       "name": "@bench.games/opportunity-markets-admin-cli",
       "dependencies": {
-        "@arcium-hq/client": "0.10.4",
+        "@arcium-hq/client": "0.11.2",
         "@inquirer/prompts": "^7.8.0",
         "@solana-program/system": "^0.10.0",
         "@solana-program/token": "^0.9.0",
@@ -30,7 +30,7 @@
 
     "@anchor-lang/errors": ["@anchor-lang/errors@1.1.2", "", {}, "sha512-+l5fLYF79t7LAYz+YbjjLzmjj6U1za6Q0cH4GBMWx4vUijlPTkm9Oj/cyDPLJG6Hsx+VFxceh7/+qbca5nnEmg=="],
 
-    "@arcium-hq/client": ["@arcium-hq/client@0.10.4", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-Hf1rnAy8nkDVazKTL9CIjhkB2BIqz3rXmsT9fdlgsyWFQTgba5OD7siWP/MlfZXgmI9Vmcabi0r7gp5zfoiytg=="],
+    "@arcium-hq/client": ["@arcium-hq/client@0.11.2", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-3J9bg8zcbf2wUvgfjqZnGlb4zPH8S6BBCsp82tqyS72AwWCgFSukq0Tqk5JLjs1p7LXnxGV6qTYwZbegH0KekA=="],
 
     "@babel/runtime": ["@babel/runtime@7.29.7", "", {}, "sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw=="],
 

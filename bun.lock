@@ -5,8 +5,8 @@
     "": {
       "dependencies": {
         "@anchor-lang/core": "^1.0.2",
-        "@arcium-hq/client": "0.10.4",
-        "@arcium-hq/reader": "0.10.4",
+        "@arcium-hq/client": "0.11.2",
+        "@arcium-hq/reader": "0.11.2",
         "@solana-program/system": "^0.10.0",
         "@solana-program/token": "^0.9.0",
         "@solana/kit": "^6.1.0",
@@ -31,9 +31,9 @@
 
     "@anchor-lang/errors": ["@anchor-lang/errors@1.0.2", "", {}, "sha512-OZ9kpdUFdSnPzUeUnkeFYsjJbsgq26Sqv6yUljPVynuMJEADNJKL6ORL8Tb8YSVOPqHxoqggiDAelcVogGjKWg=="],
 
-    "@arcium-hq/client": ["@arcium-hq/client@0.10.4", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-Hf1rnAy8nkDVazKTL9CIjhkB2BIqz3rXmsT9fdlgsyWFQTgba5OD7siWP/MlfZXgmI9Vmcabi0r7gp5zfoiytg=="],
+    "@arcium-hq/client": ["@arcium-hq/client@0.11.2", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-3J9bg8zcbf2wUvgfjqZnGlb4zPH8S6BBCsp82tqyS72AwWCgFSukq0Tqk5JLjs1p7LXnxGV6qTYwZbegH0KekA=="],
 
-    "@arcium-hq/reader": ["@arcium-hq/reader@0.10.4", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@arcium-hq/client": "0.10.4", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1" } }, "sha512-dYOCE6IEZoMk0P5cMIXFgUAf06faAVsHmtD0bjvDD33+v5aDheP6lF1TbGZankowNxDB58Oqwzy+aElx2oN3ag=="],
+    "@arcium-hq/reader": ["@arcium-hq/reader@0.11.2", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@arcium-hq/client": "0.11.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1" } }, "sha512-gEr5XlDm5uG93aVcNK/BmmXpViSHSjIg318+72rW2MK2fQNJCWzZo9YTRdzx+je01uXnlwyEdZwYpM81XJpkKg=="],
 
     "@babel/runtime": ["@babel/runtime@7.28.6", "", {}, "sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA=="],
 

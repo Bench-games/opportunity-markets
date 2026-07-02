@@ -113,6 +113,7 @@ pub fn reveal_vouch(
         )?],
         1,
         0,
+        0,
     )?;
 
     Ok(())

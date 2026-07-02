@@ -44,6 +44,8 @@ import {
   getBN254G2BLSPublicKeyEncoder,
   getEpochDecoder,
   getEpochEncoder,
+  getLeaderSelectorDecoder,
+  getLeaderSelectorEncoder,
   getNodeMetadataDecoder,
   getNodeMetadataEncoder,
   getNodeRefDecoder,
@@ -54,6 +56,8 @@ import {
   type BN254G2BLSPublicKeyArgs,
   type Epoch,
   type EpochArgs,
+  type LeaderSelector,
+  type LeaderSelectorArgs,
   type NodeMetadata,
   type NodeMetadataArgs,
   type NodeRef,
@@ -78,6 +82,9 @@ export type Cluster = {
         fields: readonly [BN254G2BLSPublicKey, Array<boolean>];
       };
   bump: number;
+  currentEpochTotalRewards: bigint;
+  rewardsEpoch: Epoch;
+  leaderSelector: LeaderSelector;
 };
 
 export type ClusterArgs = {
@@ -98,6 +105,9 @@ export type ClusterArgs = {
         fields: readonly [BN254G2BLSPublicKeyArgs, Array<boolean>];
       };
   bump: number;
+  currentEpochTotalRewards: number | bigint;
+  rewardsEpoch: EpochArgs;
+  leaderSelector: LeaderSelectorArgs;
 };
 
 export function getClusterEncoder(): Encoder<ClusterArgs> {
@@ -136,6 +146,9 @@ export function getClusterEncoder(): Encoder<ClusterArgs> {
       ]),
     ],
     ['bump', getU8Encoder()],
+    ['currentEpochTotalRewards', getU64Encoder()],
+    ['rewardsEpoch', getEpochEncoder()],
+    ['leaderSelector', getLeaderSelectorEncoder()],
   ]);
 }
 
@@ -175,6 +188,9 @@ export function getClusterDecoder(): Decoder<Cluster> {
       ]),
     ],
     ['bump', getU8Decoder()],
+    ['currentEpochTotalRewards', getU64Decoder()],
+    ['rewardsEpoch', getEpochDecoder()],
+    ['leaderSelector', getLeaderSelectorDecoder()],
   ]);
 }
 

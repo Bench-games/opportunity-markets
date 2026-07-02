@@ -1,6 +1,6 @@
 {
   "name": "@bench.games/opportunity-markets",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@anchor-lang/core": "^1.0.2",
-    "@arcium-hq/client": "^0.10.4",
+    "@arcium-hq/client": "0.11.2",
     "@solana/kit": "^6.1.0",
     "@solana/web3.js": "^1.95.4",
     "bn.js": "^5.2.1"

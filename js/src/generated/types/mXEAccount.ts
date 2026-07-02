@@ -36,10 +36,14 @@ import {
   type OptionOrNullable,
 } from '@solana/kit';
 import {
+  getEpochDecoder,
+  getEpochEncoder,
   getMxeStatusDecoder,
   getMxeStatusEncoder,
   getUtilityPubkeysDecoder,
   getUtilityPubkeysEncoder,
+  type Epoch,
+  type EpochArgs,
   type MxeStatus,
   type MxeStatusArgs,
   type UtilityPubkeys,
@@ -61,6 +65,8 @@ export type MXEAccount = {
   computationDefinitions: Array<number>;
   status: MxeStatus;
   bump: number;
+  currentEpochRecoveryRewards: bigint;
+  recoveryRewardsEpoch: Epoch;
 };
 
 export type MXEAccountArgs = {
@@ -80,6 +86,8 @@ export type MXEAccountArgs = {
   computationDefinitions: Array<number>;
   status: MxeStatusArgs;
   bump: number;
+  currentEpochRecoveryRewards: number | bigint;
+  recoveryRewardsEpoch: EpochArgs;
 };
 
 export function getMXEAccountEncoder(): Encoder<MXEAccountArgs> {
@@ -117,6 +125,8 @@ export function getMXEAccountEncoder(): Encoder<MXEAccountArgs> {
     ['computationDefinitions', getArrayEncoder(getU32Encoder())],
     ['status', getMxeStatusEncoder()],
     ['bump', getU8Encoder()],
+    ['currentEpochRecoveryRewards', getU64Encoder()],
+    ['recoveryRewardsEpoch', getEpochEncoder()],
   ]);
 }
 
@@ -155,6 +165,8 @@ export function getMXEAccountDecoder(): Decoder<MXEAccount> {
     ['computationDefinitions', getArrayDecoder(getU32Decoder())],
     ['status', getMxeStatusDecoder()],
     ['bump', getU8Decoder()],
+    ['currentEpochRecoveryRewards', getU64Decoder()],
+    ['recoveryRewardsEpoch', getEpochDecoder()],
   ]);
 }
 

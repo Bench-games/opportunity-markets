@@ -4,9 +4,6 @@ import type { CliContext } from "./context.js";
 
 export async function getMxePublicKeyHex(ctx: CliContext): Promise<string> {
   const mxe = await getMxeAccount(ctx.rpc as never, ctx.programId);
-  if (mxe.data.utilityPubkeys.__kind !== "Set") {
-    throw new Error("MXE public key not found; utility pubkeys are unset");
-  }
   const [utilityPubkeys] = mxe.data.utilityPubkeys.fields;
   return Buffer.from(utilityPubkeys.x25519Pubkey).toString("hex");
 }

@@ -6,7 +6,7 @@
       "name": "opportunity-market-client",
       "dependencies": {
         "@anchor-lang/core": "^1.0.2",
-        "@arcium-hq/client": "^0.10.4",
+        "@arcium-hq/client": "0.11.2",
         "@solana/kit": "^6.1.0",
         "@solana/web3.js": "^1.95.4",
         "bn.js": "^5.2.1",
@@ -28,7 +28,7 @@
 
     "@anchor-lang/errors": ["@anchor-lang/errors@1.0.2", "", {}, "sha512-OZ9kpdUFdSnPzUeUnkeFYsjJbsgq26Sqv6yUljPVynuMJEADNJKL6ORL8Tb8YSVOPqHxoqggiDAelcVogGjKWg=="],
 
-    "@arcium-hq/client": ["@arcium-hq/client@0.10.4", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-Hf1rnAy8nkDVazKTL9CIjhkB2BIqz3rXmsT9fdlgsyWFQTgba5OD7siWP/MlfZXgmI9Vmcabi0r7gp5zfoiytg=="],
+    "@arcium-hq/client": ["@arcium-hq/client@0.11.2", "", { "dependencies": { "@anchor-lang/core": "^1.0.2", "@noble/curves": "^1.9.5", "@noble/hashes": "^1.7.1", "@solana/web3.js": "^1.95.4" } }, "sha512-3J9bg8zcbf2wUvgfjqZnGlb4zPH8S6BBCsp82tqyS72AwWCgFSukq0Tqk5JLjs1p7LXnxGV6qTYwZbegH0KekA=="],
 
     "@babel/runtime": ["@babel/runtime@7.28.6", "", {}, "sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA=="],
 

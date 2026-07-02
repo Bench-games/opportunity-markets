@@ -7,8 +7,8 @@
   },
   "dependencies": {
     "@anchor-lang/core": "^1.0.2",
-    "@arcium-hq/client": "0.10.4",
-    "@arcium-hq/reader": "0.10.4",
+    "@arcium-hq/client": "0.11.2",
+    "@arcium-hq/reader": "0.11.2",
     "@solana-program/system": "^0.10.0",
     "@solana-program/token": "^0.9.0",
     "@solana/kit": "^6.1.0",

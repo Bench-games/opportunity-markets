@@ -5,7 +5,7 @@ Opportunity Markets aggregate capital backed insights into actionable signals.
 In Opportunity Markets, users influence decision making by suggesting options and backing their choice with a withdrawable deposit of capital.
 Decision makers get exclusive access to high quality signals, secured by Aricum encryption, giving them first access to valuable opportunities.
 
-Program address on Solana Devnet: `BENCLZWw5m2xTr3Mtb5nzWMLcBJFw6DNDtNAuhjNPgAe`
+Program address on Solana Devnet: `BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd`
 
 ## Documentation
 
@@ -61,7 +61,7 @@ must be bumped together with the repo whenever they change:
 
 ### Program keypair
 
-Tests use a deterministic program keypair assumed to be located at `../BENCLZWw5m2xTr3Mtb5nzWMLcBJFw6DNDtNAuhjNPgAe.json`. If you don't have this keypair, generate your own and update the
+Tests use a deterministic program keypair assumed to be located at `../BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd.json`. If you don't have this keypair, generate your own and update the
 following to match:
 
 1. `declare_id!()` in `programs/opportunity_market/src/lib.rs`

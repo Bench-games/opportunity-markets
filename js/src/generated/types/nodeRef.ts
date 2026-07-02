@@ -8,12 +8,12 @@
 
 import {
   combineCodec,
+  getArrayDecoder,
+  getArrayEncoder,
   getStructDecoder,
   getStructEncoder,
   getU32Decoder,
   getU32Encoder,
-  getU64Decoder,
-  getU64Encoder,
   getU8Decoder,
   getU8Encoder,
   type FixedSizeCodec,
@@ -24,25 +24,15 @@ import {
 /**
  * A reference to a node in the cluster.
  * The offset is to derive the Node Account.
- * The current_total_rewards is the total rewards the node has received so far in the current
- * epoch.
  */
-export type NodeRef = {
-  offset: number;
-  currentTotalRewards: bigint;
-  vote: number;
-};
+export type NodeRef = { offset: number; padding: Array<number>; vote: number };
 
-export type NodeRefArgs = {
-  offset: number;
-  currentTotalRewards: number | bigint;
-  vote: number;
-};
+export type NodeRefArgs = NodeRef;
 
 export function getNodeRefEncoder(): FixedSizeEncoder<NodeRefArgs> {
   return getStructEncoder([
     ['offset', getU32Encoder()],
-    ['currentTotalRewards', getU64Encoder()],
+    ['padding', getArrayEncoder(getU8Encoder(), { size: 8 })],
     ['vote', getU8Encoder()],
   ]);
 }
@@ -50,7 +40,7 @@ export function getNodeRefEncoder(): FixedSizeEncoder<NodeRefArgs> {
 export function getNodeRefDecoder(): FixedSizeDecoder<NodeRef> {
   return getStructDecoder([
     ['offset', getU32Decoder()],
-    ['currentTotalRewards', getU64Decoder()],
+    ['padding', getArrayDecoder(getU8Decoder(), { size: 8 })],
     ['vote', getU8Decoder()],
   ]);
 }

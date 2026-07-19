@@ -10,6 +10,7 @@ import {
   type KeyPairSigner,
 } from "@solana/kit";
 import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from "../../js/src/generated/index.js";
+import { checkPayerBalance } from "./balance.js";
 
 export interface CliOptions {
   yes?: boolean;
@@ -67,9 +68,11 @@ export async function createContext(options: CliOptions): Promise<CliContext> {
   const secretKey = readSecretKey(keypairPath);
   const payer = await createKeyPairSignerFromBytes(secretKey);
 
-  return {
+  const ctx = {
     ...readContext,
     payer,
     keypairPath,
   };
+  await checkPayerBalance(ctx);
+  return ctx;
 }

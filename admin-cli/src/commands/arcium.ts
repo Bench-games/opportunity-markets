@@ -5,7 +5,7 @@ import {
 } from "../../../js/src/index.js";
 import { DEFAULT_ARCIUM_CLUSTER_OFFSET } from "../defaults.js";
 import { getMxePublicKeyHex, getVouchComputeAddresses } from "../arcium.js";
-import { getContext } from "./common.js";
+import { getReadContext } from "./common.js";
 import { printHeader, printSummary } from "../render.js";
 
 export function registerArciumCommands(program: Command): void {
@@ -15,7 +15,7 @@ export function registerArciumCommands(program: Command): void {
     .command("mxe-pubkey")
     .description("Fetch the MXE X25519 public key as hex")
     .action(async (_options, command) => {
-      const ctx = await getContext(command);
+      const ctx = getReadContext(command);
       const hex = await getMxePublicKeyHex(ctx);
       console.log(hex);
     });
@@ -25,7 +25,7 @@ export function registerArciumCommands(program: Command): void {
     .description("Print Arcium addresses used by this program")
     .option("--cluster-offset <offset>", "Arcium cluster offset", String(DEFAULT_ARCIUM_CLUSTER_OFFSET))
     .action(async (options, command) => {
-      const ctx = await getContext(command);
+      const ctx = getReadContext(command);
       const clusterOffset = Number(options.clusterOffset);
       const addresses = getVouchComputeAddresses(ctx, clusterOffset, 0n);
       printHeader("Arcium addresses");

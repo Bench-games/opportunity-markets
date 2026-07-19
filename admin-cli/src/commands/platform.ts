@@ -2,7 +2,6 @@ import { Command } from "commander";
 import { address } from "@solana/kit";
 import {
   createPlatformConfig,
-  fetchMaybePlatformConfig,
   getPlatformConfigAddress,
   initAllowedMint,
   setFeeClaimAuthority,
@@ -20,6 +19,7 @@ import {
   promptString,
 } from "../prompts.js";
 import { printHeader, printSummary, printTxResult, shortAddress } from "../render.js";
+import { fetchTokenMint } from "../spl.js";
 import { sendInstructions } from "../tx.js";
 
 function printPlatforms(platforms: Awaited<ReturnType<typeof listPlatforms>>): void {
@@ -80,8 +80,8 @@ export function registerPlatformCommands(program: Command): void {
     });
 
   platform
-    .command("ensure")
-    .description("Create or update a platform config")
+    .command("create")
+    .description("Create a platform config")
     .option("--name <name>")
     .option("--user-platform-fee-bp <bp>")
     .option("--user-reward-pool-fee-bp <bp>")
@@ -120,10 +120,8 @@ export function registerPlatformCommands(program: Command): void {
         : await promptBigInt("Resolution deadline seconds", DEFAULT_PLATFORM.marketResolutionDeadlineSeconds);
 
       const [platformConfig] = await getPlatformConfigAddress(ctx.payer.address, name, ctx.programId);
-      const existing = await fetchMaybePlatformConfig(ctx.rpc, platformConfig, { commitment: ctx.commitment });
-      const mode = existing.exists ? "update" : "create";
 
-      printHeader(`Platform ${mode}`);
+      printHeader("Create platform");
       printSummary({
         Program: ctx.programId,
         Payer: ctx.payer.address,
@@ -133,43 +131,99 @@ export function registerPlatformCommands(program: Command): void {
         "User reward pool fee": `${userRewardPoolFeeBp} bp`,
         "User creator fee": `${userCreatorFeeBp} bp`,
         "Sponsor platform fee": `${sponsorPlatformFeeBp} bp`,
-        "Fee claim authority": existing.exists ? existing.data.feeClaimAuthority : feeClaimAuthority,
+        "Fee claim authority": feeClaimAuthority,
         "Reveal authority": revealAuthority,
         "Option creation authority": optionCreationAuthority,
       });
       await confirmTransaction(ctx.yes);
 
-      const instruction = existing.exists
-        ? await updatePlatformConfig(ctx.rpc, {
-            programAddress: ctx.programId,
-            signer: ctx.payer,
-            name,
-            userPlatformFeeBp,
-            userRewardPoolFeeBp,
-            userCreatorFeeBp,
-            sponsorPlatformFeeBp,
-            revealAuthority,
-            optionCreationAuthority,
-            minTimeToVouchSeconds,
-            revealPeriodSeconds,
-            marketResolutionDeadlineSeconds,
-          })
-        : await createPlatformConfig(ctx.rpc, {
-            programAddress: ctx.programId,
-            signer: ctx.payer,
-            name,
-            userPlatformFeeBp,
-            userRewardPoolFeeBp,
-            userCreatorFeeBp,
-            sponsorPlatformFeeBp,
-            feeClaimAuthority,
-            revealAuthority,
-            optionCreationAuthority,
-            minTimeToVouchSeconds,
-            revealPeriodSeconds,
-            marketResolutionDeadlineSeconds,
-          });
-      const sig = await sendInstructions(ctx, [instruction], `platform ${mode}`);
+      const instruction = await createPlatformConfig(ctx.rpc, {
+        programAddress: ctx.programId,
+        signer: ctx.payer,
+        name,
+        userPlatformFeeBp,
+        userRewardPoolFeeBp,
+        userCreatorFeeBp,
+        sponsorPlatformFeeBp,
+        feeClaimAuthority,
+        revealAuthority,
+        optionCreationAuthority,
+        minTimeToVouchSeconds,
+        revealPeriodSeconds,
+        marketResolutionDeadlineSeconds,
+      });
+      const sig = await sendInstructions(ctx, [instruction], "create platform");
+      printTxResult(sig);
+    });
+
+  platform
+    .command("update")
+    .description("Update a platform config")
+    .option("--name <name>")
+    .option("--user-platform-fee-bp <bp>")
+    .option("--user-reward-pool-fee-bp <bp>")
+    .option("--user-creator-fee-bp <bp>")
+    .option("--sponsor-platform-fee-bp <bp>")
+    .option("--reveal-authority <address>")
+    .option("--option-creation-authority <address>")
+    .option("--min-time-to-vouch-seconds <seconds>")
+    .option("--reveal-period-seconds <seconds>")
+    .option("--resolution-deadline-seconds <seconds>")
+    .action(async (options, command) => {
+      const ctx = await getContext(command);
+      const name = options.name ?? await promptString("Platform name", DEFAULT_PLATFORM.name);
+      const userPlatformFeeBp = options.userPlatformFeeBp ? Number(options.userPlatformFeeBp) : await promptNumber("User platform fee bp", DEFAULT_PLATFORM.userPlatformFeeBp);
+      const userRewardPoolFeeBp = options.userRewardPoolFeeBp ? Number(options.userRewardPoolFeeBp) : await promptNumber("User reward pool fee bp", DEFAULT_PLATFORM.userRewardPoolFeeBp);
+      const userCreatorFeeBp = options.userCreatorFeeBp ? Number(options.userCreatorFeeBp) : await promptNumber("User creator fee bp", DEFAULT_PLATFORM.userCreatorFeeBp);
+      const sponsorPlatformFeeBp = options.sponsorPlatformFeeBp ? Number(options.sponsorPlatformFeeBp) : await promptNumber("Sponsor platform fee bp", DEFAULT_PLATFORM.sponsorPlatformFeeBp);
+      const revealAuthority = options.revealAuthority
+        ? address(options.revealAuthority)
+        : await promptAddress("Reveal authority", ctx.payer.address);
+      const optionCreationAuthority = options.optionCreationAuthority
+        ? address(options.optionCreationAuthority)
+        : await promptAddress("Option creation authority", ctx.payer.address);
+      const minTimeToVouchSeconds = options.minTimeToVouchSeconds
+        ? BigInt(options.minTimeToVouchSeconds)
+        : await promptBigInt("Min time to vouch seconds", DEFAULT_PLATFORM.minTimeToVouchSeconds);
+      const revealPeriodSeconds = options.revealPeriodSeconds
+        ? BigInt(options.revealPeriodSeconds)
+        : await promptBigInt("Reveal period seconds", DEFAULT_PLATFORM.revealPeriodSeconds);
+      const marketResolutionDeadlineSeconds = options.resolutionDeadlineSeconds
+        ? BigInt(options.resolutionDeadlineSeconds)
+        : await promptBigInt("Resolution deadline seconds", DEFAULT_PLATFORM.marketResolutionDeadlineSeconds);
+
+      const [platformConfig] = await getPlatformConfigAddress(ctx.payer.address, name, ctx.programId);
+
+      printHeader("Update platform");
+      printSummary({
+        Program: ctx.programId,
+        Payer: ctx.payer.address,
+        Name: name,
+        "Platform config": platformConfig,
+        "User platform fee": `${userPlatformFeeBp} bp`,
+        "User reward pool fee": `${userRewardPoolFeeBp} bp`,
+        "User creator fee": `${userCreatorFeeBp} bp`,
+        "Sponsor platform fee": `${sponsorPlatformFeeBp} bp`,
+        "Reveal authority": revealAuthority,
+        "Option creation authority": optionCreationAuthority,
+      });
+      await confirmTransaction(ctx.yes);
+
+      const instruction = await updatePlatformConfig(ctx.rpc, {
+        programAddress: ctx.programId,
+        signer: ctx.payer,
+        name,
+        userPlatformFeeBp,
+        userRewardPoolFeeBp,
+        userCreatorFeeBp,
+        sponsorPlatformFeeBp,
+        revealAuthority,
+        optionCreationAuthority,
+        minTimeToVouchSeconds,
+        revealPeriodSeconds,
+        marketResolutionDeadlineSeconds,
+      });
+      const sig = await sendInstructions(ctx, [instruction], "update platform");
       printTxResult(sig);
     });
 
@@ -181,9 +235,14 @@ export function registerPlatformCommands(program: Command): void {
       const ctx = await getContext(command);
       const selected = await selectPlatform(ctx);
       const tokenMint = options.mint ? address(options.mint) : await promptAddress("Mint address");
+      const mintData = await fetchTokenMint(ctx, tokenMint);
+
+      printHeader("Allow mint");
       printSummary({
         Platform: `${selected.data.name} ${selected.address}`,
         Mint: tokenMint,
+        Decimals: mintData.decimals,
+        Supply: mintData.supply,
       });
       await confirmTransaction(ctx.yes);
       const instruction = await initAllowedMint({

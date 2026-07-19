@@ -4,7 +4,6 @@ import chalk from "chalk";
 import { registerArciumCommands } from "./commands/arcium.js";
 import { registerCompDefCommands } from "./commands/comp-defs.js";
 import { registerMarketCommands } from "./commands/market.js";
-import { registerMintCommands } from "./commands/mint.js";
 import { registerPlatformCommands } from "./commands/platform.js";
 import { registerVouchCommands } from "./commands/vouch.js";
 
@@ -32,7 +31,6 @@ Transaction commands also require a readable keypair.
   );
 
 registerPlatformCommands(program);
-registerMintCommands(program);
 registerMarketCommands(program);
 registerCompDefCommands(program);
 registerArciumCommands(program);

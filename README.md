@@ -5,7 +5,7 @@ Opportunity Markets aggregate capital backed insights into actionable signals.
 In Opportunity Markets, users influence decision making by suggesting options and backing their choice with a withdrawable deposit of capital.
 Decision makers get exclusive access to high quality signals, secured by Aricum encryption, giving them first access to valuable opportunities.
 
-Program address on Solana Mainnet: `BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq`
+Program address on Solana mainnet and devnet: `BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq`
 
 ## Documentation
 

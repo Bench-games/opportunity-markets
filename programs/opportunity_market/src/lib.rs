@@ -18,7 +18,7 @@ pub use state::*;
 pub const COMP_DEF_OFFSET_VOUCH: u32 = comp_def_offset("vouch");
 pub const COMP_DEF_OFFSET_REVEAL_VOUCH: u32 = comp_def_offset("reveal_vouch");
 
-declare_id!("BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd");
+declare_id!("BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq");
 
 #[arcium_program]
 pub mod opportunity_market {

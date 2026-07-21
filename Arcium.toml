@@ -12,3 +12,7 @@ backends = ["Cerberus"]
 cluster_offset = 456
 # MPC backends this MXE supports
 backends = ["Cerberus"]
+
+[mainnet]
+cluster_offset = 10000
+backends = ["Cerberus"]

@@ -12,6 +12,9 @@ export * from "./utils";
 
 // Export Arcium utilities
 export * from "./arcium/awaitFinalizeComputation";
+export * from "./arcium/computeAccounts";
+export * from "./arcium/constants";
+export * from "./programContext";
 
 // Export x25519
 export * from "./x25519/keypair";

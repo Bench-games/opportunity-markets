@@ -1,3 +1,8 @@
+export {
+  ARCIUM_DEVNET_CLUSTER_OFFSET,
+  ARCIUM_MAINNET_CLUSTER_OFFSET,
+} from "../../js/src/arcium/constants.js";
+
 export const DEFAULT_PLATFORM = {
   name: "bench",
   userPlatformFeeBp: 50,
@@ -15,5 +20,3 @@ export const DEFAULT_MARKET = {
   earlinessMultiplier: 10_000,
   minVouchAmount: 1n,
 };
-
-export const DEFAULT_ARCIUM_CLUSTER_OFFSET = 456;

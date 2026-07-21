@@ -3,7 +3,7 @@ import {
   getCompDefAccount,
   ALL_COMP_DEF_CIRCUITS,
 } from "../../../js/src/index.js";
-import { DEFAULT_ARCIUM_CLUSTER_OFFSET } from "../defaults.js";
+import { ARCIUM_MAINNET_CLUSTER_OFFSET } from "../defaults.js";
 import { getMxePublicKeyHex, getVouchComputeAddresses } from "../arcium.js";
 import { getReadContext } from "./common.js";
 import { printHeader, printSummary } from "../render.js";
@@ -23,7 +23,11 @@ export function registerArciumCommands(program: Command): void {
   arcium
     .command("addresses")
     .description("Print Arcium addresses used by this program")
-    .option("--cluster-offset <offset>", "Arcium cluster offset", String(DEFAULT_ARCIUM_CLUSTER_OFFSET))
+    .option(
+      "--cluster-offset <offset>",
+      "Arcium cluster offset (mainnet: 10000; devnet: 456)",
+      String(ARCIUM_MAINNET_CLUSTER_OFFSET)
+    )
     .action(async (options, command) => {
       const ctx = getReadContext(command);
       const clusterOffset = Number(options.clusterOffset);
@@ -39,7 +43,9 @@ export function registerArciumCommands(program: Command): void {
         "Computation account offset 0": addresses.computationAccount,
       });
       for (const circuitName of ALL_COMP_DEF_CIRCUITS) {
-        console.log(`${circuitName}: ${getCompDefAccount(circuitName, ctx.programId)}`);
+        console.log(
+          `${circuitName}: ${getCompDefAccount(circuitName, ctx.programId)}`
+        );
       }
     });
 }

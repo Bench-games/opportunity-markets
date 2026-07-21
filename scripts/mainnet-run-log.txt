@@ -1,0 +1,55 @@
+
+Opportunity Markets vouch smoke test
+  Cluster: mainnet (5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d)
+  Arcium cluster offset: 10000
+  Program: BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq
+  Fee payer/authority: FXNDz6FerFaiL9ZfBUaoeiJWN8tnitRytHJmP4a6MsZK
+  Payer SOL: 595302586 lamports
+  Mint: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v (6 decimals)
+  Token transfer: 0.01 token (10000 raw)
+  Payer token account: AHG9cFRqMiRFiWvphKbLbRZfTVY2DDtg2Bj97Pm3zJU6
+  Market token recipient: DE5Vptvw3DJg2vpgWkNbFQjkJEDxxsW3yTWJetm43fKB
+  Platform: DJ5kDL1DqiKQFgHoaXrKKF3VDT617UvQSyvusovhVXFM (vouch-mrt7quqo)
+  Allowed mint: 33XugVRhAAwz6WnUng1u8XEBccJfkVXKxo2Mbh6hAEnT
+  Market: 5Ju1smxbWyGa7TF4tLhvxzofLMz6Qb9WpSPd9pAvqptx
+  Options: Dmr83a5L4GgbNkgcLaUa98zUSYoPT4or6xP1R5kGGcPH, 7Qw13TzzBSCDDhdht3C5s6EzB1JVoAbeAd6oE5JdTGGU, HauNeEviQD7UcSaUiEj5MsCyFh9G7vKM5uedQ72RFncX
+  Vouch account: ADjSCpqgQAFNrVhC4JGza1X3yySid5gAkSBhE8m1GsUk (id 1511172771)
+  Writes: 9 transactions; each is simulated before submission
+
+[create platform] simulation passed (units: 11892)
+[create platform] confirmed: 2nKpjUcYucKZj3aBTYpLJhFbdn9fUS77Uucf5vSXLd11tGekz8BQsTaeFAgYJkHkrC9R2LK2HVhRWDL6aCtZsXg9
+[allow mint] simulation passed (units: 10606)
+[allow mint] confirmed: 5aQ7Svk4DaDTDFCLXjhtB7RjuFKN5DmqPZLMRm1cMtyJYKgtxw9xrsZhteLPQ1psPru3Ds7NpdLFKdqefAUETi6U
+[create market] simulation passed (units: 36578)
+[create market] confirmed: 5rM29xpjCXfcC6bR7fnTewnr1keL1YmyNn84xDCadYtfEBCfuCFdcrABCJKMMRojoXW4KkUND8PCQdLaQ7pYbw4V
+[open market] simulation passed (units: 5641)
+[open market] confirmed: 66rw2xcahwqBQL3rMqVBjsGwcrsaJLEtZiyv7ZYVZdJjcLZR9MPKLHBabhHMfNHyfhzQPAH8CSWCkhqmTHtFBESu
+[add option 0] simulation passed (units: 11561)
+[add option 0] confirmed: 3NiZyLMeq4mk1TV6j8kMyw2PgSeXK1g8Sc2QidV8tkDj2AfgUgdUc5sVSaQnrFypCDvAt5tjobCuTPWfoZKz2jvg
+[add option 1] simulation passed (units: 14561)
+[add option 1] confirmed: 4EGwCSghDTWEnPD3RPtMnbqUyw7KZBgBQCiEecvt5i8vKT8LuHh2raxJ3rwg6Fb4uXKgYRfP2PMXxtCwtewBje63
+[add option 2] simulation passed (units: 13061)
+[add option 2] confirmed: 62qmvdRuv6AQySW23FF41JemUNFwKtK8VUZV2hnibm4kDbhF5cZCqTWp4hunKY5BTPCgbZpfAaFeBzyaZ1JDd4ov
+[initialize vouch account] simulation passed (units: 13099)
+[initialize vouch account] confirmed: 5QshLQbypgbrQA8taNGpeHYSbuSBfAr2ExS8gzSJUNQBiwiXzvVMGkaSJXa4375ZnR6X2XcskW3dLHxrXNBPFujX
+[vouch] simulation passed (units: 133158)
+[vouch] confirmed: 5zBjaPLuGhTS8aQHa5mLPp8EFpqXh8oC7EJrqYkwHVR3XoD74WvMDj6uxxSViDakWRdKeH9TrZSMcvQcDKBg9WVk
+[vouch callback] waiting for Arcium finalization...
+[vouch callback] confirmed: 4kYCzet3vybFWcsaYtKQAjZ1xVDCdhBSjsvJQQYc2BT4Rm6GsMNdkArTbRNdWno6yy5AeJ87RoovvHY7G4YMfaxY
+
+PASS: vouch encrypted and decrypted correctly
+  Submitted option: 1
+  Owner decrypted: 1
+  Reader decrypted: 1
+  Vouch account: ADjSCpqgQAFNrVhC4JGza1X3yySid5gAkSBhE8m1GsUk
+  Callback: 4kYCzet3vybFWcsaYtKQAjZ1xVDCdhBSjsvJQQYc2BT4Rm6GsMNdkArTbRNdWno6yy5AeJ87RoovvHY7G4YMfaxY
+  Transactions:
+    2nKpjUcYucKZj3aBTYpLJhFbdn9fUS77Uucf5vSXLd11tGekz8BQsTaeFAgYJkHkrC9R2LK2HVhRWDL6aCtZsXg9
+    5aQ7Svk4DaDTDFCLXjhtB7RjuFKN5DmqPZLMRm1cMtyJYKgtxw9xrsZhteLPQ1psPru3Ds7NpdLFKdqefAUETi6U
+    5rM29xpjCXfcC6bR7fnTewnr1keL1YmyNn84xDCadYtfEBCfuCFdcrABCJKMMRojoXW4KkUND8PCQdLaQ7pYbw4V
+    66rw2xcahwqBQL3rMqVBjsGwcrsaJLEtZiyv7ZYVZdJjcLZR9MPKLHBabhHMfNHyfhzQPAH8CSWCkhqmTHtFBESu
+    3NiZyLMeq4mk1TV6j8kMyw2PgSeXK1g8Sc2QidV8tkDj2AfgUgdUc5sVSaQnrFypCDvAt5tjobCuTPWfoZKz2jvg
+    4EGwCSghDTWEnPD3RPtMnbqUyw7KZBgBQCiEecvt5i8vKT8LuHh2raxJ3rwg6Fb4uXKgYRfP2PMXxtCwtewBje63
+    62qmvdRuv6AQySW23FF41JemUNFwKtK8VUZV2hnibm4kDbhF5cZCqTWp4hunKY5BTPCgbZpfAaFeBzyaZ1JDd4ov
+    5QshLQbypgbrQA8taNGpeHYSbuSBfAr2ExS8gzSJUNQBiwiXzvVMGkaSJXa4375ZnR6X2XcskW3dLHxrXNBPFujX
+    5zBjaPLuGhTS8aQHa5mLPp8EFpqXh8oC7EJrqYkwHVR3XoD74WvMDj6uxxSViDakWRdKeH9TrZSMcvQcDKBg9WVk

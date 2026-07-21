@@ -10,9 +10,12 @@ import {
 } from "@arcium-hq/client";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+import { OPPORTUNITY_MARKET_PROGRAM_ADDRESS } from "../generated";
 import {
-  OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-} from "../generated";
+  ARCIUM_DEVNET_CLUSTER_OFFSET,
+  ARCIUM_MAINNET_10K_CLUSTER_OFFSET,
+  ARCIUM_MAINNET_CLUSTER_OFFSET,
+} from "./constants";
 
 function toAddress(pubkey: { toBase58(): string }): Address {
   return address(pubkey.toBase58());
@@ -23,9 +26,11 @@ export interface ArciumConfig {
   programId?: Address;
 }
 
+export type ArciumNetworkConfig = Omit<ArciumConfig, "clusterOffset">;
+
 export function getComputeAccounts(ixName: string, config: ArciumConfig) {
   const programId = config.programId ?? OPPORTUNITY_MARKET_PROGRAM_ADDRESS;
-  const programIdLegacy = new PublicKey(programId)
+  const programIdLegacy = new PublicKey(programId);
   const { clusterOffset, computationOffset } = config;
   const mxeAccount = toAddress(getMXEAccAddress(programIdLegacy));
   const clusterAccount = toAddress(getClusterAccAddress(clusterOffset));
@@ -53,5 +58,35 @@ export function getComputeAccounts(ixName: string, config: ArciumConfig) {
     computationAccount,
     compDefAccount,
     computationOffset,
-  }
+  };
+}
+
+export function getComputeAccountsMainnet(
+  ixName: string,
+  config: ArciumNetworkConfig
+) {
+  return getComputeAccounts(ixName, {
+    ...config,
+    clusterOffset: ARCIUM_MAINNET_CLUSTER_OFFSET,
+  });
+}
+
+export function getComputeAccountsMainnet10k(
+  ixName: string,
+  config: ArciumNetworkConfig
+) {
+  return getComputeAccounts(ixName, {
+    ...config,
+    clusterOffset: ARCIUM_MAINNET_10K_CLUSTER_OFFSET,
+  });
+}
+
+export function getComputeAccountsDevnet(
+  ixName: string,
+  config: ArciumNetworkConfig
+) {
+  return getComputeAccounts(ixName, {
+    ...config,
+    clusterOffset: ARCIUM_DEVNET_CLUSTER_OFFSET,
+  });
 }

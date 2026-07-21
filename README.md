@@ -5,7 +5,7 @@ Opportunity Markets aggregate capital backed insights into actionable signals.
 In Opportunity Markets, users influence decision making by suggesting options and backing their choice with a withdrawable deposit of capital.
 Decision makers get exclusive access to high quality signals, secured by Aricum encryption, giving them first access to valuable opportunities.
 
-Program address on Solana Devnet: `BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd`
+Program address on Solana Mainnet: `BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq`
 
 ## Documentation
 
@@ -61,7 +61,7 @@ must be bumped together with the repo whenever they change:
 
 ### Program keypair
 
-Tests use a deterministic program keypair assumed to be located at `../BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd.json`. If you don't have this keypair, generate your own and update the
+Tests use a deterministic program keypair assumed to be located at `../BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq.json`. If you don't have this keypair, generate your own and update the
 following to match:
 
 1. `declare_id!()` in `programs/opportunity_market/src/lib.rs`
@@ -87,21 +87,13 @@ anchor run js-generate
 
 This runs `anchor build`, copies the IDL into `js/src/idl/`, installs deps, and runs Codama to regenerate `js/src/generated/`.
 
-### Troubleshooting: `DeclaredProgramIdMismatch`
-
-If tests fail with `Error Code: DeclaredProgramIdMismatch`, the compiled `.so` binary has a different program ID baked in than the deploy keypair. This happens when:
-
-- `target/deploy/opportunity_market-keypair.json` doesn't match the `declare_id!()` in the source (prod builds copy the deterministic keypair via `build.sh`).
-- The build was skipped due to caching (arcium reports "Skipping build") and the cached `.so` was compiled with a different keypair. Fix by deleting stale artifacts and rebuilding:
-
-```bash
-rm -f target/deploy/opportunity_market.so target/sbpf-solana-solana/release/opportunity_market.so
-arcium build
-```
-
-- `Arcium.toml` has a bad `program_keypair` path (e.g. trailing whitespace), causing arcium to fall back to a generated keypair.
-
 ## Deployment
+
+**IMPORTANT!**
+
+Upload your compute circuits to a stable publically accessible URL and update the program circuit definitions to point to that url!
+
+**On mainnet change the cluster offset to 2026 or 10000**
 
 1. Ensure `disable-prod-guardrails` is **not** enabled (mainnet/devnet deploys should keep production guardrails active)
 2. Update the program `declare_id!` macro to use your program keypair's pubkey
@@ -119,7 +111,9 @@ PROGRAM_ID="your_program_id"
 Deploy the program:
 
 ```bash
-./deploy.sh
+./deploy.sh program # Solana program deploy
+./deploy.sh mxe     # Arcium deploy and initialization
+./deploy.sh idl     # Create the on-chain IDL
 ```
 
 Initialize compute definitions:

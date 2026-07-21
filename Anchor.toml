@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-opportunity_market = "BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd"
+opportunity_market = "BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq"
 
 [provider]
 cluster = "http://127.0.0.1:8899"
@@ -30,5 +30,5 @@ rpc_port = 8899
 
 # Load the program at declare_id without owning the program keypair.
 [[test.validator.program]]
-address = "BNCHRe8NyftP6xSc8nzG5nvPHGgbhfxmRJkUHrb4P6Xd"
+address = "BENCHYxBqzpvkzS6ZEHjwnH3U1x6twmjvxeRHT9pg1hq"
 path = "target/deploy/opportunity_market.so"

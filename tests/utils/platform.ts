@@ -34,23 +34,19 @@ import {
   addMarketOption,
   initVouchAccount,
   initAllowedMint,
-  vouch as vouchIx,
+  ProgramContext,
   setWinningOption as setWinningOptionIx,
   resolveMarket as resolveMarketIx,
-  revealVouch,
   finalizeRevealVouch,
   claimRewards,
   closeVouchAccount,
   closeUnrevealedVouchAccount,
   closeOptionAccount,
   closeStuckVouchAccount as closeStuckVouchAccountIx,
-  withdrawVouch as withdrawVouchIx,
   openMarket as openMarketIx,
   addReward as addRewardIx,
   withdrawReward as withdrawRewardIx,
   endRevealPeriod as endRevealPeriodIx,
-  awaitVouchFinalization,
-  awaitRevealVouchFinalization,
   getVouchAccountAddress as getVouchAccountAddressPda,
   fetchVouchAccount,
   getOpportunityMarketOptionAddress,
@@ -224,6 +220,7 @@ export class Platform {
 
   // Arcium
   private arciumEnv: ReturnType<typeof getArciumEnv>;
+  private programContext: ProgramContext;
   private mxePublicKey: Uint8Array;
   private programId: Address;
 
@@ -284,6 +281,10 @@ export class Platform {
     runner.marketConfig = marketConfig as MarketConfig;
     runner.programId = programId;
     runner.arciumEnv = getArciumEnv();
+    runner.programContext = new ProgramContext(
+      runner.arciumEnv.arciumClusterOffset,
+      programId
+    );
 
     // Initialize RPC clients
     runner.rpc = createSolanaRpc(rpcUrl) as unknown as Rpc<SolanaRpcApi>;
@@ -499,14 +500,6 @@ export class Platform {
       throw new Error(`User not found: ${userId}`);
     }
     return user;
-  }
-
-  private getArciumConfig(computationOffset: bigint) {
-    return {
-      clusterOffset: this.arciumEnv.arciumClusterOffset,
-      computationOffset,
-      programId: this.programId,
-    };
   }
 
   private getNextVouchAccountId(user: TestUser): number {
@@ -755,7 +748,7 @@ export class Platform {
           const optionCiphertext = cipher.encrypt([BigInt(p.optionId)], inputNonce);
           const computationOffset = randomComputationOffset();
 
-          const vouchInstruction = await vouchIx(
+          const vouchInstruction = await this.programContext.vouch(
             {
               signer: user.solanaKeypair,
               payer: user.solanaKeypair,
@@ -772,7 +765,7 @@ export class Platform {
               userPubkey: user.x25519Keypair.publicKey,
               stateNonce: vouchAccountNonce,
             },
-            this.getArciumConfig(computationOffset),
+            computationOffset,
           );
 
           const { signature: invocationSignature } = await sendTransaction(
@@ -796,10 +789,10 @@ export class Platform {
 
         await Promise.all(
           pending.map(async (entry) => {
-            await awaitVouchFinalization(
+            await this.programContext.awaitVouchFinalization(
               this.rpc,
               entry.invocationSignature,
-              this.getArciumConfig(entry.computationOffset),
+              entry.computationOffset,
             );
 
             const vouchAccountData = await fetchVouchAccount(
@@ -844,24 +837,24 @@ export class Platform {
       const user = this.getUser(r.userId);
       const computationOffset = randomComputationOffset();
 
-      const ix = await revealVouch(
+      const ix = await this.programContext.revealVouch(
         {
           signer: user.solanaKeypair,
           owner: user.solanaKeypair.address,
           market: this.marketAddress,
           vouchAccountId: r.vouchAccountId,
         },
-        this.getArciumConfig(computationOffset)
+        computationOffset
       );
 
       const { signature } = await sendTransaction(this.rpc, this.sendAndConfirm, user.solanaKeypair, [ix], {
         label: `Reveal vouch`,
       });
 
-      await awaitRevealVouchFinalization(
+      await this.programContext.awaitRevealVouchFinalization(
         this.rpc,
         signature,
-        this.getArciumConfig(computationOffset),
+        computationOffset,
       );
     }
   }
@@ -1111,7 +1104,7 @@ export class Platform {
     const optionCiphertext = cipher.encrypt([BigInt(optionId)], inputNonce);
     const computationOffset = randomComputationOffset();
 
-    const vouchInstruction = await vouchIx(
+    const vouchInstruction = await this.programContext.vouch(
       {
         signer: user.solanaKeypair,
         payer: user.solanaKeypair,
@@ -1128,7 +1121,7 @@ export class Platform {
         userPubkey: user.x25519Keypair.publicKey,
         stateNonce: vouchAccountNonce,
       },
-      this.getArciumConfig(computationOffset)
+      computationOffset
     );
 
     // Build close stuck instruction (codama auto-derives tokenVault/tokenVaultAta from tokenMint)
@@ -1186,7 +1179,7 @@ export class Platform {
     const optionCiphertext = cipher.encrypt([BigInt(optionId)], inputNonce);
     const computationOffset = randomComputationOffset();
 
-    const vouchInstruction = await vouchIx(
+    const vouchInstruction = await this.programContext.vouch(
       {
         signer: user.solanaKeypair,
         payer: user.solanaKeypair,
@@ -1203,10 +1196,10 @@ export class Platform {
         userPubkey: user.x25519Keypair.publicKey,
         stateNonce: vouchAccountNonce,
       },
-      this.getArciumConfig(computationOffset),
+      computationOffset,
     );
 
-    const withdrawVouchInstruction = await withdrawVouchIx({
+    const withdrawVouchInstruction = await this.programContext.withdrawVouch({
       signer: user.solanaKeypair,
       owner: user.solanaKeypair.address,
       market: this.marketAddress,
@@ -1240,7 +1233,7 @@ export class Platform {
       const owner = this.getUser(r.userId);
       const signer = r.signerId ? this.getUser(r.signerId) : owner;
 
-      const ix = await withdrawVouchIx({
+      const ix = await this.programContext.withdrawVouch({
         signer: signer.solanaKeypair,
         owner: owner.solanaKeypair.address,
         market: this.marketAddress,

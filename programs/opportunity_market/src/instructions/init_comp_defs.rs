@@ -33,7 +33,7 @@ pub fn vouch_comp_def(ctx: Context<VouchCompDef>) -> Result<()> {
         init_computation_def(
             ctx.accounts,
             Some(CircuitSource::OffChain(OffChainCircuitSource {
-                source: "https://blobs.bench.markets/vouch.arcis".to_string(),
+                source: "https://blobs.bench.markets/mainnet/vouch.arcis".to_string(),
                 hash: circuit_hash!("vouch"),
             })),
         )?;
@@ -71,7 +71,7 @@ pub fn reveal_vouch_comp_def(ctx: Context<RevealVouchCompDef>) -> Result<()> {
         init_computation_def(
             ctx.accounts,
             Some(CircuitSource::OffChain(OffChainCircuitSource {
-                source: "https://blobs.bench.markets/reveal_vouch.arcis".to_string(),
+                source: "https://blobs.bench.markets/mainnet/reveal_vouch.arcis".to_string(),
                 hash: circuit_hash!("reveal_vouch"),
             })),
         )?;

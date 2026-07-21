@@ -119,5 +119,16 @@ Deploy the program:
 Initialize compute definitions:
 
 ```bash
-bun scripts/init-compute-defs.ts
+bun admin comp-defs init
+```
+
+To run a smoke test on the deployed program, you can use the script in `scripts/test-vouch.ts`.
+If this scripts succeeds, your deployed program is probably working.
+
+```bash
+# dry run
+bun run scripts/init-compute-defs.ts devnet # <devnet|mainnet|mainnet10k>
+
+# real run
+EXECUTE=1 bun run scripts/init-compute-defs.ts devnet # <devnet|mainnet|mainnet10k>
 ```

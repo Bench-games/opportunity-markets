@@ -6,14 +6,20 @@ import {
   fetchMint,
   fetchToken,
   findAssociatedTokenPda,
+  getCreateAssociatedTokenInstructionAsync,
+  getInitializeMintInstruction,
+  getMintSize,
+  getMintToInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from "@solana-program/token";
+import { getCreateAccountInstruction } from "@solana-program/system";
 import {
   address,
   appendTransactionMessageInstructions,
   createKeyPairSignerFromBytes,
   createSolanaRpc,
   createTransactionMessage,
+  generateKeyPairSigner,
   getBase64EncodedWireTransaction,
   getSignatureFromTransaction,
   isNone,
@@ -30,7 +36,6 @@ import {
 import {
   ALLOWED_MINT_DISCRIMINATOR,
   ProgramContext,
-  ARCIUM_MAINNET_CLUSTER_OFFSET,
   ARCIUM_PROGRAM_ID,
   OPPORTUNITY_MARKET_DISCRIMINATOR,
   OPPORTUNITY_MARKET_OPTION_DISCRIMINATOR,
@@ -61,15 +66,40 @@ import {
   randomComputationOffset,
 } from "../js/src/index";
 
-const MAINNET_GENESIS_HASH = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d";
 const MAINNET_USDC_MINT = address(
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 );
 const USDC_DECIMALS = 6;
 const VOUCH_AMOUNT = 10_000n; // 0.01 USDC; intentionally not configurable on mainnet.
+const DEVNET_TOKEN_BALANCE = 1_000_000_000n;
 const COMMITMENT = "confirmed" as const;
 const USER_PLATFORM_FEE_BP = 50n;
 const USER_CREATOR_FEE_BP = 50n;
+
+type Network = "devnet" | "mainnet" | "mainnet10k";
+
+function getNetwork(): Network {
+  const network = process.argv[2];
+  assert(
+    network === "devnet" || network === "mainnet" || network === "mainnet10k",
+    "Usage: bun scripts/test-vouch.ts <devnet|mainnet|mainnet10k>"
+  );
+  return network;
+}
+
+function getProgramContext(
+  network: Network,
+  programId: Address
+): ProgramContext {
+  switch (network) {
+    case "devnet":
+      return ProgramContext.devnet(programId);
+    case "mainnet":
+      return ProgramContext.mainnet(programId);
+    case "mainnet10k":
+      return ProgramContext.mainnet10k(programId);
+  }
+}
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -218,6 +248,61 @@ async function sendInstructions(
   return signature;
 }
 
+async function createAndFundDevnetMint(
+  rpc: ReturnType<typeof createSolanaRpc>,
+  payer: KeyPairSigner,
+  mint: KeyPairSigner,
+  payerTokenAccount: Address
+): Promise<Signature[]> {
+  const space = BigInt(getMintSize());
+  const rent = await rpc.getMinimumBalanceForRentExemption(space).send();
+  const createMintSignature = await sendInstructions(
+    rpc,
+    payer,
+    "create devnet token mint",
+    [
+      getCreateAccountInstruction({
+        payer,
+        newAccount: mint,
+        lamports: rent,
+        space,
+        programAddress: TOKEN_PROGRAM_ADDRESS,
+      }),
+      getInitializeMintInstruction({
+        mint: mint.address,
+        decimals: USDC_DECIMALS,
+        mintAuthority: payer.address,
+      }),
+    ]
+  );
+  const createAtaSignature = await sendInstructions(
+    rpc,
+    payer,
+    "create devnet payer token account",
+    [
+      await getCreateAssociatedTokenInstructionAsync({
+        payer,
+        mint: mint.address,
+        owner: payer.address,
+      }),
+    ]
+  );
+  const mintSignature = await sendInstructions(
+    rpc,
+    payer,
+    "mint devnet test tokens",
+    [
+      getMintToInstruction({
+        mint: mint.address,
+        token: payerTokenAccount,
+        mintAuthority: payer,
+        amount: DEVNET_TOKEN_BALANCE,
+      }),
+    ]
+  );
+  return [createMintSignature, createAtaSignature, mintSignature];
+}
+
 async function assertArciumAccount(
   rpc: ReturnType<typeof createSolanaRpc>,
   accountAddress: Address,
@@ -233,40 +318,50 @@ async function assertArciumAccount(
   assertEqual(response.value.owner, ARCIUM_PROGRAM_ID, `${label} owner`);
 }
 
+async function fetchAndValidateTokenSetup(
+  rpc: ReturnType<typeof createSolanaRpc>,
+  tokenMint: Address,
+  payerTokenAccount: Address,
+  payer: KeyPairSigner,
+  vouchAmount: bigint
+) {
+  const mint = await fetchMint(rpc, tokenMint, { commitment: COMMITMENT });
+  assertEqual(mint.programAddress, TOKEN_PROGRAM_ADDRESS, "Mint program owner");
+  assert(mint.data.isInitialized, `Mint is not initialized: ${tokenMint}`);
+  assertEqual(mint.data.decimals, USDC_DECIMALS, "Mint decimals");
+
+  const payerToken = await fetchToken(rpc, payerTokenAccount, {
+    commitment: COMMITMENT,
+  });
+  assertEqual(
+    payerToken.programAddress,
+    TOKEN_PROGRAM_ADDRESS,
+    "Payer token account owner"
+  );
+  assertEqual(payerToken.data.owner, payer.address, "Payer token authority");
+  assertEqual(payerToken.data.mint, tokenMint, "Payer token mint");
+  assert(
+    payerToken.data.amount >= vouchAmount,
+    `Payer token balance ${payerToken.data.amount} is below ${vouchAmount}`
+  );
+
+  return { mint, payerToken };
+}
+
 async function main(): Promise<void> {
+  const network = getNetwork();
   const rpcUrl = requiredEnv("RPC_URL");
   const programId = address(
     process.env.PROGRAM_ID?.trim() || OPPORTUNITY_MARKET_PROGRAM_ADDRESS
   );
-  assertEqual(
-    programId,
-    OPPORTUNITY_MARKET_PROGRAM_ADDRESS,
-    "Mainnet program ID"
-  );
-  const tokenMint = MAINNET_USDC_MINT;
   const payerSecret = readKeypair(requiredEnv("DEPLOYER_KEYPAIR_PATH"));
   const payer = await createKeyPairSignerFromBytes(payerSecret);
-  const clusterOffset = Number(
-    process.env.ARCIUM_CLUSTER_OFFSET ?? ARCIUM_MAINNET_CLUSTER_OFFSET
-  );
-  assert(
-    Number.isSafeInteger(clusterOffset) && clusterOffset >= 0,
-    "ARCIUM_CLUSTER_OFFSET must be a non-negative safe integer"
-  );
-  assertEqual(
-    clusterOffset,
-    ARCIUM_MAINNET_CLUSTER_OFFSET,
-    "Arcium mainnet cluster offset"
-  );
-  const programContext = ProgramContext.mainnet(programId);
+  const programContext = getProgramContext(network, programId);
+  const devnetMint =
+    network === "devnet" ? await generateKeyPairSigner() : undefined;
+  const tokenMint = devnetMint?.address ?? MAINNET_USDC_MINT;
 
   const rpc = createSolanaRpc(rpcUrl);
-  const genesisHash = await rpc.getGenesisHash().send();
-  assertEqual(
-    genesisHash,
-    MAINNET_GENESIS_HASH,
-    "RPC genesis hash (mainnet required)"
-  );
 
   const programInfo = await rpc
     .getAccountInfo(programId, { commitment: COMMITMENT, encoding: "base64" })
@@ -282,10 +377,6 @@ async function main(): Promise<void> {
   ).value;
   assert(payerBalance > 0n, `Payer has no SOL: ${payer.address}`);
 
-  const mint = await fetchMint(rpc, tokenMint, { commitment: COMMITMENT });
-  assertEqual(mint.programAddress, TOKEN_PROGRAM_ADDRESS, "Mint program owner");
-  assert(mint.data.isInitialized, `Mint is not initialized: ${tokenMint}`);
-  assertEqual(mint.data.decimals, USDC_DECIMALS, "USDC mint decimals");
   const vouchAmount = VOUCH_AMOUNT;
   const expectedPlatformFee = (vouchAmount * USER_PLATFORM_FEE_BP) / 10_000n;
   const expectedCreatorFee = (vouchAmount * USER_CREATOR_FEE_BP) / 10_000n;
@@ -296,24 +387,16 @@ async function main(): Promise<void> {
     owner: payer.address,
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
   });
-  const payerTokenBefore = await fetchToken(rpc, payerTokenAccount, {
-    commitment: COMMITMENT,
-  });
-  assertEqual(
-    payerTokenBefore.programAddress,
-    TOKEN_PROGRAM_ADDRESS,
-    "Payer token account owner"
-  );
-  assertEqual(
-    payerTokenBefore.data.owner,
-    payer.address,
-    "Payer token authority"
-  );
-  assertEqual(payerTokenBefore.data.mint, tokenMint, "Payer token mint");
-  assert(
-    payerTokenBefore.data.amount >= vouchAmount,
-    `Payer token balance ${payerTokenBefore.data.amount} is below ${vouchAmount}`
-  );
+  let tokenSetup =
+    network === "devnet"
+      ? undefined
+      : await fetchAndValidateTokenSetup(
+          rpc,
+          tokenMint,
+          payerTokenAccount,
+          payer,
+          vouchAmount
+        );
 
   const computationOffset = randomComputationOffset();
   const computeAccounts = programContext.getComputeAccounts(
@@ -399,16 +482,16 @@ async function main(): Promise<void> {
   );
 
   console.log("\nOpportunity Markets vouch smoke test");
-  console.log(`  Cluster: mainnet (${genesisHash})`);
-  console.log(`  Arcium cluster offset: ${clusterOffset}`);
+  console.log(`  Cluster: ${network}`);
+  console.log(`  Arcium cluster offset: ${programContext.clusterOffset}`);
   console.log(`  Program: ${programId}`);
   console.log(`  Fee payer/authority: ${payer.address}`);
   console.log(`  Payer SOL: ${payerBalance} lamports`);
-  console.log(`  Mint: ${tokenMint} (${mint.data.decimals} decimals)`);
+  console.log(`  Mint: ${tokenMint} (${USDC_DECIMALS} decimals)`);
   console.log(
     `  Token transfer: ${formatTokenAmount(
       vouchAmount,
-      mint.data.decimals
+      USDC_DECIMALS
     )} token (${vouchAmount} raw)`
   );
   console.log(`  Payer token account: ${payerTokenAccount}`);
@@ -418,16 +501,37 @@ async function main(): Promise<void> {
   console.log(`  Market: ${market}`);
   console.log(`  Options: ${optionAddresses.join(", ")}`);
   console.log(`  Vouch account: ${vouchAccount} (id ${vouchAccountId})`);
+  const transactionCount = network === "devnet" ? 12 : 9;
   console.log(
-    "  Writes: 9 transactions; each is simulated before submission\n"
+    `  Writes: ${transactionCount} transactions; each is simulated before submission\n`
   );
 
   assert(
     process.env.EXECUTE === "1",
-    "Preflight passed. Set EXECUTE=1 to authorize the nine mainnet transactions."
+    `Preflight passed. Set EXECUTE=1 to authorize the ${transactionCount} ${network} transactions.`
   );
 
   const signatures: Signature[] = [];
+  if (devnetMint) {
+    signatures.push(
+      ...(await createAndFundDevnetMint(
+        rpc,
+        payer,
+        devnetMint,
+        payerTokenAccount
+      ))
+    );
+    tokenSetup = await fetchAndValidateTokenSetup(
+      rpc,
+      tokenMint,
+      payerTokenAccount,
+      payer,
+      vouchAmount
+    );
+  }
+  assert(tokenSetup, "Token setup was not initialized");
+  const payerTokenBefore = tokenSetup.payerToken;
+
   signatures.push(
     await sendInstructions(rpc, payer, "create platform", [
       await createPlatformConfig(rpc, {

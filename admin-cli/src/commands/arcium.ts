@@ -3,7 +3,6 @@ import {
   getCompDefAccount,
   ALL_COMP_DEF_CIRCUITS,
 } from "../../../js/src/index.js";
-import { ARCIUM_MAINNET_CLUSTER_OFFSET } from "../defaults.js";
 import { getMxePublicKeyHex, getVouchComputeAddresses } from "../arcium.js";
 import { getReadContext } from "./common.js";
 import { printHeader, printSummary } from "../render.js";
@@ -23,19 +22,14 @@ export function registerArciumCommands(program: Command): void {
   arcium
     .command("addresses")
     .description("Print Arcium addresses used by this program")
-    .option(
-      "--cluster-offset <offset>",
-      "Arcium cluster offset (mainnet: 10000; devnet: 456)",
-      String(ARCIUM_MAINNET_CLUSTER_OFFSET)
-    )
-    .action(async (options, command) => {
+    .action(async (_options, command) => {
       const ctx = getReadContext(command);
-      const clusterOffset = Number(options.clusterOffset);
-      const addresses = getVouchComputeAddresses(ctx, clusterOffset, 0n);
+      const addresses = getVouchComputeAddresses(ctx, 0n);
       printHeader("Arcium addresses");
       printSummary({
         Program: ctx.programId,
-        "Cluster offset": clusterOffset,
+        "Program context": ctx.programContextName,
+        "Cluster offset": ctx.programContext.clusterOffset,
         "MXE account": addresses.mxeAccount,
         "Cluster account": addresses.clusterAccount,
         "Mempool account": addresses.mempoolAccount,

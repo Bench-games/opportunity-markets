@@ -106,6 +106,7 @@ DEPLOYER_KEYPAIR_PATH="/path/to/your/keypair.json"
 RPC_URL="https://your-rpc-url"
 PROGRAM_KEYPAIR_PATH="/path/to/program-keypair.json"
 PROGRAM_ID="your_program_id"
+PROGRAM_CONTEXT="mainnet" # devnet (456), mainnet (2026), or mainnet10k (10000)
 ```
 
 Deploy the program:

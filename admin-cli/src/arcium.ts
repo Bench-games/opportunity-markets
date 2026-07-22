@@ -1,5 +1,8 @@
-import { getMxeAccount, getCompDefAccount, ALL_COMP_DEF_CIRCUITS } from "../../js/src/index.js";
-import { getComputeAccounts } from "../../js/src/arcium/computeAccounts.js";
+import {
+  getMxeAccount,
+  getCompDefAccount,
+  ALL_COMP_DEF_CIRCUITS,
+} from "../../js/src/index.js";
 import type { BaseCliContext } from "./context.js";
 
 export async function getMxePublicKeyHex(ctx: BaseCliContext): Promise<string> {
@@ -8,12 +11,11 @@ export async function getMxePublicKeyHex(ctx: BaseCliContext): Promise<string> {
   return Buffer.from(utilityPubkeys.x25519Pubkey).toString("hex");
 }
 
-export function getVouchComputeAddresses(ctx: BaseCliContext, clusterOffset: number, computationOffset = 0n) {
-  return getComputeAccounts("vouch", {
-    clusterOffset,
-    computationOffset,
-    programId: ctx.programId,
-  });
+export function getVouchComputeAddresses(
+  ctx: BaseCliContext,
+  computationOffset = 0n
+) {
+  return ctx.programContext.getComputeAccounts("vouch", computationOffset);
 }
 
 export { ALL_COMP_DEF_CIRCUITS, getCompDefAccount };

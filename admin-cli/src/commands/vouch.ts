@@ -3,14 +3,12 @@ import { randomBytes } from "node:crypto";
 import { Command } from "commander";
 import { type Instruction } from "@solana/kit";
 import {
-  ProgramContext,
   createCipher,
   generateX25519Keypair,
   getVouchAccountAddress,
   initVouchAccount,
   randomComputationOffset,
 } from "../../../js/src/index.js";
-import { ARCIUM_MAINNET_CLUSTER_OFFSET } from "../defaults.js";
 import { selectMarket } from "../discovery.js";
 import { getMxePublicKeyHex } from "../arcium.js";
 import { getContext } from "./common.js";
@@ -73,11 +71,6 @@ export function registerVouchCommands(program: Command): void {
     .option("--amount <amount>")
     .option("--option-id <id>")
     .option("--x25519-keypair <path>")
-    .option(
-      "--cluster-offset <offset>",
-      "Arcium cluster offset (mainnet: 10000; devnet: 456)",
-      String(ARCIUM_MAINNET_CLUSTER_OFFSET)
-    )
     .action(async (options, command) => {
       const ctx = await getContext(command);
       const market = await selectMarket(ctx);
@@ -126,6 +119,8 @@ export function registerVouchCommands(program: Command): void {
         "Vouch account ID": vouchAccountId,
         "Vouch account": vouchAccount,
         "X25519 keypair": keypairPath ?? "ephemeral",
+        "Program context": ctx.programContextName,
+        "Cluster offset": ctx.programContext.clusterOffset,
       });
       await confirmTransaction(ctx.yes);
 
@@ -153,12 +148,8 @@ export function registerVouchCommands(program: Command): void {
         inputNonce
       )[0];
       const computationOffset = randomComputationOffset();
-      const programContext = new ProgramContext(
-        Number(options.clusterOffset),
-        ctx.programId
-      );
 
-      const vouchIx = await programContext.vouch(
+      const vouchIx = await ctx.programContext.vouch(
         {
           signer: ctx.payer,
           payer: ctx.payer,

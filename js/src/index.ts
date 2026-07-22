@@ -12,6 +12,7 @@ export * from "./utils";
 
 // Export Arcium utilities
 export * from "./arcium/awaitFinalizeComputation";
+export * from "./arcium/claimComputationRent";
 export * from "./arcium/computeAccounts";
 export * from "./arcium/constants";
 export * from "./programContext";

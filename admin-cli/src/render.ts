@@ -22,6 +22,26 @@ export function printSummary(rows: Record<string, unknown>): void {
   }
 }
 
-export function optionLabel(index: number, label: string, detail?: string): string {
-  return `${chalk.cyan(String(index + 1).padStart(2, " "))}  ${label}${detail ? chalk.dim(`  ${detail}`) : ""}`;
+export function printProgramContextBadge(name: string): void {
+  const label = `[${name}]`;
+  const badge =
+    name === "devnet"
+      ? chalk.bold.green(label)
+      : name === "mainnet"
+      ? chalk.bold.red(label)
+      : name === "mainnet10k"
+      ? chalk.bold.yellow(label)
+      : chalk.bold.red(label);
+  console.log("-".repeat(80));
+  console.log(`context: ${badge}`);
+}
+
+export function optionLabel(
+  index: number,
+  label: string,
+  detail?: string
+): string {
+  return `${chalk.cyan(String(index + 1).padStart(2, " "))}  ${label}${
+    detail ? chalk.dim(`  ${detail}`) : ""
+  }`;
 }
